@@ -19,11 +19,13 @@ A 4chan viewer for a more civilized age
 2. Add/remove any boards you are interested in `boards.txt`
 
 
-3. Run the app. Threads are downloaded every 2 seconds, so you may have to wait for a few minutes on first setup.
+3. Run the app
 
     ```bash
     python run.py
     ```
+
+    Open any of the html files in your browser. New threads are downloaded every two seconds, so you may have to wait for a few minutes the first time. 
 
 
 ## Screenshots
