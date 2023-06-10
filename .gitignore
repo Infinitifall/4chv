@@ -1,0 +1,12 @@
+# vscode
+.vscode/
+
+# project files
+html/*.html
+html/thumbs
+threads/
+venv_chv/
+
+myenv/
+
+**/__pycache__/
