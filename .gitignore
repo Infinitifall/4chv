@@ -1,0 +1,6 @@
+# project files
+*.html
+*.pkl
+
+threads/
+**/__pycache__/

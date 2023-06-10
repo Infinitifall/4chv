@@ -1,0 +1,225 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    line-height: 1.5em;
+
+    background-color: #1e2022;
+    color: #ccc;
+
+    min-width: 1000px;
+}
+
+img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+a { color: #6e7aac; text-decoration: none; }
+a:visited { color: #6e7aac; text-decoration: none; }
+a:hover { color: #6e7aac; text-decoration: underline; }
+
+.wrapper {
+    max-width: min(95%, 1600px);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.page-title {
+    user-select: none;
+    text-align: center;
+    font-size: 2em;
+}
+
+.greeter {
+    user-select: none;
+    text-align: center;
+    margin-bottom: 3em;
+}
+
+.greeter-element {
+    user-select: none;
+    margin-right: 1em;
+}
+
+/*
+Styling for threads
+*/
+
+.thread-parent {
+    padding: 0.5em 1em;
+    margin-bottom: 5em;
+    background-color: #151618;
+}
+
+.thread-parent > .post-parent-r > .post-parent {
+    background-color: #151618;
+}
+
+.thread-parent > .post-parent-r {
+    margin-left: -1em;
+    border-left: none;
+}
+
+.thread {
+    user-select: none;
+    float: right;
+}
+
+.thread-sub {
+    user-select: none;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 0.5em;
+}
+
+.thread-thumbnail {
+    user-select: none;
+    height: 100px;
+    max-width: 600px;
+}
+
+.thread-replies {
+    user-select: none;
+    display: inline-block;
+    margin-bottom: 0.3em;
+    margin-right: 0.5em;
+    color: #9ee7e0;
+}
+
+/*
+Styling for posts
+*/
+
+.post-parent-r {
+    border-left: 1px solid #282a2e;
+    margin-left: 1em;
+}
+
+.post-parent-r > .no-embed { margin-left: 0em; }
+
+.post-parent {
+    background: #282a2e;
+    padding: 0.5em 1em;
+    margin-bottom: 0.5em;
+}
+
+.post-complexity {
+    user-select: none;
+    display: inline-block;
+    margin-bottom: 0.3em;
+    margin-right: 0.5em;
+    color: #c676eb;
+}
+
+.post-complexity-number {
+    user-select: none;
+    display: inline-block;
+    margin-bottom: 0.3em;
+    margin-right: 0.5em;
+    color: #555;
+}
+
+.post-time {
+    user-select: none;
+    float: right;
+    margin-right: 1em;
+    color: #555;
+}
+
+.post-name {
+    float: right;
+    margin-right: 1em;
+    color: #81c65c;
+}
+
+.post-sub {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 1em;
+}
+
+.post-file {
+    user-select: none;
+}
+
+.post-country-name {
+
+    user-select: none;
+    float: right;
+    margin-right: 1em;
+    color: #777;
+}
+
+.post-no,
+.post-no:hover,
+.post-no:visited
+{
+    user-select: none;
+    float: right;
+    margin-right: 1em;
+    color: #555;
+}
+
+.post {
+    white-space: pre-line;
+    word-break: break-all;
+}
+
+.green-text {
+    display: inline-block;
+    color: #b5bd68;
+}
+
+.reply-text,
+.reply-text:visited,
+.reply-text:hover
+{
+    display: inline-block;
+    color: #6e7aac;
+}
+
+/*
+Styling for collapsible 
+*/
+
+.collapsed {
+    min-height: 1.5em;
+    max-height: 1.5em;
+    overflow: hidden;
+    background-color: #111;
+}
+
+.collapsed-parent > .post-parent-r {
+    display: none;
+}
+
+.collapsed-thread-parent {
+    background-color: #111;
+}
+
+.collapsed-thread-parent > .post-parent-r {
+    display: none;
+}
+
+.post-collapsible-anchor,
+.post-collapsible-anchor:hover,
+.post-collapsible-anchor:visited,
+.thread-collapsible-anchor,
+.thread-collapsible-anchor:hover,
+.thread-collapsible-anchor:visited
+{
+    user-select: none;
+    color: #888;
+    text-decoration: none !important;
+    margin-right: 0.5em;
+    font-size: 1.2em;
+}
+
+.post-collapsible-anchor:hover,
+.thread-collapsible-anchor:hover
+{
+    cursor: pointer;
+}
