@@ -8,15 +8,20 @@ import threading
 def main():
     board_names = list()
     with open('boards.txt', 'r') as f:
-        lines = f.readlines()
+        lines = f.read().splitlines()
 
         for line in lines:
-            board_names.append(line[:-1])
+            if line != '':
+                board_names.append(line)
     
+    print('4CHV: A viewer for a more civilized age ')
+    print(f'Boards selected: {board_names} (from boards.txt)')
+    print('Starting downloads')
+
     thread_list = list()
 
     # download boards
-    wait_time = len(board_names) * 3
+    wait_time = len(board_names) * 2
     for board_name in board_names:
         t = threading.Thread(
             target=scripts.download.get_board_wrapper,
@@ -49,4 +54,3 @@ def main():
 if __name__ == '__main__':
     main();
 
-   
