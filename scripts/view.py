@@ -32,34 +32,6 @@ def filter_post_post(content : str):
     return content
 
 
-"""
-The following function has been sourced from other software (licenses below):
-
-1. From Infinitifall/complexity-sort, MIT License, Copyright (c) 2022 Infinitifall
-
-
-MIT License
-
-Copyright (c) 2022 Infinitifall
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
 # given a list of sentences, returns a list of the same length of their 'complexity scores'
 def complexity_score(sentences_array):
     words_count = dict()
@@ -161,94 +133,90 @@ def sort_board_cumulative_complexity(board : dict):
     threads_sorted = sorted(threads_sorted, key=lambda x: board[x]['cumulative_complexity'], reverse=True)
     return threads_sorted
 
-
-# recursively print all posts in thread with appropriate tabbing
-def print_posts_r(board : dict, thread_id : int, post_id : int, tabbing : int, html_string : str):
-    html_string += '<div class="post-parent-r">'
-
+def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: int, post_list: list):
     if post_id not in board[thread_id]['thread']:
         # post might have been deleted
-        html_string += f'<div class="post-parent></div>'
-        html_string += '</div>'
-        return html_string
+        return
 
     post = board[thread_id]['thread'][post_id]
 
-    if 'printed_once' in post:
-        html_string += '</div>'
-        return html_string
-    
+    if 'occurrences' in post and post['occurrences'] > 0:
+        return
+
     # logic for hiding a post by default
-    hidden = False
     post_complexity_int = int((post['complexity'] / 100) ** 0.8)
-    if (post_complexity_int <= 10 + 2 * tabbing) and not (tabbing == 0):
-        hidden = True
-        html_string = html_string[:-2] + ' collapsed-parent">'
+    if (post_complexity_int <= 10 + 2 * tabbing) and (tabbing > 0):
+        post['hidden'] = True
     
-    html_string += print_post(post, tabbing, hidden)
-    post['printed_once'] = True
+    post_list.append(post)
+    post['tabbing'] = tabbing
+
+    if 'occurrences' not in post:
+        post['occurrences'] = 1
+    else:
+        post['occurrences'] += 1
 
     for succ in post['succ']:
-        html_string = print_posts_r(board, thread_id, succ, tabbing + 1, html_string)
+        create_post_list_r(board, thread_id, succ, tabbing + 1, post_list)
     
-    html_string += '</div>'
-    return html_string
-
+    return post_list
+    
 
 # print a single post
-def print_post(post: dict, tabs: int, hidden: bool):
-    html_string = ""
-
-    if hidden:
-        html_string += f'<div class="post-parent collapsed">'
-    else:
-        html_string += f'<div class="post-parent">'
-
-    html_string += '<a class="post-collapsible-anchor">[+]</a>'
-    
-    html_string += f'<a class="post-no" id="{post["no"]}" href="#{post["no"]}">#{post["no"]}</a>'
-    
+def print_post(post: dict):    
     complexity_int = int((post['complexity'] / 100) ** 0.8)
     # cumulative_complexity_int = int((post['cumulative_complexity'] / 100) ** 0.8)
     # cumulative_complexity_diff_int = int(((post['cumulative_complexity'] - post['complexity']) / 100) ** 0.8)
     complexity_hashes_int = int((post['complexity'] / 100) ** 0.7)
     
-    html_string += f'<div class="post-complexity-number">{complexity_int} points</div>'
-    html_string += f'<div class="post-complexity">{"#" * complexity_hashes_int}</div>'
-    
     time_delta = datetime.now() - datetime.fromtimestamp(post['time'])
     time_delta_days = time_delta.days
     time_delta_hours = int(time_delta.total_seconds() // 3600)
     time_delta_minutes = int((time_delta.total_seconds() % 3600) // 60)
+    post_time = ''
     if time_delta_days == 0:
         if time_delta_hours == 0:
-            html_string += f'<div class="post-time">{time_delta_minutes}m ago</div>'
+            post_time = f'{time_delta_minutes}m ago'
         else:
-            html_string += f'<div class="post-time">{time_delta_hours}h {time_delta_minutes}m ago</div>'
+            post_time = f'{time_delta_hours}h {time_delta_minutes}m ago'
     else:
-        html_string += f'<div class="post-time">{time_delta_days}d {time_delta_hours}h ago</div>'
+        post_time = f'{time_delta_days}d {time_delta_hours}h ago'
 
+    post_name = ''
     if 'name' in post:
-        post_name = html.escape(post["name"])
-        html_string += f'<div class="post-name">~{post_name}</div>'
+        post_name = '~' + html.escape(post['name'])
     
+    post_country_name = ''
     if 'country_name' in post:
-        html_string += f'<div class="post-country-name">{post["country_name"]}</div>'
+        post_country_name = post['country_name']
 
+    post_file = ''
+    post_filename = ''
+    post_ext = ''
     if 'file' in post:
-        html_string += f'''<div class="post-file"><a href="{post['file']}" target="_blank">{post['filename'] + post['ext']}</a></div>'''
+        post_file = post['file']
+        post_filename = post['filename']
+        post_ext = post['ext']
 
+    post_com = ''
     if 'com' in post and len(post['com']) > 0:
         post_com = filter_post_pre(post['com'])
         post_com = html.escape(post_com)
         post_com = filter_post_post(post_com)
-        html_string += f'<div class="post">{post_com}</div>'
-    else:
-        html_string += '<div class="post">???</div>'
-
-    html_string += '</div>'
     
-    return html_string
+    return f'''
+    <div class="post-parent {'collapsed' if ('hidden' in post) else ''}">
+        <a class="post-collapsible-anchor">[+]</a>
+        <a class="post-no" id="{post["no"]}" href="#{post["no"]}">#{post["no"]}</a>
+        <div class="post-time">{post_time}</div>
+        <div class="post-complexity-number">{complexity_int} points</div>
+        <div class="post-complexity">{"#" * complexity_hashes_int}</div>
+        <div class="post-name">{post_name}</div>
+        <div class="post-country-name">{post_country_name}</div>
+        <div class="post-file"><a href="{post_file}" target="_blank">{post_filename}{post_ext}</a></div>
+        <div class="post">{post_com}</div>
+    </div>
+    '''
 
 
 # print an entire board
@@ -282,46 +250,76 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             </div>
     '''
 
-    thread_count = 0
     for thread_id in threads_sorted:
-        if (thread_count >= 0):
-            html_string += '<div class="thread-parent collapsed-thread-parent">'
-        else:
-            html_string += '<div class="thread-parent">'
-        
         thread = board[thread_id]
-        html_string += '<a class="thread-collapsible-anchor">[+]</a>'
-        html_string += f'<div class="thread"><a href="https://boards.4chan.org/{board_name}/thread/{thread_id}" target="_blank">Permalink</a></div>'
 
+        thread_replies = 0
         if 'replies' in thread:
-            html_string += f'<div class="thread-replies">{thread["replies"]} replies</div>'
-        else:
-            html_string += f'<div class="thread-replies">0 replies</div>'
+            thread_replies = thread['replies']
         
+        thread_thumbnail_url = ''
+        thread_thumbnail = ''
         if 'thumbnail' in thread and 'thread' in thread:
             op_post = thread['thread'][min(thread['thread'])]
-            html_string += f'''<div class="thread-thumbnail"><a href="{op_post['file']}" target="_blank"><img src="data:image/png;base64, {thread['thumbnail'].decode()}"></img></a></div>'''
+            thread_thumbnail_url = op_post['file']
+            thread_thumbnail = thread['thumbnail'].decode()
 
+        thread_sub = ''
         if 'sub' in thread:
-            thread_sub = filter_post_pre(thread["sub"][0:100])
+            thread_sub = filter_post_pre(thread['sub'][0:100])
             thread_sub = html.escape(thread_sub)
             thread_sub = filter_post_post(thread_sub)
-            html_string += f'<div class="thread-sub">{thread_sub}</div>'
 
+        thread_com = ''
         if 'com' in thread:
             thread_com = filter_post_pre(thread['com'][0:100])
             thread_com = html.escape(thread_com)
             thread_com = filter_post_post(thread_com)
-            html_string += f'<div class="thread-description">{thread_com}...</div>'
+            thread_com += '...'
         
+        html_string += f'''
+        <div class="thread-parent collapsed-thread-parent">
+            <a class="thread-collapsible-anchor">[+]</a>
+            <div class="thread">
+                <a href="https://boards.4chan.org/{board_name}/thread/{thread_id}" target="_blank">
+                    Permalink
+                </a>
+            </div>
+            <div class="thread-replies">{thread_replies} replies</div>
+            <div class="thread-thumbnail">
+                <a href="{thread_thumbnail_url}" target="_blank">
+                    <img src="data:image/png;base64, {thread_thumbnail}">
+                    </img>
+                </a>
+            </div>
+            <div class="thread-sub">{thread_sub}</div>
+            <div class="thread-description">{thread_com}</div>
+        '''
+
+        post_list = list()
         if 'thread' in thread:
             posts = thread['thread']
             for post_id in posts:
-                html_string = print_posts_r(board, thread_id, post_id, 0, html_string)
-    
-        html_string += '</div>'
+                create_post_list_r(board, thread_id, post_id, 0, post_list)
 
-        thread_count += 1
+        posts_string = ''
+        curr_tabbing = 0
+        for post in post_list:
+            posts_string += f'''
+            {'</div>' * max(curr_tabbing - post['tabbing'] + 1, 0)}
+            <div class="post-parent-r {'collapsed-parent' if ('hidden' in post) else ''}">
+                {print_post(post)}
+            '''
+
+            curr_tabbing = post['tabbing']
+
+        html_string += f'''
+            <div>
+                {posts_string}
+            {'</div>' * curr_tabbing}
+            </div>
+        </div>
+        '''
 
     html_string += '''
         </div>

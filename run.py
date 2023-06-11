@@ -34,13 +34,12 @@ def main():
     print('leave this script running in the background to keep')
     print('downloading threads and updating the html files')
     print('')
-    print('wait 5 min on first run to download enough threads')
-    print('')
 
     thread_list = list()
 
     # download boards
-    wait_time = len(board_names) * 2
+    wait_time_integer = 2
+    wait_time = len(board_names) * wait_time_integer
     for board_name in board_names:
         t = threading.Thread(
             target=scripts.download.get_board_wrapper,
@@ -51,11 +50,11 @@ def main():
         )
         t.start()
         thread_list.append(t)
-        time.sleep(3)
+        time.sleep(random.randint(1, wait_time_integer))
     
     # create board pages
-    max_threads_per_board = 200
-    wait_time_between_builds = 300
+    max_threads_per_board = 400
+    wait_time_between_builds = 10
     for board_name in board_names:
         t = threading.Thread(
             target=scripts.view.make_html,
@@ -67,7 +66,7 @@ def main():
         )
         t.start()
         thread_list.append(t)
-        time.sleep(random.randint(20,30))
+        time.sleep(random.randint(1, wait_time_between_builds))
 
 
 if __name__ == '__main__':
