@@ -181,7 +181,7 @@ def print_posts_r(board : dict, thread_id : int, post_id : int, tabbing : int, h
     # logic for hiding a post by default
     hidden = False
     post_complexity_int = int((post['complexity'] / 100) ** 0.8)
-    if (post_complexity_int < 10) and not (tabbing == 0):
+    if (post_complexity_int <= 10 + 2 * tabbing) and not (tabbing == 0):
         hidden = True
         html_string = html_string[:-2] + ' collapsed-parent">'
     
@@ -283,7 +283,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 
     thread_count = 0
     for thread_id in threads_sorted:
-        if (thread_count > 10):
+        if (thread_count >= 0):
             html_string += '<div class="thread-parent collapsed-thread-parent">'
         else:
             html_string += '<div class="thread-parent">'
@@ -296,13 +296,22 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             html_string += f'<div class="thread-replies">{thread["replies"]} replies</div>'
         else:
             html_string += f'<div class="thread-replies">0 replies</div>'
-
-        if 'sub' in thread:
-            html_string += f'<div class="thread-sub">{thread["sub"]}</div>'
         
         if 'thumbnail' in thread and 'thread' in thread:
             op_post = thread['thread'][min(thread['thread'])]
             html_string += f'''<div class="thread-thumbnail"><a href="{op_post['file']}" target="_blank"><img src="data:image/png;base64, {thread['thumbnail'].decode()}"></img></a></div>'''
+
+        if 'sub' in thread:
+            thread_sub = filter_post_pre(thread["sub"][0:100])
+            thread_sub = html.escape(thread_sub)
+            thread_sub = filter_post_post(thread_sub)
+            html_string += f'<div class="thread-sub">{thread_sub}</div>'
+
+        if 'com' in thread:
+            thread_com = filter_post_pre(thread['com'][0:100])
+            thread_com = html.escape(thread_com)
+            thread_com = filter_post_post(thread_com)
+            html_string += f'<div class="thread-description">{thread_com}...</div>'
         
         if 'thread' in thread:
             posts = thread['thread']

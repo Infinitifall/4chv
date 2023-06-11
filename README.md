@@ -33,6 +33,9 @@ A 4chan viewer for a more civilized age
 ![screenshot](resources/screenshot.png)
 
 
+![screenshot](resources/screenshot2.png)
+
+
 
 
 

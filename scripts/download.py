@@ -144,6 +144,9 @@ def get_board(board_name: str, wait_time: int):
 
             if 'sub' in op_post:
                 this_thread['sub'] = op_post['sub']
+            
+            if 'com' in op_post:
+                this_thread['com'] = op_post['com']
 
             this_board[thread['no']] = this_thread
             

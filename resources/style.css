@@ -74,6 +74,10 @@ Styling for threads
     margin-bottom: 0.5em;
 }
 
+.thread-description {
+    display: none;
+}
+
 .thread-thumbnail {
     user-select: none;
     height: 100px;
@@ -197,7 +201,18 @@ Styling for collapsible
 }
 
 .collapsed-thread-parent {
-    background-color: #111;
+    padding: 1em 1em;
+    display: inline-block;
+    vertical-align: top;
+    height: 250px;
+    width: 150px;
+    margin-right: 1em;
+    font-size: 12px;
+    overflow: hidden;
+}
+
+.collapsed-thread-parent > .thread-description {
+    display: inline-block;
 }
 
 .collapsed-thread-parent > .post-parent-r {
