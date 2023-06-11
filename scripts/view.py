@@ -253,7 +253,8 @@ def print_post(post: dict, tabs: int, hidden: bool):
 
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
-    html_string = '''
+    version_number = "4.0"
+    html_string = f'''
     <!DOCTYPE html>
     <html>
         <head>
@@ -262,8 +263,8 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <meta property="og:locale" content="en_US">
             <meta property="og:type" content="website">
-            <link rel='stylesheet' type='text/css' href='resources/style.css?v=3.0'>
-            <script src='resources/collapsible.js?v=3.0' defer></script>
+            <link rel='stylesheet' type='text/css' href='resources/style.css?v={version_number}'>
+            <script src='resources/collapsible.js?v={version_number}' defer></script>
             <link rel="icon" type="image/x-icon" href="resources/favicon.png">
             <title>4CHV</title> 
         </head>
