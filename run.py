@@ -1,9 +1,23 @@
+import subprocess
+import sys
+
+
+def pip_install_requests():
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
+
+
+if __name__ == '__main__':
+    pip_install_requests()
+    print('\n' * 20)
+
+
 import scripts.view
 import scripts.download
 
 import time
 import random
 import threading
+
 
 def main():
     board_names = list()
@@ -14,9 +28,14 @@ def main():
             if line != '':
                 board_names.append(line)
     
-    print('4CHV: A viewer for a more civilized age ')
-    print(f'Boards selected: {board_names} (from boards.txt)')
-    print('Starting downloads')
+    print('4CHV: a viewer for a more civilized age ')
+    print(f'selected boards {board_names}')
+    print('')
+    print('leave this script running in the background to keep')
+    print('downloading threads and updating the html files')
+    print('')
+    print('wait 5 min on first run to download enough threads')
+    print('')
 
     thread_list = list()
 
