@@ -204,10 +204,12 @@ Styling for collapsible
     padding: 1em 1em;
     display: inline-block;
     vertical-align: top;
-    height: 250px;
+    height: 230px;
     width: 150px;
     margin-right: 1em;
+    margin-bottom: 2em;
     font-size: 12px;
+    line-height: 1.5em;
     overflow: hidden;
 }
 

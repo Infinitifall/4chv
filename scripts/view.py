@@ -253,7 +253,7 @@ def print_post(post: dict, tabs: int, hidden: bool):
 
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
-    version_number = "4.0"
+    version_number = "4.1"
     html_string = f'''
     <!DOCTYPE html>
     <html>
