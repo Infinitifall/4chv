@@ -2,7 +2,6 @@ import sys
 import pathlib
 import re
 import pickle
-import time
 from datetime import datetime
 import html
 
@@ -337,40 +336,37 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
     return html_string
 
 
-def make_html(board_name: str, file_count: int, wait_time: int):
-    while(True):
-        if not pathlib.Path(f'threads/{board_name}').is_dir():
-            print(f'Board /{board_name}/ not found found locally, have you downloaded it?')
-            return
+def make_html(board_name: str, file_count: int):
+    if not pathlib.Path(f'threads/{board_name}').is_dir():
+        print(f'Board /{board_name}/ not found found locally, have you downloaded it?')
+        return
+    thread_files = pathlib.Path(f'threads/{board_name}').glob('*')
+    latest_files = sorted(thread_files, reverse=True)[:file_count]
 
-        thread_files = pathlib.Path(f'threads/{board_name}').glob('*')
-        latest_files = sorted(thread_files, reverse=True)[:file_count]
+    my_board = dict()
 
-        my_board = dict()
+    for file in latest_files:
+        with open(file, 'rb') as f:
+            my_board[int(file.name[:-4])] = pickle.load(f)
 
-        for file in latest_files:
-            with open(file, 'rb') as f:
-                my_board[int(file.name[:-4])] = pickle.load(f)
-        
-        calculate_board_complexity(my_board)
-        threads_sorted = sort_board_cumulative_complexity(my_board)
-        html_string = print_board(my_board, threads_sorted, board_name)
+    print(f'making {board_name}.html')
+    calculate_board_complexity(my_board)
+    threads_sorted = sort_board_cumulative_complexity(my_board)
+    html_string = print_board(my_board, threads_sorted, board_name)
 
-        with open(f'{board_name}.html', 'w') as f:
-            f.write(html_string)
-    
-        print(f'built {board_name}.html')
-        time.sleep(wait_time)
+    with open(f'{board_name}.html', 'w') as f:
+        f.write(html_string)
+
+    print(f'built {board_name}.html')
 
 
 if __name__ == '__main__':
     try:
-        assert(len(sys.argv) == 4)
+        assert(len(sys.argv) == 3)
         board_name = sys.argv[1] # eg. mu, sci, tv
         file_count = int(sys.argv[2])
-        wait_time = int(sys.argv[3])
 
-        make_html(board_name, file_count, wait_time)
+        make_html(board_name, file_count)
 
     except Exception as e:
-        print('Usage: python view.py <board> <max_latest_posts> <wait_time>')
+        print('Usage: python view.py <board> <max_latest_posts>')

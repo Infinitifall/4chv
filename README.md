@@ -44,9 +44,9 @@ python run.py
 ## Advanced usage
 
 ```bash
-# download only threads from /g/, one every 5 seconds
+# download threads from /g/ every 5 seconds
 python scripts/download.py "g" 5
 
-# only build sci.html with the latest 300 posts, every 10 seconds
-python scripts/view.html "sci" 300 10
+# build sci.html with the latest 300 posts
+python scripts/view.html "sci" 300
 ```

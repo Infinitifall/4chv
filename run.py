@@ -15,7 +15,6 @@ import scripts.view
 import scripts.download
 
 import time
-import random
 import threading
 
 
@@ -27,7 +26,7 @@ def main():
         for line in lines:
             if line != '':
                 board_names.append(line)
-    
+
     print('4CHV: a viewer for a more civilized age ')
     print(f'selected boards {board_names}')
     print('')
@@ -50,23 +49,19 @@ def main():
         )
         t.start()
         thread_list.append(t)
-        time.sleep(random.randint(1, wait_time_integer))
-    
+        time.sleep(wait_time_integer)
+
     # create board pages
     max_threads_per_board = 400
-    wait_time_between_builds = 10
-    for board_name in board_names:
-        t = threading.Thread(
-            target=scripts.view.make_html,
-            args=(
+    wait_time_integer = 10
+    while True:
+        for board_name in board_names:
+            scripts.view.make_html(
                 board_name,
-                max_threads_per_board,
-                wait_time_between_builds
+                max_threads_per_board
             )
-        )
-        t.start()
-        thread_list.append(t)
-        time.sleep(random.randint(1, wait_time_between_builds))
+
+            time.sleep(wait_time_integer)
 
 
 if __name__ == '__main__':
