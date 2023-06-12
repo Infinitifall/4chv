@@ -3,7 +3,6 @@ import pathlib
 import re
 import pickle
 import time
-import base64
 from datetime import datetime
 import html
 
@@ -24,7 +23,7 @@ def filter_post_post(content : str):
     clean_dict = {
         r'\&gt;(\d{5,20})': r'<a class="reply-text" href="#\1">&gt;\1</a>',  # reply quotes
         r'^(\&gt;.+)': r'<div class="green-text">\1</div>',  # greentext
-        r'(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))': r'<a href="\1">\1</a>',  # links
+        r'(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))': r'<a href="\1" target="_blank">\1</a>',  # links
     }
 
     for key, value in clean_dict.items():
@@ -41,7 +40,7 @@ def complexity_score(sentences_array):
     # and sentences_words with words from each sentence
     for sentence in sentences_array:
         words = list()
-        temp_words = re.findall(r'(\w[\w\']+\w|\w+)',sentence)
+        temp_words = re.findall(r'[a-zA-Z\'"]+', sentence)
         for word in temp_words:
             words.append(word.lower())
 
@@ -73,7 +72,6 @@ def complexity_score(sentences_array):
 
         if number_of_words not in [0, 1]:
             temp_list[1] /= number_of_words ** (1 - 2/3)  # normalize by length powered to 1 - delta
-
         sentences_complexity.append(temp_list)
 
     # finally, sort sentences by their complexity in desc order
@@ -133,6 +131,8 @@ def sort_board_cumulative_complexity(board : dict):
     threads_sorted = sorted(threads_sorted, key=lambda x: board[x]['cumulative_complexity'], reverse=True)
     return threads_sorted
 
+
+# create a list of posts in the order they should be printed
 def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: int, post_list: list):
     if post_id not in board[thread_id]['thread']:
         # post might have been deleted
@@ -166,8 +166,15 @@ def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: in
 def print_post(post: dict):    
     complexity_int = int((post['complexity'] / 100) ** 0.8)
     # cumulative_complexity_int = int((post['cumulative_complexity'] / 100) ** 0.8)
-    # cumulative_complexity_diff_int = int(((post['cumulative_complexity'] - post['complexity']) / 100) ** 0.8)
-    complexity_hashes_int = int((post['complexity'] / 100) ** 0.7)
+    # cumulative_complexity_diff_int = int(((post['cumulative_complexity'] - post['complexity']) / 100) ** 0.3)
+    # complexity_hashes_int = int((post['complexity'] / 100) ** 0.7)
+    complexity_hashes_int = int((post['cumulative_complexity'] / 1000) ** 0.6)
+
+    score = ''
+    if complexity_int != 1:
+        score = f'{complexity_int} points'
+    else:
+        score = f'{complexity_int} point'
     
     time_delta = datetime.now() - datetime.fromtimestamp(post['time'])
     time_delta_days = time_delta.days
@@ -209,8 +216,8 @@ def print_post(post: dict):
         <a class="post-collapsible-anchor">[+]</a>
         <a class="post-no" id="{post["no"]}" href="#{post["no"]}">#{post["no"]}</a>
         <div class="post-time">{post_time}</div>
-        <div class="post-complexity-number">{complexity_int} points</div>
-        <div class="post-complexity">{"#" * complexity_hashes_int}</div>
+        <div class="post-complexity-number">{score}</div>
+        <div class="post-complexity">{"+" * complexity_hashes_int}</div>
         <div class="post-name">{post_name}</div>
         <div class="post-country-name">{post_country_name}</div>
         <div class="post-file"><a href="{post_file}" target="_blank">{post_filename}{post_ext}</a></div>
