@@ -80,15 +80,21 @@ def complexity_score(sentences_array):
 # Calculate the cumulative complexity for a post, which depends on the complexities of its replies
 def calculate_post_cumulative_complexity(board : dict, thread_no : int, post_no : int):
     post : dict = board[thread_no]['thread'][post_no]
+
+    if 'cumulative_complexity' in post:
+        return post['cumulative_complexity']
+    
     cumulative_post_complexity = 0
 
     if len(post['succ']) > 0:
         for succ in post['succ']:
-            cumulative_post_complexity += calculate_post_cumulative_complexity(board, thread_no, succ)
+            if succ != post_no:
+                cumulative_post_complexity += calculate_post_cumulative_complexity(board, thread_no, succ)
 
-        cumulative_post_complexity /= (len(post['succ'])) ** (1 - 2/3)
+        # cumulative_post_complexity /= (len(post['succ'])) ** (1 - 2/3)
 
     cumulative_post_complexity += post['complexity']
+    post['cumulative_complexity'] = cumulative_post_complexity
     return cumulative_post_complexity
 
 
@@ -115,7 +121,7 @@ def calculate_board_complexity(board : dict):
 
     for thread_no, thread in board.items():
         for post_no, post in thread['thread'].items():
-            post['cumulative_complexity'] = calculate_post_cumulative_complexity(board, thread_no, post_no)
+            calculate_post_cumulative_complexity(board, thread_no, post_no)
 
 
 # sort a board's posts and threads by cumulative_complexity
