@@ -85,16 +85,19 @@ def calculate_post_cumulative_complexity(board : dict, thread_no : int, post_no 
         return post['cumulative_complexity']
     
     cumulative_post_complexity = 0
+    norm = 1
 
     if len(post['succ']) > 0:
         for succ in post['succ']:
             if succ != post_no:
                 cumulative_post_complexity += calculate_post_cumulative_complexity(board, thread_no, succ)
-
-        # cumulative_post_complexity /= (len(post['succ'])) ** (1 - 2/3)
+        
+        norm = (len(post['succ'])) ** (1 - 1/3)
 
     cumulative_post_complexity += post['complexity']
+    
     post['cumulative_complexity'] = cumulative_post_complexity
+    post['cumulative_complexity_normalized'] = cumulative_post_complexity / norm
     return cumulative_post_complexity
 
 
@@ -130,10 +133,12 @@ def sort_board_cumulative_complexity(board : dict):
     for thread_no, thread in board.items():
         for post_no, post in thread['thread'].items():
             post['succ'] = sorted(post['succ'], key=lambda x: thread['thread'][x]['cumulative_complexity'], reverse=True)
-        thread['complexity'] = thread['thread'][min(thread['thread'].keys())]['complexity']
-        thread['cumulative_complexity'] = thread['thread'][min(thread['thread'].keys())]['cumulative_complexity']
+        
+        op_post_no = min(thread['thread'].keys())
+        thread['cumulative_complexity_normalized'] = thread['thread'][op_post_no]['cumulative_complexity_normalized']
         threads_sorted.append(thread_no)
-    threads_sorted = sorted(threads_sorted, key=lambda x: board[x]['cumulative_complexity'], reverse=True)
+
+    threads_sorted = sorted(threads_sorted, key=lambda x: board[x]['cumulative_complexity_normalized'], reverse=True)
     return threads_sorted
 
 
@@ -173,7 +178,7 @@ def print_post(post: dict):
     # cumulative_complexity_int = int((post['cumulative_complexity'] / 100) ** 0.8)
     # cumulative_complexity_diff_int = int(((post['cumulative_complexity'] - post['complexity']) / 100) ** 0.3)
     # complexity_hashes_int = int((post['complexity'] / 100) ** 0.7)
-    complexity_hashes_int = int((post['cumulative_complexity'] / 1000) ** 0.6)
+    complexity_hashes_int = int((post['cumulative_complexity_normalized'] / 1000) ** 0.5)
 
     score = ''
     if complexity_int != 1:
@@ -233,7 +238,7 @@ def print_post(post: dict):
 
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
-    version_number = "4.1"
+    version_number = "4.2"
     html_string = f'''
     <!DOCTYPE html>
     <html>

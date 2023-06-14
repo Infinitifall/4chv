@@ -86,7 +86,7 @@ Styling for threads
 
 .thread-replies {
     user-select: none;
-    display: inline-block;
+    display: inline-flex;
     margin-bottom: 0.3em;
     margin-right: 0.5em;
     color: #9ee7e0;
@@ -111,10 +111,12 @@ Styling for posts
 
 .post-complexity {
     user-select: none;
-    display: inline-block;
+    display: inline-flex;
     margin-bottom: 0.3em;
     margin-right: 0.5em;
     color: #c676eb;
+    max-width: 50%;
+    overflow: hidden;
 }
 
 .post-complexity-number {
@@ -173,7 +175,7 @@ Styling for posts
 }
 
 .green-text {
-    display: inline-block;
+    display: inline-flex;
     color: #b5bd68;
 }
 
@@ -181,7 +183,7 @@ Styling for posts
 .reply-text:visited,
 .reply-text:hover
 {
-    display: inline-block;
+    display: inline-flex;
     color: #6e7aac;
 }
 
