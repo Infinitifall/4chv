@@ -41,6 +41,23 @@ cd 4chv
 python run.py
 ```
 
+
+### Using a venv (errors with pip)
+
+Modern linux systems discourage against using pip directly, in which case the script might fail with an error because it makes a call to pip. The recommended way is to use a [virtual environment](https://docs.python.org/3/tutorial/venv.html). Here is the gist
+
+```bash
+# create venv (in project directory)
+python -m venv myvenv
+source myvenv/bin/activate
+
+# now you can run the app without any problems
+python run.py
+
+# when you are done
+deactivate
+```
+
 ## Advanced usage
 
 ```bash
