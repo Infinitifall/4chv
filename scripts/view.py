@@ -150,7 +150,15 @@ def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: in
 
     post = board[thread_id]['thread'][post_id]
 
-    if 'occurrences' in post and post['occurrences'] > 0:
+    # logic for how many occurrences are allowed
+    if 'occurrences' not in post:
+        post['occurrences'] = 1
+    else:
+        post['occurrences'] += 1
+    
+    occurrences_max = 1
+    if (post['occurrences'] > 1 and tabbing <= 1) or \
+        (post['occurrences'] > occurrences_max):
         return
 
     # logic for hiding a post by default
@@ -158,13 +166,7 @@ def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: in
     if (post_complexity_int <= 10 + 2 * tabbing) and (tabbing > 0):
         post['hidden'] = True
     
-    post_list.append(post)
-    post['tabbing'] = tabbing
-
-    if 'occurrences' not in post:
-        post['occurrences'] = 1
-    else:
-        post['occurrences'] += 1
+    post_list.append({"post": post, "tabbing": tabbing})
 
     for succ in post['succ']:
         create_post_list_r(board, thread_id, succ, tabbing + 1, post_list)
@@ -321,14 +323,17 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 
         posts_string = ''
         curr_tabbing = 0
-        for post in post_list:
+        for post_element in post_list:
+            post = post_element["post"]
+            tabbing = post_element["tabbing"]
+
             posts_string += f'''
-            {'</div>' * max(curr_tabbing - post['tabbing'] + 1, 0)}
+            {'</div>' * max(curr_tabbing - tabbing + 1, 0)}
             <div class="post-parent-r {'collapsed-parent' if ('hidden' in post) else ''}">
                 {print_post(post)}
             '''
 
-            curr_tabbing = post['tabbing']
+            curr_tabbing = tabbing
 
         html_string += f'''
             <div>

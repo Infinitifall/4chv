@@ -129,24 +129,23 @@ def get_board(board_name: str, wait_time: int):
 
             if 'replies' in thread:
                 this_thread['replies'] = thread['replies']
-            else:
-                this_thread['replies'] = list()
             
             this_thread['thread'] = get_thread(board_name, thread['no'])
             
             op_post_no = min(this_thread['thread'])
-            op_post = this_thread['thread'][op_post_no]
-            if 'filename' in op_post and 'ext' in op_post and 'tim' in op_post:
-                thumbnail = requests.get(
-                    thumbnail_url(board_name, str(op_post['tim']))
-                ).content
-                this_thread['thumbnail'] = base64.b64encode(thumbnail)
+            if op_post_no in this_thread['thread']:
+                op_post = this_thread['thread'][op_post_no]
+                if 'filename' in op_post and 'ext' in op_post and 'tim' in op_post:
+                    thumbnail = requests.get(
+                        thumbnail_url(board_name, str(op_post['tim']))
+                    ).content
+                    this_thread['thumbnail'] = base64.b64encode(thumbnail)
 
-            if 'sub' in op_post:
-                this_thread['sub'] = op_post['sub']
-            
-            if 'com' in op_post:
-                this_thread['com'] = op_post['com']
+                if 'sub' in op_post:
+                    this_thread['sub'] = op_post['sub']
+                
+                if 'com' in op_post:
+                    this_thread['com'] = op_post['com']
 
             this_board[thread['no']] = this_thread
             
