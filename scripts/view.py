@@ -241,7 +241,8 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     version_number = "4.2"
-    html_string = f'''
+    html_string = list()
+    html_string.append(f'''
     <!DOCTYPE html>
     <html>
         <head>
@@ -267,7 +268,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
                 <a href="mu.html" class="greeter-element">/mu/</a>
                 <a href="x.html" class="greeter-element">/x/</a>
             </div>
-    '''
+    ''')
 
     for thread_id in threads_sorted:
         thread = board[thread_id]
@@ -296,7 +297,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             thread_com = filter_post_post(thread_com)
             thread_com += '...'
         
-        html_string += f'''
+        html_string.append(f'''
         <div class="thread-parent collapsed-thread-parent">
             <a class="thread-collapsible-anchor">[+]</a>
             <div class="thread">
@@ -313,7 +314,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             </div>
             <div class="thread-sub">{thread_sub}</div>
             <div class="thread-description">{thread_com}</div>
-        '''
+        ''')
 
         post_list = list()
         if 'thread' in thread:
@@ -321,35 +322,35 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             for post_id in posts:
                 create_post_list_r(board, thread_id, post_id, 0, post_list)
 
-        posts_string = ''
+        posts_string = list()
         curr_tabbing = 0
         for post_element in post_list:
             post = post_element["post"]
             tabbing = post_element["tabbing"]
 
-            posts_string += f'''
+            posts_string.append(f'''
             {'</div>' * max(curr_tabbing - tabbing + 1, 0)}
             <div class="post-parent-r {'collapsed-parent' if ('hidden' in post) else ''}">
                 {print_post(post)}
-            '''
+            ''')
 
             curr_tabbing = tabbing
 
-        html_string += f'''
+        html_string.append(f'''
             <div>
-                {posts_string}
+                {''.join(posts_string)}
             {'</div>' * curr_tabbing}
             </div>
         </div>
-        '''
+        ''')
 
-    html_string += '''
+    html_string.append('''
         </div>
         </body>
     </html>
-    '''
+    ''')
 
-    return html_string
+    return ''.join(html_string)
 
 
 def make_html(board_name: str, file_count: int):
