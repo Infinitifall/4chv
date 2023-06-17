@@ -22,7 +22,7 @@ def filter_post_post(content : str):
     clean_dict = {
         r'\&gt;(\d{5,20})': r'<a class="reply-text" href="#\1">&gt;\1</a>',  # reply quotes
         r'^(\&gt;.+)': r'<div class="green-text">\1</div>',  # greentext
-        r'(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))': r'<a href="\1" target="_blank">\1</a>',  # links
+        r'(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))': r'<a href="\1" rel="noreferrer" target="_blank">\1</a>',  # links
     }
 
     for key, value in clean_dict.items():
@@ -300,13 +300,13 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
         <div class="thread-parent collapsed-thread-parent">
             <a class="thread-collapsible-anchor">[+]</a>
             <div class="thread">
-                <a href="https://boards.4chan.org/{board_name}/thread/{thread_id}" target="_blank">
+                <a href="https://boards.4chan.org/{board_name}/thread/{thread_id}" rel="noreferrer" target="_blank">
                     Permalink
                 </a>
             </div>
             <div class="thread-replies">{thread_replies} replies</div>
             <div class="thread-thumbnail">
-                <a href="{thread_thumbnail_url}" target="_blank">
+                <a href="{thread_thumbnail_url}" rel="noreferrer" target="_blank">
                     <img src="data:image/png;base64, {thread_thumbnail}">
                     </img>
                 </a>
