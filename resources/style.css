@@ -115,7 +115,7 @@ Styling for posts
     margin-bottom: 0.3em;
     margin-right: 0.5em;
     color: #c676eb;
-    max-width: 50%;
+    max-width: calc(100% - 40em);
     overflow: hidden;
 }
 
@@ -137,7 +137,7 @@ Styling for posts
 .post-name {
     float: right;
     margin-right: 1em;
-    color: #81c65c;
+    color: #559c90;
 }
 
 .post-sub {
@@ -152,11 +152,10 @@ Styling for posts
 }
 
 .post-country-name {
-
     user-select: none;
     float: right;
     margin-right: 1em;
-    color: #777;
+    color: #555;
 }
 
 .post-no,
@@ -165,7 +164,6 @@ Styling for posts
 {
     user-select: none;
     float: right;
-    margin-right: 1em;
     color: #555;
 }
 
@@ -232,7 +230,8 @@ Styling for collapsible
 {
     user-select: none;
     color: #888;
-    text-decoration: none !important;
+    text-decoration: none;
+    display: inline-flex;
     margin-right: 0.5em;
     font-size: 1.2em;
 }

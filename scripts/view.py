@@ -9,7 +9,7 @@ import html
 # filter post text pre html escaping
 def filter_post_pre(content : str):
     clean_dict = {
-        r'[^\x00-\x7F]+': '',  # weird unicode symbols
+        r'[^\x00-\x7F]+': '-',  # weird unicode symbols
     }
 
     for key, value in clean_dict.items():
@@ -190,8 +190,8 @@ def print_post(post: dict):
     
     time_delta = datetime.now() - datetime.fromtimestamp(post['time'])
     time_delta_days = time_delta.days
-    time_delta_hours = int(time_delta.total_seconds() // 3600)
-    time_delta_minutes = int((time_delta.total_seconds() % 3600) // 60)
+    time_delta_hours = int(time_delta.total_seconds() // 3600) % 24
+    time_delta_minutes = int(time_delta.total_seconds() // 60) % 60
     post_time = ''
     if time_delta_days == 0:
         if time_delta_hours == 0:
@@ -226,12 +226,12 @@ def print_post(post: dict):
     return f'''
     <div class="post-parent {'collapsed' if ('hidden' in post) else ''}">
         <a class="post-collapsible-anchor">[+]</a>
-        <a class="post-no" id="{post["no"]}" href="#{post["no"]}">#{post["no"]}</a>
-        <div class="post-time">{post_time}</div>
         <div class="post-complexity-number">{score}</div>
         <div class="post-complexity">{"+" * complexity_hashes_int}</div>
-        <div class="post-name">{post_name}</div>
+        <a class="post-no" id="{post["no"]}" href="#{post["no"]}">#{post["no"]}</a>
+        <div class="post-time">{post_time}</div>
         <div class="post-country-name">{post_country_name}</div>
+        <div class="post-name">{post_name}</div>
         <div class="post-file"><a href="{post_file}" target="_blank">{post_filename}{post_ext}</a></div>
         <div class="post">{post_com}</div>
     </div>
@@ -240,7 +240,7 @@ def print_post(post: dict):
 
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
-    version_number = "4.2"
+    version_number = "4.3"
     html_string = list()
     html_string.append(f'''
     <!DOCTYPE html>
