@@ -232,7 +232,7 @@ def print_post(post: dict):
         <div class="post-time">{post_time}</div>
         <div class="post-country-name">{post_country_name}</div>
         <div class="post-name">{post_name}</div>
-        <div class="post-file"><a href="{post_file}" target="_blank">{post_filename}{post_ext}</a></div>
+        <div class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{post_filename}{post_ext}</a></div>
         <div class="post">{post_com}</div>
     </div>
     '''
