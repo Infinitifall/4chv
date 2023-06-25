@@ -1,18 +1,5 @@
-import subprocess
-import sys
-
-
-def pip_install_requests():
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
-
-
-if __name__ == '__main__':
-    pip_install_requests()
-    print('\n' * 20)
-
-
-import scripts.view
-import scripts.download
+import view
+import download
 
 import time
 import threading
@@ -41,7 +28,7 @@ def main():
     wait_time = len(board_names) * wait_time_integer
     for board_name in board_names:
         t = threading.Thread(
-            target=scripts.download.get_board_wrapper,
+            target=download.get_board_wrapper,
             args=(
                 board_name,
                 wait_time
@@ -56,7 +43,7 @@ def main():
     wait_time_integer = 10
     while True:
         for board_name in board_names:
-            scripts.view.make_html(
+            view.make_html(
                 board_name,
                 max_threads_per_board
             )
