@@ -47,6 +47,8 @@ def clean_post(content: str):
         '</[asp]+>': '',
         '\n+': '\n',
         r'^\n': '',
+        r'<pre [^>]+>': '',
+        '</pre>': '',
     }
 
     for key, value in clean_dict.items():
