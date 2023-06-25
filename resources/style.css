@@ -158,6 +158,15 @@ Styling for posts
     color: #555;
 }
 
+.post-succ,
+.post-succ > a,
+.post-succ > a:hover,
+.post-succ > a:visited
+{
+    font-size: 0.9em;
+    color: #555;
+}
+
 .post-no,
 .post-no:hover,
 .post-no:visited

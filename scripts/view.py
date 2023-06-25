@@ -20,7 +20,7 @@ def filter_post_pre(content : str):
 # filter post text post html escaping
 def filter_post_post(content : str):
     clean_dict = {
-        r'\&gt;(\d{5,20})': r'<a class="reply-text" href="#\1">&gt;\1</a>',  # reply quotes
+        r'\&gt;(\d{5,20})': r'<a class="reply-text" onclick="uncollapse_reply(\1)" href="#\1">&gt;\1</a>',  # reply quotes
         r'^(\&gt;.+)': r'<div class="green-text">\1</div>',  # greentext
         r'(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))': r'<a href="\1" rel="noreferrer" target="_blank">\1</a>',  # links
     }
@@ -223,24 +223,31 @@ def print_post(post: dict):
         post_com = html.escape(post_com)
         post_com = filter_post_post(post_com)
     
+    post_succ = ''
+    if 'succ' in post and len(post['succ']) > 0:
+        post_succ += 'Replies: '
+        for succ in post['succ']:
+            post_succ += f'<a  onclick="uncollapse_reply({succ})" href="#{succ}">{succ}</a>, '
+    
     return f'''
     <div class="post-parent {'collapsed' if ('hidden' in post) else ''}">
         <a class="post-collapsible-anchor">[+]</a>
         <div class="post-complexity-number">{score}</div>
         <div class="post-complexity">{"+" * complexity_hashes_int}</div>
-        <a class="post-no" id="{post["no"]}" href="#{post["no"]}">#{post["no"]}</a>
+        <a class="post-no" id="{post["no"]}" onclick="uncollapse_reply_wrapper(this)" href="#{post["no"]}">#{post["no"]}</a>
         <div class="post-time">{post_time}</div>
         <div class="post-country-name">{post_country_name}</div>
         <div class="post-name">{post_name}</div>
         <div class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{post_filename}{post_ext}</a></div>
         <div class="post">{post_com}</div>
+        <div class="post-succ">{post_succ}</div>
     </div>
     '''
 
 
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
-    version_number = "4.3"
+    version_number = "5.0"
     html_string = list()
     html_string.append(f'''
     <!DOCTYPE html>
@@ -253,6 +260,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             <meta property="og:type" content="website">
             <link rel='stylesheet' type='text/css' href='resources/style.css?v={version_number}'>
             <script src='resources/collapsible.js?v={version_number}' defer></script>
+            <script src='resources/uncollapse_reply.js?v={version_number}' defer></script>
             <link rel="icon" type="image/x-icon" href="resources/favicon.png">
             <title>4CHV</title> 
         </head>
