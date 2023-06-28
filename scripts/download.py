@@ -5,8 +5,10 @@ import json
 import re
 import pickle
 import base64
+import random
 
 import requests
+import urllib3
 
 
 # api urls
@@ -57,7 +59,12 @@ def clean_post(content: str):
 
 
 def get_thread(board_name: str, thread_no: int):
-    request = requests.get(thread_url(board_name, str(thread_no)))
+    session = requests.Session()
+    retry = urllib3.util.retry.Retry(connect=3, backoff_factor=random.randint(10,30) / 10)
+    adapter = requests.adapters.HTTPAdapter(max_retries=retry)
+    session.mount('https://', adapter)
+    request = session.get(thread_url(board_name, str(thread_no)))
+
     data: dict = json.loads(request.text)
     this_thread = dict()
 
@@ -115,7 +122,12 @@ def get_thread(board_name: str, thread_no: int):
 def get_board(board_name: str, wait_time: int):
     pathlib.Path(f'threads/{board_name}').mkdir(parents=True, exist_ok=True)
 
-    request = requests.get(catalog_url(board_name))
+    session = requests.Session()
+    retry = urllib3.util.retry.Retry(connect=3, backoff_factor=random.randint(10,30) / 10)
+    adapter = requests.adapters.HTTPAdapter(max_retries=retry)
+    session.mount('https://', adapter)
+    request = session.get(catalog_url(board_name))
+
     data: list = json.loads(request.text)
     this_board = dict()
     
@@ -155,7 +167,7 @@ def get_board(board_name: str, wait_time: int):
                 pickle.dump(this_thread, my_file)
             
             print(f'downloaded /{board_name}/thread/{thread["no"]}')
-            time.sleep(wait_time)  # wait time between requests
+            time.sleep(random.randint(wait_time // 2, (wait_time * 3) // 2))
 
     return this_board
 
@@ -166,8 +178,8 @@ def get_board_wrapper(board_name: str, wait_time: int):
             get_board(board_name, wait_time)
         except Exception as e:
             print(e)
-            print('something failed, trying again in 30s')
-            time.sleep(30)
+            print('something failed, trying again in 45s')
+            time.sleep(random.randint(30,60))
 
 
 if __name__ == '__main__':

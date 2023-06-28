@@ -13,13 +13,14 @@ def main():
         for line in lines:
             if line != '':
                 board_names.append(line)
-
+                
+    print('\n' + '-' * 40 + '\n', end = '')
     print('4CHV: a viewer for a more civilized age ')
     print(f'selected boards {board_names}')
-    print('')
+    print('\n' + '-' * 40 + '\n', end = '')
     print('leave this script running in the background to keep')
     print('downloading threads and updating the html files')
-    print('')
+    print('\n' + '-' * 40 + '\n', end = '')
 
     thread_list = list()
 
