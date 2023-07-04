@@ -2,6 +2,7 @@ import view
 import download
 
 import time
+import sys
 import threading
 
 
@@ -21,6 +22,7 @@ def main():
     print('leave this script running in the background to keep')
     print('downloading threads and updating the html files')
     print('\n' + '-' * 40 + '\n', end = '')
+    sys.stdout.flush()
 
     thread_list = list()
 

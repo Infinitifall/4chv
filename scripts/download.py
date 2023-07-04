@@ -167,6 +167,7 @@ def get_board(board_name: str, wait_time: int):
                 pickle.dump(this_thread, my_file)
             
             print(f'downloaded /{board_name}/thread/{thread["no"]}')
+            sys.stdout.flush()
             time.sleep(random.randint(wait_time // 2, (wait_time * 3) // 2))
 
     return this_board

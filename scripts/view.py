@@ -371,8 +371,11 @@ def make_html(board_name: str, file_count: int):
     my_board = dict()
 
     for file in latest_files:
-        with open(file, 'rb') as f:
-            my_board[int(file.name[:-4])] = pickle.load(f)
+        try:
+            with open(file, 'rb') as f:
+                my_board[int(file.name[:-4])] = pickle.load(f)
+        except:
+            continue;
 
     print(f'making {board_name}.html')
     calculate_board_complexity(my_board)
@@ -383,6 +386,7 @@ def make_html(board_name: str, file_count: int):
         f.write(html_string)
 
     print(f'built {board_name}.html')
+    sys.stdout.flush()
 
 
 if __name__ == '__main__':
