@@ -1,0 +1,15 @@
+[Unit]
+Description=4CHV self hosted frontend
+After=network.target
+
+[Service]
+Type=simple
+# tweak User, WorkingDirectory and ExecStart depending on you system configuration
+User=4chv
+WorkingDirectory=/home/4chv/4chv/
+ExecStart=/home/4chv/4chv/run_on_linux.sh
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
