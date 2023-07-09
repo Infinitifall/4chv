@@ -1,4 +1,5 @@
 import sys
+import os
 import pathlib
 import re
 import pickle
@@ -247,7 +248,21 @@ def print_post(post: dict):
 
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
+    # update version when you update css or js to bypass browser cache 
     version_number = "5.0"
+    
+    # get all local board html files and add greeter links to them
+    all_board_names = list()
+    for root, dirs, files in os.walk('.'):
+        for file in files:
+            if file.endswith('.html'):
+                all_board_names.append(os.path.join(file))
+    all_board_names = sorted(all_board_names)
+    all_board_names_links = ''
+    for each_board_name in all_board_names:
+        all_board_names_links += f'<a href="{each_board_name}" class="greeter-element">/{each_board_name.split(".")[0]}/</a>'
+
+    # the main string list
     html_string = list()
     html_string.append(f'''
     <!DOCTYPE html>
@@ -268,13 +283,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             <div class="wrapper">
             <h1 class="page-title">4CHV: a viewer for a more civilized age</h1>
             <div class="greeter">
-                <a href="sci.html" class="greeter-element">/sci/</a>
-                <a href="g.html" class="greeter-element">/g/</a>
-                <a href="lit.html" class="greeter-element">/lit/</a>
-                <a href="his.html" class="greeter-element">/his/</a>
-                <a href="tv.html" class="greeter-element">/tv/</a>
-                <a href="mu.html" class="greeter-element">/mu/</a>
-                <a href="x.html" class="greeter-element">/x/</a>
+                {all_board_names_links}
             </div>
     ''')
 
@@ -305,6 +314,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             thread_com = filter_post_post(thread_com)
             thread_com += '...'
         
+        # append the thread header to the main string list
         html_string.append(f'''
         <div class="thread-parent collapsed-thread-parent">
             <a class="thread-collapsible-anchor">[+]</a>
@@ -324,12 +334,14 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             <div class="thread-description">{thread_com}</div>
         ''')
 
+        # create a sorted and nested post list for the thread
         post_list = list()
         if 'thread' in thread:
             posts = thread['thread']
             for post_id in posts:
                 create_post_list_r(board, thread_id, post_id, 0, post_list)
 
+        # go through the created post list and start building the html
         posts_string = list()
         curr_tabbing = 0
         for post_element in post_list:
@@ -344,6 +356,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 
             curr_tabbing = tabbing
 
+        # append the posts html to the main string list
         html_string.append(f'''
             <div>
                 {''.join(posts_string)}
@@ -361,6 +374,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
     return ''.join(html_string)
 
 
+# wrapper function to make html page for a board
 def make_html(board_name: str, file_count: int):
     if not pathlib.Path(f'threads/{board_name}').is_dir():
         print(f'Board /{board_name}/ not found found locally, have you downloaded it?')
@@ -377,14 +391,17 @@ def make_html(board_name: str, file_count: int):
         except:
             continue;
 
+
     print(f'making {board_name}.html')
+    # calculate complexity for board (fast)
+    # sort threads by cumulative complexity (fast)
+    # print the entire board to html (slow)
+    # write board html to file (fast)
     calculate_board_complexity(my_board)
     threads_sorted = sort_board_cumulative_complexity(my_board)
     html_string = print_board(my_board, threads_sorted, board_name)
-
     with open(f'{board_name}.html', 'w') as f:
         f.write(html_string)
-
     print(f'built {board_name}.html')
     sys.stdout.flush()
 
