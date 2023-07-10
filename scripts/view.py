@@ -249,7 +249,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     # update version when you update css or js to bypass browser cache 
-    version_number = "5.0"
+    version_number = "5.2"
     
     # get all local board html files and add greeter links to them
     all_board_names = list()

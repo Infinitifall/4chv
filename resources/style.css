@@ -5,8 +5,6 @@ body {
 
     background-color: #1e2022;
     color: #ccc;
-
-    min-width: 1000px;
 }
 
 img {
@@ -33,8 +31,10 @@ a:hover { color: #6e7aac; text-decoration: underline; }
 
 .greeter {
     user-select: none;
-    text-align: center;
     margin-bottom: 3em;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .greeter-element {
@@ -101,6 +101,12 @@ Styling for posts
     margin-left: 1em;
 }
 
+@media only screen and (max-width: 600px) {
+    .post-parent-r {
+        margin-left: 0.3em;
+    }
+}
+
 .post-parent-r > .no-embed { margin-left: 0em; }
 
 .post-parent {
@@ -115,7 +121,7 @@ Styling for posts
     margin-bottom: 0.3em;
     margin-right: 0.5em;
     color: #c676eb;
-    max-width: calc(100% - 40em);
+    max-width: calc(100% - 20em);
     overflow: hidden;
 }
 
@@ -220,6 +226,13 @@ Styling for collapsible
     font-size: 12px;
     line-height: 1.5em;
     overflow: hidden;
+}
+
+@media only screen and (max-width: 400px) {
+    .collapsed-thread-parent {
+        width: 300px;
+        height: 180px;
+    }
 }
 
 .collapsed-thread-parent > .thread-description {
