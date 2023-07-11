@@ -144,6 +144,19 @@ def get_board(board_name: str, wait_time: int):
             if 'replies' in thread:
                 this_thread['replies'] = thread['replies']
             
+            if 'last_modified' in thread:
+                this_thread['last_modified'] = thread['last_modified']
+            
+            # if not modified since, continue
+            local_thread_file = pathlib.Path(f'threads/{board_name}/' + str(thread['no']) + '.pkl')
+            if local_thread_file.is_file():
+                with open(f'threads/{board_name}/' + str(thread['no']) + '.pkl', 'rb') as my_file:
+                    local_thread = pickle.load(my_file)
+                    if 'last_modified' in local_thread:
+                        if local_thread['last_modified'] == thread['last_modified']:
+                            print(f'skipping /{board_name}/thread/{thread["no"]} - no new posts')
+                            continue
+            
             this_thread['thread'] = get_thread(board_name, thread['no'])
             
             op_post_no = min(this_thread['thread'])

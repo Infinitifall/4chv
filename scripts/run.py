@@ -4,6 +4,7 @@ import download
 import time
 import sys
 import threading
+import os
 
 
 def main():
@@ -23,6 +24,11 @@ def main():
     print('downloading threads and updating the html files')
     print('\n' + '-' * 40 + '\n', end = '')
     sys.stdout.flush()
+
+    # delete old html files
+    for f in os.listdir('.'):
+        if f.endswith(".html"):
+            os.remove(os.path.join('.', f))
 
     thread_list = list()
 
