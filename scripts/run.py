@@ -30,22 +30,16 @@ def main():
         if f.endswith(".html"):
             os.remove(os.path.join('.', f))
 
-    thread_list = list()
-
     # download boards
-    wait_time_integer = 2
-    wait_time = len(board_names) * wait_time_integer
-    for board_name in board_names:
-        t = threading.Thread(
-            target=download.get_board_wrapper,
-            args=(
-                board_name,
-                wait_time
-            )
+    wait_time = 2
+    download_thread = threading.Thread(
+        target=download.get_boards_wrapper,
+        args=(
+            board_names,
+            wait_time
         )
-        t.start()
-        thread_list.append(t)
-        time.sleep(wait_time_integer)
+    )
+    download_thread.start()
 
     # create board pages
     max_threads_per_board = 400

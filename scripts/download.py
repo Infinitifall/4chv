@@ -58,22 +58,88 @@ def clean_post(content: str):
     return content
 
 
-def get_thread(board_name: str, thread_no: int):
+def get_url_custom(custom_url):
     session = requests.Session()
     retry = urllib3.util.retry.Retry(connect=3, backoff_factor=random.randint(10,30) / 10)
     adapter = requests.adapters.HTTPAdapter(max_retries=retry)
     session.mount('https://', adapter)
-    request = session.get(thread_url(board_name, str(thread_no)))
+    request = session.get(custom_url)
+    return request
 
-    data: dict = json.loads(request.text)
+
+def get_boards(board_names: list, wait_time: float, threads_last_accessed: dict):
+    # get the threads list
+    massive_threads_list_sorted = list()
+    for board_name in board_names:
+        # create local folder and initialize last accessed dict
+        pathlib.Path(f'threads/{board_name}').mkdir(parents=True, exist_ok=True)
+        if board_name not in threads_last_accessed:
+            threads_last_accessed[board_name] = dict()
+        
+        # fetch threadlist
+        request = get_url_custom(threadlist_url(board_name))
+        threadlist = json.loads(request.text)
+        print(f'downloaded /{board_name}/ threadlist')
+        sys.stdout.flush()
+        time.sleep(random.randint(wait_time // 2, (wait_time * 3) // 2))
+
+        for page in threadlist:
+            if 'threads' not in page:
+                continue
+            for thread in page['threads']:
+                thread['board_name'] = board_name
+                massive_threads_list_sorted.append(thread)
+    
+    # sort the threads list
+    massive_threads_list_sorted.sort(key=lambda x: (x['last_modified'] if x['replies'] > 10 else 1 ), reverse=True)
+    massive_threads_list_sorted_2 = list()
+    massive_threads_list_sorted_3 = list()
+    for thread in massive_threads_list_sorted:
+        if thread['replies'] > 10:
+            massive_threads_list_sorted_2.append(thread)
+        else:
+            massive_threads_list_sorted_3.append(thread)
+    massive_threads_list_sorted = massive_threads_list_sorted_2 + massive_threads_list_sorted_3
+
+    i = 0
+    for thread in massive_threads_list_sorted:
+        print(f'{i}/{len(massive_threads_list_sorted)} ', end='')
+        i += 1
+
+        # check memory for last modified
+        if thread['no'] in threads_last_accessed[board_name]:
+            if threads_last_accessed[board_name][thread['no']] == thread['last_modified']:
+                print(f'[mem check] skipping /{thread["board_name"]}/thread/{thread["no"]}')
+                continue
+        threads_last_accessed[board_name][thread['no']] = thread['last_modified']
+        
+        # check local file for last modified
+        local_thread_file = pathlib.Path(f'threads/{thread["board_name"]}/' + str(thread['no']) + '.pkl')
+        if local_thread_file.is_file():
+            with open(f'threads/{thread["board_name"]}/' + str(thread['no']) + '.pkl', 'rb') as my_file:
+                local_thread = pickle.load(my_file)
+                if 'last_modified' in local_thread and thread['last_modified'] == local_thread['last_modified']:
+                    print(f'[read file] skipping /{thread["board_name"]}/thread/{thread["no"]}')
+                    continue
+        
+        # if modified since, download the thread
+        get_thread(thread["board_name"], thread['no'])
+        print(f'downloaded /{thread["board_name"]}/thread/{thread["no"]}')
+        sys.stdout.flush()
+        time.sleep(random.randint(wait_time // 2, (wait_time * 3) // 2))
+
+
+def get_thread(board_name: str, thread_no: int):
+    request = get_url_custom(thread_url(board_name, str(thread_no)))
+    thread: dict = json.loads(request.text)
     this_thread = dict()
 
-    if 'posts' not in data:
-        return this_thread
+    if 'posts' not in thread:
+        return
     
-    op_post_no = data['posts'][0]['no']
-
-    for post in data['posts']:
+    op_post_no = thread['posts'][0]['no']
+    this_thread['thread'] = dict()
+    for post in thread['posts']:
         post: dict
         this_post = dict()
 
@@ -111,99 +177,60 @@ def get_thread(board_name: str, thread_no: int):
             # if its empty make it a succ of the op
         
         for pred in this_post['pred']:
-            if int(pred[1:]) not in this_thread:
-                continue
-            this_thread[int(pred[1:])]['succ'].append(post['no'])
-        this_thread[post['no']] = this_post
-            
-    return this_thread
+            if int(pred[1:]) in this_thread['thread']:
+                this_thread['thread'][int(pred[1:])]['succ'].append(post['no'])
+        this_thread['thread'][post['no']] = this_post
 
+    # calculate thread details
+    thread_posts = list(this_thread['thread'].keys())
+    this_thread['replies'] = len(thread_posts)
+    if len(thread_posts) > 0:
+        this_thread['last_modified'] = this_thread['thread'][thread_posts[-1]]['time']
 
-def get_board(board_name: str, wait_time: int):
-    pathlib.Path(f'threads/{board_name}').mkdir(parents=True, exist_ok=True)
+    # get some more info from op post
+    if op_post_no in this_thread['thread']:
+        op_post = this_thread['thread'][op_post_no]
+        this_thread['no'] = op_post['no']
 
-    session = requests.Session()
-    retry = urllib3.util.retry.Retry(connect=3, backoff_factor=random.randint(10,30) / 10)
-    adapter = requests.adapters.HTTPAdapter(max_retries=retry)
-    session.mount('https://', adapter)
-    request = session.get(catalog_url(board_name))
+        if 'filename' in op_post and 'ext' in op_post and 'tim' in op_post:
+            thumbnail = requests.get(
+                thumbnail_url(board_name, str(op_post['tim']))
+            ).content
+            this_thread['thumbnail'] = base64.b64encode(thumbnail)
 
-    data: list = json.loads(request.text)
-    this_board = dict()
-    
-    for page in data:
-        page: dict
-
-        if 'threads' not in page:
-            continue
+        if 'sub' in op_post:
+            this_thread['sub'] = op_post['sub']
         
-        for thread in page['threads']:
-            thread: dict
-            this_thread = dict()
-
-            if 'replies' in thread:
-                this_thread['replies'] = thread['replies']
-            
-            if 'last_modified' in thread:
-                this_thread['last_modified'] = thread['last_modified']
-            
-            # if not modified since, continue
-            local_thread_file = pathlib.Path(f'threads/{board_name}/' + str(thread['no']) + '.pkl')
-            if local_thread_file.is_file():
-                with open(f'threads/{board_name}/' + str(thread['no']) + '.pkl', 'rb') as my_file:
-                    local_thread = pickle.load(my_file)
-                    if 'last_modified' in local_thread:
-                        if local_thread['last_modified'] == thread['last_modified']:
-                            print(f'skipping /{board_name}/thread/{thread["no"]} - no new posts')
-                            continue
-            
-            this_thread['thread'] = get_thread(board_name, thread['no'])
-            
-            op_post_no = min(this_thread['thread'])
-            if op_post_no in this_thread['thread']:
-                op_post = this_thread['thread'][op_post_no]
-                if 'filename' in op_post and 'ext' in op_post and 'tim' in op_post:
-                    thumbnail = requests.get(
-                        thumbnail_url(board_name, str(op_post['tim']))
-                    ).content
-                    this_thread['thumbnail'] = base64.b64encode(thumbnail)
-
-                if 'sub' in op_post:
-                    this_thread['sub'] = op_post['sub']
-                
-                if 'com' in op_post:
-                    this_thread['com'] = op_post['com']
-
-            this_board[thread['no']] = this_thread
-            
-            with open(f'threads/{board_name}/' + str(thread['no']) + '.pkl', 'wb') as my_file:
-                pickle.dump(this_thread, my_file)
-            
-            print(f'downloaded /{board_name}/thread/{thread["no"]}')
-            sys.stdout.flush()
-            time.sleep(random.randint(wait_time // 2, (wait_time * 3) // 2))
-
-    return this_board
+        if 'com' in op_post:
+            this_thread['com'] = op_post['com']
+    
+    with open(f'threads/{board_name}/' + str(this_thread['no']) + '.pkl', 'wb') as my_file:
+        pickle.dump(this_thread, my_file)
+    
+    return
 
 
-def get_board_wrapper(board_name: str, wait_time: int):
+def get_boards_wrapper(board_names: list, wait_time: float):
+    # dict to store last_accessed for all threads
+    threads_last_accessed = dict()
     while True:
         try:
-            get_board(board_name, wait_time)
+            get_boards(board_names, wait_time, threads_last_accessed)
+            time.sleep(10)
         except Exception as e:
             print(e)
-            print('something failed, trying again in 45s')
+            print('something failed, waiting 45s')
             time.sleep(random.randint(30,60))
 
 
 if __name__ == '__main__':
     try:
         assert(len(sys.argv) == 3)
-        board_name = sys.argv[1]
-        wait_time = int(sys.argv[2])
+        wait_time = float(sys.argv[1])
+        board_names = sys.argv[2:]
 
-        get_board_wrapper(board_name, wait_time)
+        get_boards_wrapper(board_names, wait_time)
 
     except Exception as e:
-        print('Usage: python download.py <board> <wait_time_between_requests>')
+        print('Usage: python3 download.py <wait_time_between_requests> <board-1> <board-2> ...')
     

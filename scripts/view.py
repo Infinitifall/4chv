@@ -10,7 +10,7 @@ import html
 # filter post text pre html escaping
 def filter_post_pre(content : str):
     clean_dict = {
-        r'[^\x00-\x7F]+': '-',  # weird unicode symbols
+        r'[^\x00-\x7F]+': "",  # weird unicode symbols
     }
 
     for key, value in clean_dict.items():
@@ -397,6 +397,10 @@ def make_html(board_name: str, file_count: int):
         except:
             continue;
 
+    # if empty dir
+    if len(my_board) == 0:
+        print(f'skipping {board_name}.html')
+        return
 
     print(f'making {board_name}.html')
     # calculate complexity for board (fast)
@@ -421,4 +425,4 @@ if __name__ == '__main__':
         make_html(board_name, file_count)
 
     except Exception as e:
-        print('Usage: python view.py <board> <max_latest_posts>')
+        print('Usage: python3 view.py <board> <max_latest_posts>')
