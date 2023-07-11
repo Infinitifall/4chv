@@ -232,16 +232,20 @@ def print_post(post: dict):
     
     return f'''
     <div class="post-parent {'collapsed' if ('hidden' in post) else ''}">
-        <a class="post-collapsible-anchor">[+]</a>
-        <div class="post-complexity-number">{score}</div>
-        <div class="post-complexity">{"+" * complexity_hashes_int}</div>
-        <a class="post-no" id="{post["no"]}" onclick="uncollapse_reply_wrapper(this)" href="#{post["no"]}">#{post["no"]}</a>
-        <div class="post-time">{post_time}</div>
-        <div class="post-country-name">{post_country_name}</div>
-        <div class="post-name">{post_name}</div>
+        <div class="post-details">
+            <div class="post-collapsible-anchor"><a>[+]</a></div>
+            <div class="post-complexity-number">{score}</div>
+            <div class="post-complexity">{"+" * complexity_hashes_int}</div>
+            <div class="post-no" id="{post["no"]}"><a onclick="uncollapse_reply_wrapper(this)" href="#{post["no"]}">#{post["no"]}</a></div>
+        </div>
+        <div class="post-details">
+            <div class="post-time">{post_time}</div>
+            <div class="post-country-name">{post_country_name}</div>
+            <div class="post-name">{post_name}</div>
+        </div>
         <div class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{post_filename}{post_ext}</a></div>
         <div class="post">{post_com}</div>
-        <div class="post-succ">{post_succ}</div>
+        <div class="post-succ">{post_succ[:-2]}</div>
     </div>
     '''
 
@@ -249,7 +253,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     # update version when you update css or js to bypass browser cache 
-    version_number = "5.2"
+    version_number = "6.5"
     
     # get all local board html files and add greeter links to them
     all_board_names = list()
@@ -309,7 +313,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 
         thread_com = ''
         if 'com' in thread:
-            thread_com = filter_post_pre(thread['com'][0:100])
+            thread_com = filter_post_pre(thread['com'][0:100 - len(thread_sub)])
             thread_com = html.escape(thread_com)
             thread_com = filter_post_post(thread_com)
             thread_com += '...'
@@ -317,13 +321,15 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
         # append the thread header to the main string list
         html_string.append(f'''
         <div class="thread-parent collapsed-thread-parent">
-            <a class="thread-collapsible-anchor">[+]</a>
-            <div class="thread">
-                <a href="https://boards.4chan.org/{board_name}/thread/{thread_id}" rel="noreferrer" target="_blank">
-                    Permalink
-                </a>
+            <div class="thread-details">
+                <div class="thread-collapsible-anchor"><a>[+]</a></div>
+                <div class="thread">
+                    <a href="https://boards.4chan.org/{board_name}/thread/{thread_id}" rel="noreferrer" target="_blank">
+                        OP
+                    </a>
+                </div>
+                <div class="thread-replies">{thread_replies} replies</div>
             </div>
-            <div class="thread-replies">{thread_replies} replies</div>
             <div class="thread-thumbnail">
                 <a href="{thread_thumbnail_url}" rel="noreferrer" target="_blank">
                     <img src="data:image/png;base64, {thread_thumbnail}">

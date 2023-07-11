@@ -61,8 +61,31 @@ Styling for threads
     border-left: none;
 }
 
-.thread {
+@media only screen and (max-width: 600px) {
+    .thread-parent > .post-parent-r {
+        margin-left: -0.4em;
+    }
+}
+
+.thread-parent > .post-parent-r > .post-parent > .post-succ {
+    display: none;
+}
+
+.thread-parent > .post-parent-r > .post-parent > .post-details > .post-collapsible-anchor {
+    display: none;
+}
+
+.thread-details {
+    margin-bottom: 0.5em;
+}
+
+.thread,
+.thread > a,
+.thread > a:hover,
+.thread > a:visited
+{
     user-select: none;
+    color: #555;
     float: right;
 }
 
@@ -71,6 +94,7 @@ Styling for threads
     font-size: 1.1em;
     font-weight: bold;
     color: #fff;
+    margin-top: 0.5em;
     margin-bottom: 0.5em;
 }
 
@@ -87,8 +111,6 @@ Styling for threads
 .thread-replies {
     user-select: none;
     display: inline-flex;
-    margin-bottom: 0.3em;
-    margin-right: 0.5em;
     color: #9ee7e0;
 }
 
@@ -103,7 +125,7 @@ Styling for posts
 
 @media only screen and (max-width: 600px) {
     .post-parent-r {
-        margin-left: 0.3em;
+        margin-left: 0.4em;
     }
 }
 
@@ -115,34 +137,35 @@ Styling for posts
     margin-bottom: 0.5em;
 }
 
+.post-details {
+    margin-bottom: 0.25em;
+}
+
 .post-complexity {
     user-select: none;
     display: inline-flex;
-    margin-bottom: 0.3em;
     margin-right: 0.5em;
     color: #c676eb;
-    max-width: calc(100% - 20em);
+    max-width: calc(100% - 15em);
     overflow: hidden;
 }
 
 .post-complexity-number {
     user-select: none;
-    display: inline-block;
-    margin-bottom: 0.3em;
+    display: inline-flex;
     margin-right: 0.5em;
     color: #555;
 }
 
 .post-time {
     user-select: none;
-    float: right;
-    margin-right: 1em;
+    display: inline-flex;
+    margin-right: 0.5em;
     color: #555;
 }
 
 .post-name {
     float: right;
-    margin-right: 1em;
     color: #559c90;
 }
 
@@ -159,25 +182,20 @@ Styling for posts
 
 .post-country-name {
     user-select: none;
-    float: right;
-    margin-right: 1em;
+    display: inline-flex;
+    margin-right: 0.5em;
     color: #555;
 }
 
 .post-succ,
-.post-succ > a,
-.post-succ > a:hover,
-.post-succ > a:visited
-{
+.post-succ > a {
+    margin-top: 0.5em;
     font-size: 0.9em;
     color: #555;
 }
 
 .post-no,
-.post-no:hover,
-.post-no:visited
-{
-    user-select: none;
+.post-no > a {
     float: right;
     color: #555;
 }
@@ -208,7 +226,7 @@ Styling for collapsible
     min-height: 1.5em;
     max-height: 1.5em;
     overflow: hidden;
-    background-color: #111;
+    background-color: #202022;
 }
 
 .collapsed-parent > .post-parent-r {
@@ -216,27 +234,26 @@ Styling for collapsible
 }
 
 .collapsed-thread-parent {
-    padding: 1em 1em;
+    padding: 0.6em 1em;
     display: inline-block;
     vertical-align: top;
-    height: 230px;
-    width: 150px;
+    height: 260px;
+    width: 180px;
     margin-right: 1em;
     margin-bottom: 2em;
-    font-size: 12px;
-    line-height: 1.5em;
+    line-height: 1.3em;
     overflow: hidden;
 }
 
 @media only screen and (max-width: 400px) {
     .collapsed-thread-parent {
         width: 300px;
-        height: 180px;
+        height: 210px;
     }
 }
 
 .collapsed-thread-parent > .thread-description {
-    display: inline-block;
+    display: block;
 }
 
 .collapsed-thread-parent > .post-parent-r {
@@ -244,18 +261,18 @@ Styling for collapsible
 }
 
 .post-collapsible-anchor,
-.post-collapsible-anchor:hover,
-.post-collapsible-anchor:visited,
-.thread-collapsible-anchor,
-.thread-collapsible-anchor:hover,
-.thread-collapsible-anchor:visited
+.thread-collapsible-anchor
 {
     user-select: none;
-    color: #888;
-    text-decoration: none;
     display: inline-flex;
     margin-right: 0.5em;
     font-size: 1.2em;
+}
+
+.post-collapsible-anchor > a,
+.thread-collapsible-anchor > a
+{
+    color: #555;
 }
 
 .post-collapsible-anchor:hover,

@@ -1,5 +1,5 @@
 function uncollapse_reply(post_id) {
-    let original_post = document.getElementById(post_id).parentElement;
+    let original_post = document.getElementById(post_id).parentElement.parentElement;
 
     if (original_post.classList.contains("collapsed")) {
         original_post.classList.remove("collapsed");
@@ -38,7 +38,7 @@ function uncollapse_reply(post_id) {
 
 
 function uncollapse_reply_wrapper(element) {
-    uncollapse_reply(element.id);
+    uncollapse_reply(element.parentElement.id);
 }
 
 
