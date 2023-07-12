@@ -111,19 +111,26 @@ def get_boards(board_names: list, wait_time: float, threads_last_accessed: dict)
         threads_last_accessed[board_name][thread['no']] = thread['last_modified']
         massive_threads_list_sorted_4.append(thread)
     massive_threads_list_sorted = massive_threads_list_sorted_4
+    
+    # only keep latest threads in memory
+    if len(threads_last_accessed) > 200000:
+        thread_nos_delete = list(threads_last_accessed.keys()).sort()[10000:]
+        for thread_no in thread_nos_delete:
+            threads_last_accessed.pop(thread_no, None)
 
     i = 0
     for thread in massive_threads_list_sorted:
         i += 1
         
         # check local file for last modified
-        local_thread_file = pathlib.Path(f'threads/{thread["board_name"]}/' + str(thread['no']) + '.pkl')
-        if local_thread_file.is_file():
-            with open(f'threads/{thread["board_name"]}/' + str(thread['no']) + '.pkl', 'rb') as my_file:
-                local_thread = pickle.load(my_file)
-                if 'last_modified' in local_thread and thread['last_modified'] == local_thread['last_modified']:
-                    print(f'[{i}/{len(massive_threads_list_sorted)}] skipping   /{thread["board_name"]}/thread/{thread["no"]}')
-                    continue
+        if thread['no'] not in threads_last_accessed[board_name]:
+            local_thread_file = pathlib.Path(f'threads/{thread["board_name"]}/' + str(thread['no']) + '.pkl')
+            if local_thread_file.is_file():
+                with open(f'threads/{thread["board_name"]}/' + str(thread['no']) + '.pkl', 'rb') as my_file:
+                    local_thread = pickle.load(my_file)
+                    if 'last_modified' in local_thread and thread['last_modified'] == local_thread['last_modified']:
+                        print(f'[{i}/{len(massive_threads_list_sorted)}] skipping   /{thread["board_name"]}/thread/{thread["no"]}')
+                        continue
         
         # if modified since, download the thread
         try:
