@@ -91,7 +91,7 @@ def get_boards(board_names: list, wait_time: float, threads_last_accessed: dict)
                 massive_threads_list_sorted.append(thread)
     
     # sort the threads list
-    massive_threads_list_sorted.sort(key=lambda x: (x['last_modified'] if x['replies'] > 10 else 1 ), reverse=True)
+    massive_threads_list_sorted.sort(key=lambda x: x['last_modified'], reverse=True)
     massive_threads_list_sorted_2 = list()
     massive_threads_list_sorted_3 = list()
     for thread in massive_threads_list_sorted:
@@ -122,7 +122,7 @@ def get_boards(board_names: list, wait_time: float, threads_last_accessed: dict)
             with open(f'threads/{thread["board_name"]}/' + str(thread['no']) + '.pkl', 'rb') as my_file:
                 local_thread = pickle.load(my_file)
                 if 'last_modified' in local_thread and thread['last_modified'] == local_thread['last_modified']:
-                    print(f'[{i}/{len(massive_threads_list_sorted)}] skipping /{thread["board_name"]}/thread/{thread["no"]}')
+                    print(f'[{i}/{len(massive_threads_list_sorted)}] skipping   /{thread["board_name"]}/thread/{thread["no"]}')
                     continue
         
         # if modified since, download the thread
@@ -132,7 +132,7 @@ def get_boards(board_names: list, wait_time: float, threads_last_accessed: dict)
             sys.stdout.flush()
             time.sleep(random.randint(wait_time // 2, (wait_time * 3) // 2))
         except Exception as e:
-            print(f'[{i}/{len(massive_threads_list_sorted)}] failed! /{thread["board_name"]}/thread/{thread["no"]}')
+            print(f'[{i}/{len(massive_threads_list_sorted)}] failed!    /{thread["board_name"]}/thread/{thread["no"]}')
             print(e)
             time.sleep(random.randint(10,20))
 
