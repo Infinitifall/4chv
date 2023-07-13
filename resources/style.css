@@ -138,11 +138,11 @@ Styling for posts
 }
 
 .post-details {
+    user-select: none;
     margin-bottom: 0.25em;
 }
 
 .post-complexity {
-    user-select: none;
     display: inline-flex;
     margin-right: 0.5em;
     color: #c676eb;
@@ -151,7 +151,6 @@ Styling for posts
 }
 
 .post-complexity-number {
-    user-select: none;
     display: inline-flex;
     margin-right: 0.5em;
     color: #555;
@@ -165,7 +164,7 @@ Styling for posts
 }
 
 .post-name {
-    float: right;
+    user-select: none;
     color: #559c90;
 }
 
@@ -177,18 +176,17 @@ Styling for posts
 }
 
 .post-file {
-    user-select: none;
+    word-break: break-all;
 }
 
 .post-country-name {
-    user-select: none;
-    display: inline-flex;
-    margin-right: 0.5em;
+    float: right;
     color: #555;
 }
 
 .post-succ,
 .post-succ > a {
+    user-select: none;
     margin-top: 0.5em;
     font-size: 0.9em;
     color: #555;
