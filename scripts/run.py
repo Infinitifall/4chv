@@ -40,7 +40,7 @@ def main():
     wait_time_integer = 10
     while True:
         for board_name in board_names:
-            view.make_html(board_name, max_threads_per_board)
+            view.make_html_wrapper(board_name, max_threads_per_board)
             time.sleep(wait_time_integer)
 
 

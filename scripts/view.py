@@ -258,11 +258,12 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
     # get all local board html files and add greeter links to them
     all_board_names = list()
     for each_file in pathlib.Path('.').glob('*.html'):
-        all_board_names.append(each_file.stem())
+        if each_file.is_file():
+            all_board_names.append(each_file.stem)
     all_board_names.sort()
     all_board_names_links = ''
     for each_board_name in all_board_names:
-        all_board_names_links += f'<a href="{each_board_name}" class="greeter-element">/{each_board_name}/</a>'
+        all_board_names_links += f'<a href="{each_board_name}.html" class="greeter-element">/{each_board_name}/</a>'
 
     # the main string list
     html_string = list()
@@ -382,7 +383,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 def make_html(board_name: str, file_count: int):
     # get list of latest thread files for board
     if not pathlib.Path(f'threads/{board_name}').is_dir():
-        print(f'Board /{board_name}/ not found found locally, have you downloaded it?')
+        print(f'skipping {board_name}.html (no folder found yet)')
         return
     thread_files = pathlib.Path(f'threads/{board_name}').glob('*')
     latest_files = sorted(list(thread_files), reverse=True)[:file_count]
@@ -393,13 +394,13 @@ def make_html(board_name: str, file_count: int):
         if each_file.is_file():
             try:
                 with open(each_file, 'rb') as f:
-                    my_board[int(each_file.name.split('.')[0])] = pickle.load(f)
+                    my_board[int(each_file.stem)] = pickle.load(f)
             except:
                 continue;
 
     # skip if board has no threads
     if len(my_board) == 0:
-        print(f'skipping {board_name}.html')
+        print(f'skipping {board_name}.html (no threads yet)')
         return
 
     print(f'making {board_name}.html')
@@ -416,13 +417,20 @@ def make_html(board_name: str, file_count: int):
     sys.stdout.flush()
 
 
+def make_html_wrapper(board_name: str, file_count: int):
+    try:
+        make_html(board_name, file_count)
+    except Exception as e:
+        print(f'failed to make {board_name}.html')
+
+
 if __name__ == '__main__':
     try:
         assert(len(sys.argv) == 3)
         board_name = sys.argv[1] # eg. mu, sci, tv
         file_count = int(sys.argv[2])
 
-        make_html(board_name, file_count)
+        make_html_wrapper(board_name, file_count)
 
     except Exception as e:
         print('Usage: python3 view.py <board> <max_latest_posts>')
