@@ -245,13 +245,6 @@ Styling for collapsible
     overflow: hidden;
 }
 
-@media only screen and (max-width: 400px) {
-    .collapsed-thread-parent {
-        width: 300px;
-        height: 210px;
-    }
-}
-
 .collapsed-thread-parent > .thread-description {
     display: block;
 }

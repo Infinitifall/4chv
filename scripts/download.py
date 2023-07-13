@@ -92,25 +92,25 @@ def get_boards(board_names: list, wait_time: float, threads_last_accessed: dict)
     
     # sort the threads list
     massive_threads_list_sorted.sort(key=lambda x: x['last_modified'], reverse=True)
-    massive_threads_list_sorted_2 = list()
-    massive_threads_list_sorted_3 = list()
+    temp_list_1 = list()
+    temp_list_2 = list()
     for thread in massive_threads_list_sorted:
         if thread['replies'] > 10:
-            massive_threads_list_sorted_2.append(thread)
+            temp_list_1.append(thread)
         else:
-            massive_threads_list_sorted_3.append(thread)
-    massive_threads_list_sorted = massive_threads_list_sorted_2 + massive_threads_list_sorted_3
+            temp_list_2.append(thread)
+    massive_threads_list_sorted = temp_list_1 + temp_list_2
 
     # check memory for last modified
-    massive_threads_list_sorted_4 = list()
+    temp_list_3 = list()
     for thread in massive_threads_list_sorted:
         # check memory for last modified
         if thread['no'] in threads_last_accessed[board_name]:
             if threads_last_accessed[board_name][thread['no']] == thread['last_modified']:
                 continue
         threads_last_accessed[board_name][thread['no']] = thread['last_modified']
-        massive_threads_list_sorted_4.append(thread)
-    massive_threads_list_sorted = massive_threads_list_sorted_4
+        temp_list_3.append(thread)
+    massive_threads_list_sorted = temp_list_3
     
     # only keep latest threads in memory
     if len(threads_last_accessed) > 200000:
@@ -118,10 +118,7 @@ def get_boards(board_names: list, wait_time: float, threads_last_accessed: dict)
         for thread_no in thread_nos_delete:
             threads_last_accessed.pop(thread_no, None)
 
-    i = 0
-    for thread in massive_threads_list_sorted:
-        i += 1
-        
+    for thread_index, thread in enumerate(massive_threads_list_sorted):
         # check local file for last modified
         if thread['no'] not in threads_last_accessed[board_name]:
             local_thread_file = pathlib.Path(f'threads/{thread["board_name"]}/' + str(thread['no']) + '.pkl')
@@ -129,17 +126,17 @@ def get_boards(board_names: list, wait_time: float, threads_last_accessed: dict)
                 with open(f'threads/{thread["board_name"]}/' + str(thread['no']) + '.pkl', 'rb') as my_file:
                     local_thread = pickle.load(my_file)
                     if 'last_modified' in local_thread and thread['last_modified'] == local_thread['last_modified']:
-                        print(f'[{i}/{len(massive_threads_list_sorted)}] skipping   /{thread["board_name"]}/thread/{thread["no"]}')
+                        print(f'[{thread_index}/{len(massive_threads_list_sorted)}] skipping   /{thread["board_name"]}/thread/{thread["no"]}')
                         continue
         
         # if modified since, download the thread
         try:
             get_thread(thread["board_name"], thread['no'])
-            print(f'[{i}/{len(massive_threads_list_sorted)}] downloaded /{thread["board_name"]}/thread/{thread["no"]}')
+            print(f'[{thread_index}/{len(massive_threads_list_sorted)}] downloaded /{thread["board_name"]}/thread/{thread["no"]}')
             sys.stdout.flush()
             time.sleep(random.randint(wait_time // 2, (wait_time * 3) // 2))
         except Exception as e:
-            print(f'[{i}/{len(massive_threads_list_sorted)}] failed!    /{thread["board_name"]}/thread/{thread["no"]}')
+            print(f'[{thread_index}/{len(massive_threads_list_sorted)}] failed!    /{thread["board_name"]}/thread/{thread["no"]}')
             print(e)
             time.sleep(random.randint(10,20))
 
