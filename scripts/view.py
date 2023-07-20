@@ -5,6 +5,7 @@ import re
 import pickle
 from datetime import datetime
 import html
+import math
 
 
 # filter post text pre html escaping
@@ -253,7 +254,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     # update version when you update css or js to bypass browser cache 
-    version_number = "7.0"
+    version_number = "7.1"
     
     # get all local board html files and add greeter links to them
     all_board_names = list()
@@ -381,12 +382,20 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 
 # wrapper function to make html page for a board
 def make_html(board_name: str, file_count: int):
+
+    # our strategy to filter out high traffic low quality posts is as follows
+    # first we get the most recent 3 * file_count thread files and unpickle them
+    # from these threads, the most recent 1/4 * file_count are selected immediately
+    # this gives new threads a fair chance to appear on 4chv, albeit at the bottom
+    # then we loop over the remaining (3 - 1/4) * file_count threads ("tail_threads")
+    # and pick the ones with at least 10 replies to combine with the earlier selection
+
     # get list of latest thread files for board
     if not pathlib.Path(f'threads/{board_name}').is_dir():
         print(f'skipping {board_name}.html (no folder found yet)')
         return
     thread_files = pathlib.Path(f'threads/{board_name}').glob('*')
-    latest_files = sorted(list(thread_files), reverse=True)[:file_count]
+    latest_files = sorted(list(thread_files), reverse=True)[:(3 * file_count)]
 
     # read the files
     my_board = dict()
@@ -402,8 +411,16 @@ def make_html(board_name: str, file_count: int):
     if len(my_board) == 0:
         print(f'skipping {board_name}.html (no threads yet)')
         return
-
-    print(f'making {board_name}.html')
+    
+    thread_count = math.floor(1/4 * file_count)
+    tail_threads = sorted(list(my_board.keys()), reverse=True)[thread_count:]
+    for each_thread in tail_threads:
+        if (thread_count >= file_count) or (my_board[each_thread]['replies'] < 10):
+            my_board.pop(each_thread, None)
+        else:
+            thread_count += 1
+    
+    print(f'making {len(my_board)} posts on {board_name}.html')
     # calculate complexity for board (fast)
     # sort threads by cumulative complexity (fast)
     # print the entire board to html (slow)

@@ -5,6 +5,7 @@ body {
 
     background-color: #1e2022;
     color: #ccc;
+    margin: 0 0;
 }
 
 img {
@@ -21,6 +22,12 @@ a:hover { color: #6e7aac; text-decoration: underline; }
     max-width: min(95%, 1600px);
     margin-left: auto;
     margin-right: auto;
+}
+
+@media only screen and (max-width: 600px) {
+    .wrapper {
+        max-width: 98%;
+    }
 }
 
 .page-title {
@@ -50,6 +57,12 @@ Styling for threads
     padding: 0.5em 1em;
     margin-bottom: 5em;
     background-color: #151618;
+}
+
+@media only screen and (max-width: 600px) {
+    .thread-parent {
+        padding: 0.2em 0.5em;
+    }
 }
 
 .thread-parent > .post-parent-r > .post-parent {
