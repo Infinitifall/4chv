@@ -36,7 +36,7 @@ def main():
     download_thread.start()
 
     # cycle through boards, creating html pages
-    max_threads_per_board = 400
+    max_threads_per_board = 300
     wait_time_integer = 10
     while True:
         for board_name in board_names:

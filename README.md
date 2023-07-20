@@ -32,27 +32,26 @@ cd 4chv
 
 # FAQs
 
-### What is this program doing?
+### How do I use this app?
 
-It downloads threads from [4chan's public api](https://github.com/4chan/4chan-API) to a `threads` folder and creates html files such as `sci.html` and `g.html` which you can view in your browser.
-
+  First follow the "run" instructions given above. You can keep this app running in the background and it'll keep downloading threads and updating html pages. You can open any of the html files in your browser to browse 4chv.
 
 ### How do I add/remove boards?
 
-Edit the `boards.txt` file and add one board per line.
-
+  Edit the `boards.txt` file and add one board per line.
 
 ### Why is downloading so slow?
 
-A new thread is downloaded every two seconds, which is within 4chan's api rate limit. Unfortunately this means you will have to wait a few minutes the very first time to see a good number of threads.
+  A new thread is downloaded every 2 seconds to stay within 4chan's api rate limit. Unfortunately this means you will have to wait a few minutes the very first time you run this app to see a good number of threads.
 
+### What are points? What is the "++++" on every post? How is quality calculated?
+  
+  A post's quality is calculated in terms of points. The points a post gets depends on its words - unique words give higher points, common words give lower points. High quality replies to a post give it "+" points, which are shown separately as "++++" at the top of every post.
 
-### How is quality calculated?
-
-Threads and replies are sorted on the basis of points and the amount of discussion they generate. The points a thread or reply gets depends on its words - unique words get higher points, common words get lower points. Points are also (invisibly) added from quote replies. Low quality replies are minimized by default, providing a distraction free browsing experience.
-
+  Threads and replies are sorted on the basis of their points and the amount and quality of discussion they generate. This means high quality posts are on top while low quality replies are at the bottom and minimized by default.
 
 ### How do I uninstall this?
 
-Simply delete the folder, everything is self contained.
+  Simply delete the folder, everything is contained within.
+
 
