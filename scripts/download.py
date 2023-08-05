@@ -222,13 +222,23 @@ def get_thread(board_name: str, thread_no: int):
     return
 
 
-def get_boards_wrapper(board_names: list, wait_time: float):
+def get_boards_wrapper(wait_time: float):
     # dict to store last_accessed for all threads
     threads_last_accessed = dict()
     while True:
         try:
+            # get list of board names from boards.txt
+            board_names = list()
+            with open('boards.txt', 'r') as f:
+                lines = f.read().splitlines()
+                for line in lines:
+                    if line != '':
+                        board_names.append(line)
+            
+            print(f'Downloading: {", ".join(board_names)}')
+            
             get_boards(board_names, wait_time, threads_last_accessed)
-            time.sleep(10)
+            time.sleep(1)
         except Exception as e:
             print('an error occurred!')
             print(e)

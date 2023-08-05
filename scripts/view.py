@@ -1,6 +1,7 @@
 import sys
 import os
 import pathlib
+import time
 import re
 import pickle
 from datetime import datetime
@@ -434,11 +435,32 @@ def make_html(board_name: str, file_count: int):
     sys.stdout.flush()
 
 
-def make_html_wrapper(board_name: str, file_count: int):
-    try:
-        make_html(board_name, file_count)
-    except Exception as e:
-        print(f'failed to make {board_name}.html')
+def make_html_wrapper(wait_time: float, file_count: int):
+    while True:
+        try:
+            # get list of board names from boards.txt
+            board_names = list()
+            with open('boards.txt', 'r') as f:
+                lines = f.read().splitlines()
+                for line in lines:
+                    if line != '':
+                        board_names.append(line)
+            
+            print(f'Making: {", ".join(board_names)}')
+
+            for board_name in board_names:
+                try:
+                    make_html(board_name, file_count)
+                    time.sleep(wait_time)
+                except Exception as e:
+                    print(f'failed to make {board_name}.html')
+                    time.sleep(10)
+                
+        except Exception as e:
+            print('an error occurred!')
+            print(e)
+            time.sleep(10)
+    
 
 
 if __name__ == '__main__':
