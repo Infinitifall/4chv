@@ -29,7 +29,7 @@ def main():
 
     # create a new thread to create html pages for the boards
     max_threads_per_board = 300
-    wait_time_integer = 10
+    wait_time = 10
     download_thread = threading.Thread(target=view.make_html_wrapper, args=[wait_time, max_threads_per_board])
     download_thread.start()
 
