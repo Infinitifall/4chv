@@ -23,15 +23,15 @@ def main():
         each_file.unlink()
 
     # create a new thread to download threads
-    wait_time = 2
-    download_thread = threading.Thread(target=download.get_boards_wrapper, args=[wait_time])
+    download_wait_time = 2
+    download_thread = threading.Thread(target=download.get_boards_wrapper, args=[download_wait_time])
     download_thread.start()
 
     # create a new thread to create html pages for the boards
-    max_threads_per_board = 300
-    wait_time = 10
-    download_thread = threading.Thread(target=view.make_html_wrapper, args=[wait_time, max_threads_per_board])
-    download_thread.start()
+    view_max_threads_per_board = 300
+    view_wait_time = 10
+    view_thread = threading.Thread(target=view.make_html_wrapper, args=[view_wait_time, view_max_threads_per_board])
+    view_thread.start()
 
 
 if __name__ == '__main__':
