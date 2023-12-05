@@ -111,6 +111,17 @@ Styling for threads
     margin-bottom: 0.5em;
 }
 
+.thread-time {
+    user-select: none;
+    display: inline-flex;
+    color: #555;
+    margin-bottom: 0.2em;
+    margin-right: 0.5em;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
 .thread-description {
     display: none;
 }
@@ -217,7 +228,7 @@ Styling for posts
 }
 
 .green-text {
-    display: inline-flex;
+    display: inline;
     color: #b5bd68;
 }
 
@@ -225,7 +236,7 @@ Styling for posts
 .reply-text:visited,
 .reply-text:hover
 {
-    display: inline-flex;
+    display: inline;
     color: #6e7aac;
 }
 
@@ -254,6 +265,7 @@ Styling for collapsible
     margin-bottom: 2em;
     line-height: 1.3em;
     overflow: hidden;
+    position: relative;
 }
 
 .collapsed-thread-parent > .thread-description {

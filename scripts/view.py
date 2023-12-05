@@ -9,6 +9,26 @@ import html
 import math
 
 
+# return how long ago my_time was as
+# '12d 4h ago' or '5h 42m ago' or '15m ago'
+def custom_format_datetime_ago(my_time : str):
+    time_delta = datetime.now() - datetime.fromtimestamp(my_time)
+    time_delta_days = time_delta.days
+    time_delta_hours = int(time_delta.total_seconds() // 3600) % 24
+    time_delta_minutes = int(time_delta.total_seconds() // 60) % 60
+
+    return_time = ''
+    if time_delta_days == 0:
+        if time_delta_hours == 0:
+            return_time = f'{time_delta_minutes}m ago'
+        else:
+            return_time = f'{time_delta_hours}h {time_delta_minutes}m ago'
+    else:
+        return_time = f'{time_delta_days}d {time_delta_hours}h ago'
+    
+    return return_time
+
+
 # filter post text pre html escaping
 def filter_post_pre(content : str):
     clean_dict = {
@@ -25,7 +45,19 @@ def filter_post_post(content : str):
     clean_dict = {
         r'\&gt;(\d{5,20})': r'<a class="reply-text" onclick="uncollapse_reply(\1)" href="#\1">&gt;\1</a>',  # reply quotes
         r'^(\&gt;.+)': r'<div class="green-text">\1</div>',  # greentext
-        r'(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))': r'<a href="\1" rel="noreferrer" target="_blank">\1</a>',  # links
+        r'(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@;:%_\+.~#?&\/=]*))': r'<a href="\1" rel="noreferrer" target="_blank">\1</a>',  # links
+    }
+
+    for key, value in clean_dict.items():
+        content = re.sub(key, value, content, flags=re.IGNORECASE | re.MULTILINE)
+    return content
+
+
+# filter thread description post html escaping
+def filter_description_post(content : str):
+    clean_dict = {
+        r'\&gt;(\d{5,20})': r'<a class="reply-text" onclick="uncollapse_reply(\1)" href="#\1">&gt;\1</a>',  # reply quotes
+        r'^(\&gt;.+)': r'<div class="green-text">\1</div>',  # greentext
     }
 
     for key, value in clean_dict.items():
@@ -191,18 +223,7 @@ def print_post(post: dict):
     else:
         score = f'{complexity_int} point'
     
-    time_delta = datetime.now() - datetime.fromtimestamp(post['time'])
-    time_delta_days = time_delta.days
-    time_delta_hours = int(time_delta.total_seconds() // 3600) % 24
-    time_delta_minutes = int(time_delta.total_seconds() // 60) % 60
-    post_time = ''
-    if time_delta_days == 0:
-        if time_delta_hours == 0:
-            post_time = f'{time_delta_minutes}m ago'
-        else:
-            post_time = f'{time_delta_hours}h {time_delta_minutes}m ago'
-    else:
-        post_time = f'{time_delta_days}d {time_delta_hours}h ago'
+    post_time = custom_format_datetime_ago(post['time'])
 
     post_name = ''
     if 'name' in post:
@@ -254,8 +275,8 @@ def print_post(post: dict):
 
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
-    # update version when you update css or js to bypass browser cache 
-    version_number = "7.1"
+    # update version when you update css or js to bypass browser cache
+    version_number = "8.0"
     
     # get all local board html files and add greeter links to them
     all_board_names = list()
@@ -297,7 +318,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 
         thread_replies = 0
         if 'replies' in thread:
-            thread_replies = thread['replies']
+            thread_replies = thread['replies'] - 1
         
         thread_thumbnail_url = ''
         thread_thumbnail = ''
@@ -314,10 +335,27 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 
         thread_com = ''
         if 'com' in thread:
+            thread_com_original = filter_post_pre(thread['com'])
+            thread_com_original = html.escape(thread_com_original)
+            if len(thread_com_original) > 0 and thread_com_original[-1] == '\n':
+                thread_com_original = thread_com_original[:-1]
+            thread_com_original = filter_description_post(thread_com_original)
+
+            # select about the first 100 chars or 2 lines
             thread_com = filter_post_pre(thread['com'][0:100 - len(thread_sub)])
+            thread_com = '\n'.join(thread_com.split('\n')[:2])            
             thread_com = html.escape(thread_com)
-            thread_com = filter_post_post(thread_com)
-            thread_com += '...'
+            if len(thread_com) > 0 and thread_com[-1] == '\n':
+                thread_com = thread_com[:-1]
+            thread_com = filter_description_post(thread_com)
+
+            # trailing dots if thread_com is prematurely cut off
+            if len(thread_com_original) > len(thread_com):
+                thread_com += '...'
+        
+        thread_time = ''
+        if 'last_modified' in thread:
+            thread_time = custom_format_datetime_ago(thread['last_modified'])
         
         # append the thread header to the main string list
         html_string.append(f'''
@@ -339,6 +377,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             </div>
             <div class="thread-sub">{thread_sub}</div>
             <div class="thread-description">{thread_com}</div>
+            <div class="thread-time">{thread_time}</div>
         ''')
 
         # create a sorted and nested post list for the thread
@@ -448,10 +487,18 @@ def make_html_wrapper(wait_time: float, file_count: int):
             
             print(f'Making: {", ".join(board_names)}')
 
+            # avoid busy spinning by waiting a bit if the list is empty
+            if len(board_names) == 0:
+                time.sleep(5)
+                continue
+
+            # dont make the same board more frequently than once every 2 min
+            better_wait_time = max(wait_time, 120/len(board_names))
+
             for board_name in board_names:
                 try:
                     make_html(board_name, file_count)
-                    time.sleep(wait_time)
+                    time.sleep(better_wait_time)
                 except Exception as e:
                     print(f'failed to make {board_name}.html')
                     time.sleep(10)
