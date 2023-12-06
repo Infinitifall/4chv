@@ -112,14 +112,7 @@ Styling for threads
 }
 
 .thread-time {
-    user-select: none;
-    display: inline-flex;
-    color: #555;
-    margin-bottom: 0.2em;
-    margin-right: 0.5em;
-    position: absolute;
-    bottom: 0;
-    right: 0;
+    display: none;
 }
 
 .thread-description {
@@ -272,6 +265,17 @@ Styling for collapsible
     display: block;
 }
 
+.collapsed-thread-parent > .thread-time {
+    user-select: none;
+    display: inline-flex;
+    color: #555;
+    margin-bottom: 0.2em;
+    margin-right: 0.5em;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
 .collapsed-thread-parent > .post-parent-r {
     display: none;
 }
@@ -292,7 +296,9 @@ Styling for collapsible
 }
 
 .post-collapsible-anchor:hover,
-.thread-collapsible-anchor:hover
+.thread-collapsible-anchor:hover,
+.post_a:hover,
+.reply-text:hover
 {
     cursor: pointer;
 }

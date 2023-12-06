@@ -43,7 +43,7 @@ def filter_post_pre(content : str):
 # filter post text post html escaping
 def filter_post_post(content : str):
     clean_dict = {
-        r'\&gt;(\d{5,20})': r'<a class="reply-text" onclick="uncollapse_reply(\1)" href="#\1">&gt;\1</a>',  # reply quotes
+        r'\&gt;(\d{5,20})': r'<a class="reply-text" onclick="uncollapse_reply(\1)">&gt;\1</a>',  # reply quotes
         r'^(\&gt;.+)': r'<div class="green-text">\1</div>',  # greentext
         r'(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@;:%_\+.~#?&\/=]*))': r'<a href="\1" rel="noreferrer" target="_blank">\1</a>',  # links
     }
@@ -56,7 +56,7 @@ def filter_post_post(content : str):
 # filter thread description post html escaping
 def filter_description_post(content : str):
     clean_dict = {
-        r'\&gt;(\d{5,20})': r'<a class="reply-text" onclick="uncollapse_reply(\1)" href="#\1">&gt;\1</a>',  # reply quotes
+        r'\&gt;(\d{5,20})': r'<a class="reply-text" onclick="uncollapse_reply(\1)">&gt;\1</a>',  # reply quotes
         r'^(\&gt;.+)': r'<div class="green-text">\1</div>',  # greentext
     }
 
@@ -251,7 +251,7 @@ def print_post(post: dict):
     if 'succ' in post and len(post['succ']) > 0:
         post_succ += 'Replies: '
         for succ in post['succ']:
-            post_succ += f'<a onclick="uncollapse_reply({succ})" href="#{succ}">{succ}</a>, '
+            post_succ += f'<a class="post_a" onclick="uncollapse_reply({succ})">{succ}</a>, '
     
     return f'''
     <div class="post-parent {'collapsed' if ('hidden' in post) else ''}">
@@ -259,7 +259,7 @@ def print_post(post: dict):
             <div class="post-collapsible-anchor"><a>[+]</a></div>
             <div class="post-complexity-number">{score}</div>
             <div class="post-complexity">{"+" * complexity_hashes_int}</div>
-            <div class="post-no" id="{post["no"]}"><a onclick="uncollapse_reply_wrapper(this)" href="#{post["no"]}">#{post["no"]}</a></div>
+            <div class="post-no" id="{post["no"]}"><a class="post_a" onclick="uncollapse_reply_wrapper(this)">#{post["no"]}</a></div>
         </div>
         <div class="post-details">
             <div class="post-time">{post_time}</div>
@@ -276,7 +276,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     # update version when you update css or js to bypass browser cache
-    version_number = "8.0"
+    version_number = "9.0"
     
     # get all local board html files and add greeter links to them
     all_board_names = list()
