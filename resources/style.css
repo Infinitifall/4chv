@@ -1,3 +1,7 @@
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 14px;
@@ -313,7 +317,7 @@ Styling for collapsible
 
 .post-collapsible-anchor:hover,
 .thread-collapsible-anchor:hover,
-.post_a:hover,
+.post-a:hover,
 .reply-text:hover,
 .thread-uncollapse-all:hover,
 .thread-links-all:hover
