@@ -253,9 +253,9 @@ def print_post(post: dict):
             post_succ += f'<a class="post-a">{succ}</a>, '
     
     return f'''
-    <div class="post-parent {'collapsed' if ('hidden' in post) else ''}">
+    <div class="post-parent {'collapsed collapsed-originally' if ('hidden' in post) else ''}">
         <div class="post-details">
-            <div class="post-collapsible-anchor"><a>[+]</a></div>
+            <div class="post-collapsible-anchor">[+]</div>
             <div class="post-complexity-number">{score}</div>
             <div class="post-complexity">{"+" * complexity_hashes_int}</div>
             <div class="post-no" id="{post["no"]}"><a class="post-a">#{post["no"]}</a></div>
@@ -275,7 +275,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     # update version when you update css or js to bypass browser cache
-    version_number = "9.0"
+    version_number = "10.0"
     
     # get all local board html files and add greeter links to them
     all_board_names = list()
@@ -359,7 +359,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
         html_string.append(f'''
         <div class="thread-parent collapsed-thread-parent">
             <div class="thread-details">
-                <div class="thread-collapsible-anchor"><a>[+]</a></div>
+                <div class="thread-collapsible-anchor">[+]</div>
                 <div class="thread">
                     <a href="https://boards.4chan.org/{board_name}/thread/{thread_id}" rel="noreferrer" target="_blank">
                         OP
@@ -374,6 +374,8 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
                 </a>
             </div>
             <div class="thread-sub">{thread_sub}</div>
+            <div class="thread-uncollapse-all">Maximise all replies?</div>
+            <div class="thread-links-all">Collect all image links?</div>
             <div class="thread-description">{thread_com}</div>
             <div class="thread-time">{thread_time}</div>
         ''')
@@ -394,7 +396,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 
             posts_string.append(f'''
             {'</div>' * max(curr_tabbing - tabbing + 1, 0)}
-            <div class="post-parent-r {'collapsed-parent' if ('hidden' in post) else ''}">
+            <div class="post-parent-r {'collapsed-parent collapsed-parent-originally' if ('hidden' in post) else ''}">
                 {print_post(post)}
             ''')
 

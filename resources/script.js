@@ -74,6 +74,23 @@ function post_toggle_collapse(post_id) {
 }
 
 
+function generate_random_string(length, allowed_chars) {
+    let return_value = '';
+    for (let i = 0; i < length; i++) {
+        let random_index = Math.floor(Math.random() * allowed_chars.length);
+        return_value += allowed_chars[random_index];
+    }
+    return return_value;
+}
+
+
+function post_colorize_random(post_id) {
+    let original_post = document.getElementById(post_id).parentElement.parentElement;
+    let color_hex = "#" + generate_random_string(1, "12") + generate_random_string(1, "0123456789abcdef") + generate_random_string(1, "12") + generate_random_string(1, "0123456789abcdef") + generate_random_string(1, "12") + generate_random_string(1, "0123456789abcdef");
+    original_post.style.background = color_hex;
+}
+
+
 window.onload = function() {
     // add all the event listeners
 
@@ -102,6 +119,7 @@ window.onload = function() {
                 reply_id = reply_id.substring(4);
             }
             post_uncollapse(reply_id);
+            post_colorize_random(reply_id);
             post_scroll_to(reply_id);
         });
     }
@@ -114,16 +132,31 @@ window.onload = function() {
                 reply_id = reply_id.substring(1);
             }
             post_uncollapse(reply_id);
+            post_colorize_random(reply_id);
             post_scroll_to(reply_id);
         });
-    }
+    }    
+
+    let thread_uncollapse_all = document.getElementsByClassName("thread-uncollapse-all");
+    for (let i = 0; i < thread_uncollapse_all.length; i++) {
+        thread_uncollapse_all[i].addEventListener("click", function() {
+            let thread_element = this.parentNode;
+            let thread_post_parents = thread_element.querySelectorAll(".post-parent")
+
+            for (let j = 0; j < thread_post_parents.length; j++) {
+                let post_id = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+                post_uncollapse(post_id);
+            }
+        });
+    }   
 }
 
 window.onpageshow = function() {
-    // uncollapse, then scroll to the desired post
+    // uncollapse, colorize, scroll to the post in the url hash
     if(window.location.hash) {
         let post_id = Number(window.location.hash.substring(1));
         post_uncollapse(post_id);
+        post_colorize_random(post_id);
         post_scroll_to(post_id);
     }
 };

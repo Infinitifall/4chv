@@ -119,6 +119,18 @@ Styling for threads
     display: none;
 }
 
+.thread-uncollapse-all {
+    user-select: none;
+    display: block;
+    color: #447441
+}
+
+.thread-links-all {
+    user-select: none;
+    display: none;
+    color: #41746d
+}
+
 .thread-thumbnail {
     user-select: none;
     height: 100px;
@@ -265,6 +277,10 @@ Styling for collapsible
     display: block;
 }
 
+.collapsed-thread-parent> .thread-uncollapse-all {
+    display: none;
+}
+
 .collapsed-thread-parent > .thread-time {
     user-select: none;
     display: inline-flex;
@@ -289,8 +305,8 @@ Styling for collapsible
     font-size: 1.2em;
 }
 
-.post-collapsible-anchor > a,
-.thread-collapsible-anchor > a
+.post-collapsible-anchor,
+.thread-collapsible-anchor
 {
     color: #555;
 }
@@ -298,7 +314,9 @@ Styling for collapsible
 .post-collapsible-anchor:hover,
 .thread-collapsible-anchor:hover,
 .post_a:hover,
-.reply-text:hover
+.reply-text:hover,
+.thread-uncollapse-all:hover,
+.thread-links-all:hover
 {
     cursor: pointer;
 }
