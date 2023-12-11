@@ -43,7 +43,7 @@ def filter_post_pre(content : str):
 # filter post text post html escaping
 def filter_post_post(content : str):
     clean_dict = {
-        r'\&gt;(\d{5,20})': r'<a class="reply-text" onclick="uncollapse_reply(\1)">&gt;\1</a>',  # reply quotes
+        r'\&gt;(\d{5,20})': r'<a class="reply-text">&gt;\1</a>',  # reply quotes
         r'^(\&gt;.+)': r'<div class="green-text">\1</div>',  # greentext
         r'(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@;:%_\+.~#?&\/=]*))': r'<a href="\1" rel="noreferrer" target="_blank">\1</a>',  # links
     }
@@ -56,7 +56,6 @@ def filter_post_post(content : str):
 # filter thread description post html escaping
 def filter_description_post(content : str):
     clean_dict = {
-        r'\&gt;(\d{5,20})': r'<a class="reply-text" onclick="uncollapse_reply(\1)">&gt;\1</a>',  # reply quotes
         r'^(\&gt;.+)': r'<div class="green-text">\1</div>',  # greentext
     }
 
@@ -251,7 +250,7 @@ def print_post(post: dict):
     if 'succ' in post and len(post['succ']) > 0:
         post_succ += 'Replies: '
         for succ in post['succ']:
-            post_succ += f'<a class="post_a" onclick="uncollapse_reply({succ})">{succ}</a>, '
+            post_succ += f'<a class="post-a">{succ}</a>, '
     
     return f'''
     <div class="post-parent {'collapsed' if ('hidden' in post) else ''}">
@@ -259,7 +258,7 @@ def print_post(post: dict):
             <div class="post-collapsible-anchor"><a>[+]</a></div>
             <div class="post-complexity-number">{score}</div>
             <div class="post-complexity">{"+" * complexity_hashes_int}</div>
-            <div class="post-no" id="{post["no"]}"><a class="post_a" onclick="uncollapse_reply_wrapper(this)">#{post["no"]}</a></div>
+            <div class="post-no" id="{post["no"]}"><a class="post-a">#{post["no"]}</a></div>
         </div>
         <div class="post-details">
             <div class="post-time">{post_time}</div>
@@ -300,8 +299,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             <meta property="og:locale" content="en_US">
             <meta property="og:type" content="website">
             <link rel='stylesheet' type='text/css' href='resources/style.css?v={version_number}'>
-            <script src='resources/collapsible.js?v={version_number}' defer></script>
-            <script src='resources/uncollapse_reply.js?v={version_number}' defer></script>
+            <script src='resources/script.js?v={version_number}' defer></script>
             <link rel="icon" type="image/x-icon" href="resources/favicon.png">
             <title>4CHV</title> 
         </head>
