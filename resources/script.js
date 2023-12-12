@@ -221,6 +221,7 @@ window.onload = function() {
                     let a_curr = document.createElement("a");
                     a_curr.innerHTML = post_file.innerHTML;
                     a_curr.href = post_file.href;
+                    a_curr.rel = "noreferrer";
                     a_curr.target = "_blank";
                     div_curr.innerHTML = (file_count + 1).toString() + ". ";
                     div_curr.appendChild(a_curr);
