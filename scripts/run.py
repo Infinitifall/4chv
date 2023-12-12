@@ -33,16 +33,18 @@ def main():
     
     # run the threads
     while True:
+        print("checking if threads are alive...")
+        
         if not download_thread.is_alive():
-            print("Started download_thread")
-            sys.stdout.flush()
+            print("started download_thread")
             download_thread.start()
         
         if not view_thread.is_alive():
-            print("Started view_thread")
-            sys.stdout.flush()
+            print("started view_thread")
             view_thread.start()
         
+
+        sys.stdout.flush()
         time.sleep(60)
 
 

@@ -123,18 +123,6 @@ Styling for threads
     display: none;
 }
 
-.thread-uncollapse-all {
-    user-select: none;
-    display: block;
-    color: #447441
-}
-
-.thread-links-all {
-    user-select: none;
-    display: none;
-    color: #41746d
-}
-
 .thread-thumbnail {
     user-select: none;
     height: 100px;
@@ -145,6 +133,47 @@ Styling for threads
     user-select: none;
     display: inline-flex;
     color: #9ee7e0;
+}
+
+/*
+Styling for thread options
+*/
+
+.thread-options {
+    margin: 0.5em 0 0.5em 0;
+    text-align: center;
+}
+
+.thread-maximize-replies {
+    user-select: none;
+    display: inline-flex;
+    margin: 0 1em 0 1em;
+    color: #6a7441
+}
+
+.thread-minimize-replies {
+    user-select: none;
+    display: inline-flex;
+    margin: 0 1em 0 1em;
+    color: #41744f
+}
+
+.thread-files-all {
+    user-select: none;
+    display: inline-flex;
+    margin: 0 1em 0 1em;
+    color: #468682
+}
+
+.thread-files-dump {
+    user-select: none;
+    display: block;
+    margin: 1em  0 1em 0;
+    text-align: left;
+}
+
+.thread-files-dump > div > a {
+    color: #555;
 }
 
 /*
@@ -217,16 +246,19 @@ Styling for posts
     color: #555;
 }
 
+.post-a {
+    display: inline-flex;
+}
+
 .post-succ,
-.post-succ > a {
+.post-succ > .post-a {
     user-select: none;
     margin-top: 0.5em;
     font-size: 0.9em;
     color: #555;
 }
 
-.post-no,
-.post-no > a {
+.post-no {
     float: right;
     color: #555;
 }
@@ -245,7 +277,7 @@ Styling for posts
 .reply-text:visited,
 .reply-text:hover
 {
-    display: inline;
+    display: inline-flex;
     color: #6e7aac;
 }
 
@@ -281,7 +313,7 @@ Styling for collapsible
     display: block;
 }
 
-.collapsed-thread-parent> .thread-uncollapse-all {
+.collapsed-thread-parent> .thread-options {
     display: none;
 }
 
@@ -319,8 +351,10 @@ Styling for collapsible
 .thread-collapsible-anchor:hover,
 .post-a:hover,
 .reply-text:hover,
-.thread-uncollapse-all:hover,
-.thread-links-all:hover
+.thread-maximize-replies:hover,
+.thread-minimize-replies:hover,
+.thread-files-all:hover
 {
     cursor: pointer;
+    text-decoration: underline;
 }

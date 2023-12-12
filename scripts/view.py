@@ -43,7 +43,7 @@ def filter_post_pre(content : str):
 # filter post text post html escaping
 def filter_post_post(content : str):
     clean_dict = {
-        r'\&gt;(\d{5,20})': r'<a class="reply-text">&gt;\1</a>',  # reply quotes
+        r'\&gt;(\d{5,20})': r'<div class="reply-text">&gt;\1</div>',  # reply quotes
         r'^(\&gt;.+)': r'<div class="green-text">\1</div>',  # greentext
         r'(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@;:%_\+.~#?&\/=]*))': r'<a href="\1" rel="noreferrer" target="_blank">\1</a>',  # links
     }
@@ -250,7 +250,7 @@ def print_post(post: dict):
     if 'succ' in post and len(post['succ']) > 0:
         post_succ += 'Replies: '
         for succ in post['succ']:
-            post_succ += f'<a class="post-a">{succ}</a>, '
+            post_succ += f'<div class="post-a">{succ}</div>, '
     
     return f'''
     <div class="post-parent {'collapsed collapsed-originally' if ('hidden' in post) else ''}">
@@ -258,7 +258,7 @@ def print_post(post: dict):
             <div class="post-collapsible-anchor">[+]</div>
             <div class="post-complexity-number">{score}</div>
             <div class="post-complexity">{"+" * complexity_hashes_int}</div>
-            <div class="post-no" id="{post["no"]}"><a class="post-a">#{post["no"]}</a></div>
+            <div class="post-no" id="{post["no"]}"><div class="post-a">#{post["no"]}</div></div>
         </div>
         <div class="post-details">
             <div class="post-time">{post_time}</div>
@@ -275,7 +275,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     # update version when you update css or js to bypass browser cache
-    version_number = "10.1"
+    version_number = "10.2"
     
     # get all local board html files and add greeter links to them
     all_board_names = list()
@@ -374,8 +374,12 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
                 </a>
             </div>
             <div class="thread-sub">{thread_sub}</div>
-            <div class="thread-uncollapse-all">Maximise all replies?</div>
-            <div class="thread-links-all">Collect all image links?</div>
+            <div class="thread-options">
+                <div class="thread-maximize-replies">[Uncollapse all replies]</div>
+                <div class="thread-minimize-replies">[Reset reply collapsing]</div>
+                <div class="thread-files-all">[Collect all file links]</div>
+                <div class="thread-files-dump"></div>
+            </div>
             <div class="thread-description">{thread_com}</div>
             <div class="thread-time">{thread_time}</div>
         ''')
@@ -485,7 +489,7 @@ def make_html_wrapper(wait_time: float, file_count: int):
                     if line != '':
                         board_names.append(line)
             
-            print(f'Making: {", ".join(board_names)}')
+            print(f'making: {", ".join(board_names)}')
 
             # avoid busy spinning by waiting a bit if the list is empty
             if len(board_names) == 0:
