@@ -69,9 +69,9 @@ Styling for threads
     }
 }
 
-.thread-parent > .post-parent-r > .post-parent {
+/* .thread-parent > .post-parent-r > .post-parent {
     background-color: #151618;
-}
+} */
 
 .thread-parent > .post-parent-r {
     margin-left: -1em;
@@ -84,10 +84,10 @@ Styling for threads
     }
 }
 
-.thread-parent > .post-parent-r > .post-parent > .post-succ {
-    display: none;
-}
-
+/*
+Don't display replies or collapsible anchor for OP
+*/
+.thread-parent > .post-parent-r > .post-parent > .post-details-2 > .post-succ,
 .thread-parent > .post-parent-r > .post-parent > .post-details > .post-collapsible-anchor {
     display: none;
 }
@@ -108,7 +108,7 @@ Styling for threads
 
 .thread-sub {
     user-select: none;
-    font-size: 1.1em;
+    font-size: 1.3em;
     font-weight: bold;
     color: #fff;
     margin-top: 0.5em;
@@ -125,7 +125,7 @@ Styling for threads
 
 .thread-thumbnail {
     user-select: none;
-    height: 100px;
+    height: 120px;
     max-width: 600px;
 }
 
@@ -140,40 +140,36 @@ Styling for thread options
 */
 
 .thread-options {
-    margin: 0.5em 0 0.5em 0;
-    text-align: center;
+    user-select: none;
+    margin: 1em 0 0.5em -1em;
+    padding-left: 1em;
 }
 
-.thread-maximize-replies {
-    user-select: none;
-    display: inline-flex;
-    margin: 0 1em 0 1em;
-    color: #6a7441
+.thread-options > .thread-maximize-replies,
+.thread-options > .thread-files-all,
+.thread-options > .thread-reset {
+    display: inline-block;
+    margin-right: 1em;
+    color: #666;
 }
 
-.thread-minimize-replies {
-    user-select: none;
-    display: inline-flex;
-    margin: 0 1em 0 1em;
-    color: #41744f
-}
-
-.thread-files-all {
-    user-select: none;
-    display: inline-flex;
-    margin: 0 1em 0 1em;
-    color: #468682
+@media only screen and (max-width: 600px) {
+    .thread-options > .thread-maximize-replies,
+    .thread-options > .thread-files-all,
+    .thread-options > .thread-reset {
+        margin-right: 0.5em;
+    }
 }
 
 .thread-files-dump {
-    user-select: none;
     display: block;
-    margin: 1em  0 1em 0;
+    margin: 0.5em  0 1em 0;
     text-align: left;
+    color: #777;
 }
 
 .thread-files-dump > div > a {
-    color: #555;
+    color: #579394;
 }
 
 /*
@@ -201,7 +197,12 @@ Styling for posts
 
 .post-details {
     user-select: none;
-    margin-bottom: 0.25em;
+    margin-bottom: 0.5em;
+    color: #555;
+}
+
+.post-no {
+    float: right;
 }
 
 .post-complexity {
@@ -213,13 +214,6 @@ Styling for posts
 }
 
 .post-complexity-number {
-    display: inline-flex;
-    margin-right: 0.5em;
-    color: #555;
-}
-
-.post-time {
-    user-select: none;
     display: inline-flex;
     margin-right: 0.5em;
     color: #555;
@@ -239,28 +233,37 @@ Styling for posts
 
 .post-file {
     word-break: break-all;
+    margin-bottom: 0.4em;
+}
+
+.post-file > a {
+    color: #579394;
 }
 
 .post-country-name {
     float: right;
-    color: #555;
+}
+
+.post-details-2 {
+    user-select: none;
+    margin-top: 0.5em;
+    font-size: 0.9em;
+    color: #666;
 }
 
 .post-a {
     display: inline-flex;
+    font-size: 1em;
 }
 
-.post-succ,
-.post-succ > .post-a {
-    user-select: none;
-    margin-top: 0.5em;
-    font-size: 0.9em;
+.post-time {
+    display: inline-flex;
+    margin-right: 1em;
     color: #555;
 }
 
-.post-no {
-    float: right;
-    color: #555;
+.post-succ {
+    display: inline;
 }
 
 .post {
@@ -273,11 +276,14 @@ Styling for posts
     color: #b5bd68;
 }
 
+.reply-text {
+    display: inline-flex;
+}
+
 .reply-text,
 .reply-text:visited,
 .reply-text:hover
 {
-    display: inline-flex;
     color: #6e7aac;
 }
 
@@ -309,6 +315,14 @@ Styling for collapsible
     position: relative;
 }
 
+.collapsed-thread-parent > .thread-thumbnail {
+    height: 100px;
+}
+
+.collapsed-thread-parent > .thread-sub {
+    font-size: 1.1em;
+}
+
 .collapsed-thread-parent > .thread-description {
     display: block;
 }
@@ -338,21 +352,20 @@ Styling for collapsible
     user-select: none;
     display: inline-flex;
     margin-right: 0.5em;
-    font-size: 1.2em;
-}
-
-.post-collapsible-anchor,
-.thread-collapsible-anchor
-{
+    font-size: 1.4em;
     color: #555;
 }
+
+/*
+pointer + underline for clicky stuff
+*/
 
 .post-collapsible-anchor:hover,
 .thread-collapsible-anchor:hover,
 .post-a:hover,
 .reply-text:hover,
 .thread-maximize-replies:hover,
-.thread-minimize-replies:hover,
+.thread-reset:hover,
 .thread-files-all:hover
 {
     cursor: pointer;

@@ -261,13 +261,15 @@ def print_post(post: dict):
             <div class="post-no" id="{post["no"]}"><div class="post-a">#{post["no"]}</div></div>
         </div>
         <div class="post-details">
-            <div class="post-time">{post_time}</div>
             <div class="post-country-name">{post_country_name}</div>
         </div>
         <div class="post-name">{post_name}</div>
         <div class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{post_filename}{post_ext}</a></div>
         <div class="post">{post_com}</div>
-        <div class="post-succ">{post_succ[:-2]}</div>
+        <div class="post-details-2">
+            <div class="post-time">{post_time}</div>
+            <div class="post-succ">{post_succ[:-2]}</div>
+        </div>
     </div>
     '''
 
@@ -275,7 +277,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     # update version when you update css or js to bypass browser cache
-    version_number = "10.2"
+    version_number = "11.0"
     
     # get all local board html files and add greeter links to them
     all_board_names = list()
@@ -340,7 +342,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             thread_com_original = filter_description_post(thread_com_original)
 
             # select about the first 100 chars or 2 lines
-            thread_com = filter_post_pre(thread['com'][0:100 - len(thread_sub)])
+            thread_com = filter_post_pre(thread['com'][0:max(0, 120 - math.floor(1.8 * len(thread_sub)))])
             thread_com = '\n'.join(thread_com.split('\n')[:2])            
             thread_com = html.escape(thread_com)
             if len(thread_com) > 0 and thread_com[-1] == '\n':
@@ -375,9 +377,9 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             </div>
             <div class="thread-sub">{thread_sub}</div>
             <div class="thread-options">
-                <div class="thread-maximize-replies">[Uncollapse all replies]</div>
-                <div class="thread-minimize-replies">[Reset reply collapsing]</div>
-                <div class="thread-files-all">[Collect all file links]</div>
+                <div class="thread-maximize-replies">[Unfold all replies]</div>
+                <div class="thread-files-all">[List all files]</div>
+                <div class="thread-reset">[Reset]</div>
                 <div class="thread-files-dump"></div>
             </div>
             <div class="thread-description">{thread_com}</div>

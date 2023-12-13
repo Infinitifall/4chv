@@ -172,9 +172,18 @@ window.onload = function() {
         });
     }
 
-    let thread_minimize_replies = document.getElementsByClassName("thread-minimize-replies");
-    for (let i = 0; i < thread_minimize_replies.length; i++) {
-        thread_minimize_replies[i].addEventListener("click", function() {
+    let thread_reset = document.getElementsByClassName("thread-reset");
+    for (let i = 0; i < thread_reset.length; i++) {
+        thread_reset[i].addEventListener("click", function() {
+            let thread_files_dump = this.parentNode.getElementsByClassName("thread-files-dump")[0];
+            let thread_files_dump_children = thread_files_dump.children;
+            
+            // clear thread_files_dump of all links first
+            let thread_files_dump_children_length_curr = thread_files_dump_children.length;
+            for (let j = 0; j < thread_files_dump_children_length_curr; j++) {
+                thread_files_dump_children[0].remove();
+            }
+
             let thread_element = this.parentNode.parentNode;
             let thread_post_parents = thread_element.querySelectorAll(".post-parent")
 
@@ -211,7 +220,7 @@ window.onload = function() {
             for (let j = 0; j < thread_files_dump_children_length_curr; j++) {
                 thread_files_dump_children[0].remove();
             }
-
+            
             // dump all file links in thread_files
             let file_count = 0;
             for (let j = 0; j < thread_post_parents.length; j++) {
