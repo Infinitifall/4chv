@@ -6,13 +6,8 @@ Downloads threads and builds offline html pages for a /comfy/ browsing experienc
 
 - Catalog view
 - Nested reply threads
-- Posts are assigned points and sorted based on quality
+- Threads and posts ordered by quality
 - Tiny download size (1MB)
-
-
-![screenshot](resources/screenshot2.png)
-
-![screenshot](resources/screenshot.png)
 
 
 ## Install on Windows
@@ -21,13 +16,12 @@ Downloads threads and builds offline html pages for a /comfy/ browsing experienc
 2. [Download 4CHV](https://github.com/Infinitifall/4chv/archive/refs/heads/main.zip) and unzip the folder
 3. Double click on `run_on_windows.bat`
 
+To update to the latest version, follow steps 2 and 3 again.
+
 
 ## Install on Linux/macOS/BSD
 
 ```bash
-# verify python is installed
-python3 --version
-
 # clone repo
 git clone https://github.com/Infinitifall/4chv
 cd 4chv
@@ -36,27 +30,38 @@ cd 4chv
 ./run_on_linux.sh
 ```
 
+
+
+![screenshot](resources/screenshot2.png)
+
+![screenshot](resources/screenshot.png)
+
+![screenshot](resources/screenshot3.png)
+
 ## FAQs
 
-- **How do I use 4CHV?**
-  - Follow the "install" instructions above
-  - Keep the program running in the background, it will download threads and update the html files
+- **How to use 4CHV?**
+  - Follow the install instructions above
+  - Keep the program running in the background, it will download threads and update html files
   - Open any of the html files in your browser
 
-- **How to change what boards are downloaded?**
+- **How to choose boards to downloaded?**
   - Edit the `boards.txt` file, add one board per line
 
 - **Why is downloading so slow?**
-  - A new thread is downloaded every 2 seconds (to stay within the api rate limit)
-  - Unfortunately this means you will have to wait 5 min the first time you run this program
+  - A new thread is downloaded every 2 seconds
+  - You will have to wait 5 min the first time you run 4chv to see a good number of threads
 
 - **How is post quality calculated?**
-  - 4chv automatically sorts threads and replies by "quality"
-  - Quality is calculated in terms of "points" and "+"s
-  - The "points" depends on the uniqueness of the words used in a post
-  - The "+"s depends on the quality the replies to a post
+  - 4chv automatically sorts threads and replies by quality ("points" and "+"s)
+  - "points" depend on the uniqueness of the words used in the post
+  - "+"s depend on the quality of the replies to the post
+
+- **Where are threads stored?**
+  - All threads are downloaded to the `threads` folder as Python Pickle files
+  - The folder can be deleted or even copied it to another installation of 4chv
 
 - **How to uninstall 4CHV?**
-  - Just delete the `4CHV` folder, everything is inside it
+  - Simply delete the `4chv` folder
 
 
