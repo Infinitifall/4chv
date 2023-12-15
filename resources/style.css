@@ -49,7 +49,6 @@ a:hover { color: #6e7aac; text-decoration: underline; }
 }
 
 .greeter-element {
-    user-select: none;
     margin-right: 1em;
 }
 
@@ -93,15 +92,20 @@ Don't display replies or collapsible anchor for OP
 }
 
 .thread-details {
+    user-select: none;
     margin-bottom: 0.5em;
 }
 
-.thread,
-.thread > a,
-.thread > a:hover,
-.thread > a:visited
-{
-    user-select: none;
+.thread-replies {
+    display: inline;
+    color: #9ee7e0;
+}
+
+.thread-op,
+.thread-op > a,
+.thread-op > a:hover,
+.thread-op > a:visited
+{   
     color: #555;
     float: right;
 }
@@ -125,14 +129,8 @@ Don't display replies or collapsible anchor for OP
 
 .thread-thumbnail {
     user-select: none;
-    height: 120px;
-    max-width: 600px;
-}
-
-.thread-replies {
-    user-select: none;
-    display: inline-flex;
-    color: #9ee7e0;
+    height: 150px;
+    max-width: 200px;
 }
 
 /*
@@ -143,21 +141,14 @@ Styling for thread options
     user-select: none;
     margin: 1em 0 0.5em -1em;
     padding-left: 1em;
-}
-
-.thread-options > .thread-maximize-replies,
-.thread-options > .thread-files-all,
-.thread-options > .thread-reset {
-    display: inline-block;
-    margin-right: 1em;
     color: #666;
+    text-align: right;
+    float: right;
 }
 
 @media only screen and (max-width: 600px) {
-    .thread-options > .thread-maximize-replies,
-    .thread-options > .thread-files-all,
-    .thread-options > .thread-reset {
-        margin-right: 0.5em;
+    .thread-options {
+        float: none;
     }
 }
 
@@ -214,14 +205,14 @@ Styling for posts
 }
 
 .post-complexity-number {
-    display: inline-flex;
+    display: inline;
     margin-right: 0.5em;
     color: #555;
 }
 
 .post-name {
     user-select: none;
-    color: #559c90;
+    color: #a39c5f;
 }
 
 .post-sub {
@@ -240,24 +231,32 @@ Styling for posts
     color: #579394;
 }
 
-.post-country-name {
-    float: right;
-}
-
 .post-details-2 {
     user-select: none;
     margin-top: 0.5em;
     font-size: 0.9em;
-    color: #666;
+    color: #555;
+    overflow: scroll;
+    white-space: nowrap;
+}
+
+.post-details-2 {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.post-details-2::-webkit-scrollbar { 
+    display: none;
 }
 
 .post-a {
-    display: inline-flex;
-    font-size: 1em;
+    display: inline;
 }
 
-.post-time {
-    display: inline-flex;
+.post-time,
+.post-country-name,
+.post-id {
+    display: inline;
     margin-right: 1em;
     color: #555;
 }
@@ -266,9 +265,13 @@ Styling for posts
     display: inline;
 }
 
+.post-succ > .post-a {
+    margin-right: 1em;
+}
+
 .post {
     white-space: pre-line;
-    word-break: break-all;
+    word-break: break-word;
 }
 
 .green-text {
@@ -278,13 +281,7 @@ Styling for posts
 
 .reply-text {
     display: inline-flex;
-}
-
-.reply-text,
-.reply-text:visited,
-.reply-text:hover
-{
-    color: #6e7aac;
+    color: #6d9799;
 }
 
 /*
@@ -325,6 +322,7 @@ Styling for collapsible
 
 .collapsed-thread-parent > .thread-description {
     display: block;
+    word-break: break-word;
 }
 
 .collapsed-thread-parent> .thread-options {
@@ -333,7 +331,7 @@ Styling for collapsible
 
 .collapsed-thread-parent > .thread-time {
     user-select: none;
-    display: inline-flex;
+    display: inline;
     color: #555;
     margin-bottom: 0.2em;
     margin-right: 0.5em;
@@ -349,8 +347,7 @@ Styling for collapsible
 .post-collapsible-anchor,
 .thread-collapsible-anchor
 {
-    user-select: none;
-    display: inline-flex;
+    display: inline;
     margin-right: 0.5em;
     font-size: 1.4em;
     color: #555;
@@ -363,6 +360,7 @@ pointer + underline for clicky stuff
 .post-collapsible-anchor:hover,
 .thread-collapsible-anchor:hover,
 .post-a:hover,
+.post-no:hover,
 .reply-text:hover,
 .thread-maximize-replies:hover,
 .thread-reset:hover,

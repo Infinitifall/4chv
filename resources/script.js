@@ -94,8 +94,9 @@ function post_colorize_random(post_id) {
 function get_post_color_determinstic(post_id) {
     let random_choice1 = Math.abs(Math.sin(post_id)).toString(16).substring(2 + 1);
     let random_choice2 = Math.abs(Math.sin(post_id)).toString(2).substring(2 + 1);
-    for (let i = 0; i < random_choice2.length; i++) { if (random_choice2.charAt(i) == 0) { random_choice2[i] = 1 } else { random_choice2[i] = 2 }}
-    let color_hex = "#" + random_choice2.slice(0,1) + random_choice1.slice(0,1) + random_choice2.slice(1,2) + random_choice1.slice(1,2) + random_choice2.slice(2,3) + random_choice1.slice(2,3);
+    let random_choice_2_sub = ""
+    for (let i = 0; i < random_choice2.length; i++) { if (random_choice2.charAt(i) == 0) { random_choice_2_sub += "2"; } else { random_choice_2_sub += "2"; }}
+    let color_hex = "#" + random_choice_2_sub.slice(0,1) + random_choice1.slice(0,1) + random_choice_2_sub.slice(1,2) + random_choice1.slice(1,2) + random_choice_2_sub.slice(2,3) + random_choice1.slice(2,3);
     return color_hex;
 }
 
@@ -103,6 +104,7 @@ function get_post_color_determinstic(post_id) {
 function post_colorize_deterministic(post_id) {
     let original_post = document.getElementById(post_id).parentElement.parentElement;
     original_post.style.background = get_post_color_determinstic(post_id);
+    original_post.style.border = "1px solid #555";
 }
 
 
@@ -135,9 +137,8 @@ window.onload = function() {
     for (let i = 0; i < reply_posts.length; i++) {
         reply_posts[i].addEventListener("click", function() {
             let reply_id = this.innerHTML;
-            if (reply_id.startsWith("&gt;")) {
-                reply_id = reply_id.substring(4);
-            }
+            while (reply_id.startsWith("#")) { reply_id = reply_id.substring(1); }
+            while (reply_id.startsWith("&gt;")) { reply_id = reply_id.substring(4); }
             post_uncollapse(reply_id);
             element_colorize_deterministic(this, reply_id);
             post_colorize_deterministic(reply_id);
@@ -145,13 +146,12 @@ window.onload = function() {
         });
     }
 
-    let post_as = document.getElementsByClassName("post-a");
+    let post_as = document.querySelectorAll(".post-a,.post-no");
     for (let i = 0; i < post_as.length; i++) {
         post_as[i].addEventListener("click", function() {
             let reply_id = this.innerHTML;
-            if (reply_id.charAt(0) == "#") {
-                reply_id = reply_id.substring(1);
-            }
+            while (reply_id.startsWith("#")) { reply_id = reply_id.substring(1); }
+            while (reply_id.startsWith("&gt;")) { reply_id = reply_id.substring(4); }
             post_uncollapse(reply_id);
             element_colorize_deterministic(this, reply_id);
             post_colorize_deterministic(reply_id);
@@ -175,7 +175,7 @@ window.onload = function() {
     let thread_reset = document.getElementsByClassName("thread-reset");
     for (let i = 0; i < thread_reset.length; i++) {
         thread_reset[i].addEventListener("click", function() {
-            let thread_files_dump = this.parentNode.getElementsByClassName("thread-files-dump")[0];
+            let thread_files_dump = this.parentNode.parentNode.getElementsByClassName("thread-files-dump")[0];
             let thread_files_dump_children = thread_files_dump.children;
             
             // clear thread_files_dump of all links first
@@ -209,7 +209,7 @@ window.onload = function() {
     let thread_files_all = document.getElementsByClassName("thread-files-all");
     for (let i = 0; i < thread_files_all.length; i++) {
         thread_files_all[i].addEventListener("click", function() {
-            let thread_files_dump = this.parentNode.getElementsByClassName("thread-files-dump")[0];
+            let thread_files_dump = this.parentNode.parentNode.getElementsByClassName("thread-files-dump")[0];
             let thread_files_dump_children = thread_files_dump.children;
 
             let thread_element = this.parentNode.parentNode;

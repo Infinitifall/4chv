@@ -35,22 +35,26 @@ def thumbnail_url(board_name: str, tim: int):
 # clean post text
 def clean_post(content: str):
     clean_dict = {
+        '\?P<replyquote>>': '>>',
+
+        r'</[asp]+>': '',
+        '</span>': '',
+        '</pre>': '',
+
+        r'<pre [^>]+>': '',
         r'<[ap] [^>]+>': '>',
         r'<span [^>]+>': '>',
         '<span class="deadlink">': '',
+
         '&quot;': '\"',
         '&amp;': '&',
         '&#039;': "'",
-        '(<br>)+': '\n',
         '&gt;': '',
+
         '<wbr>': '',
-        '\?P<replyquote>>': '>',
-        '</span>': '',
-        '</[asp]+>': '',
+        '(<br>)+': '\n',
         '\n+': '\n',
         r'^\n': '',
-        r'<pre [^>]+>': '',
-        '</pre>': '',
     }
 
     for key, value in clean_dict.items():
@@ -169,6 +173,9 @@ def get_thread(board_name: str, thread_no: int):
         if 'name' in post:
             if post['name'] != 'Anonymous':
                 this_post['name'] = post['name']
+        
+        if 'id' in post:
+            this_post['id'] = post['id']
         
         if 'filename' in post and 'ext' in post:
             this_post['file'] = content_url(board_name, str(post['tim']), str(post['ext']))

@@ -32,7 +32,7 @@ def custom_format_datetime_ago(my_time : str):
 # filter post text pre html escaping
 def filter_post_pre(content : str):
     clean_dict = {
-        r'[^\x00-\x7F]+': "",  # weird unicode symbols
+        r'[^!@#\$%\^&*\(\)-_=\+\[\]\{\};:\'",<.>\/\?\|\\\s\w]': '_',  # weird unicode
     }
 
     for key, value in clean_dict.items():
@@ -43,7 +43,7 @@ def filter_post_pre(content : str):
 # filter post text post html escaping
 def filter_post_post(content : str):
     clean_dict = {
-        r'\&gt;(\d{5,20})': r'<div class="reply-text">&gt;\1</div>',  # reply quotes
+        r'(\&gt;)+(\d{5,20})': r'<div class="reply-text">&gt;&gt;\2</div>',  # reply quotes
         r'^(\&gt;.+)': r'<div class="green-text">\1</div>',  # greentext
         r'(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@;:%_\+.~#?&\/=]*))': r'<a href="\1" rel="noreferrer" target="_blank">\1</a>',  # links
     }
@@ -73,7 +73,7 @@ def complexity_score(sentences_array):
     # and sentences_words with words from each sentence
     for sentence in sentences_array:
         words = list()
-        temp_words = re.findall(r'[a-zA-Z\'"]+', sentence)
+        temp_words = re.findall(r'[\w\'"]+', sentence)
         for word in temp_words:
             words.append(word.lower())
 
@@ -228,9 +228,15 @@ def print_post(post: dict):
     if 'name' in post:
         post_name = '~' + html.escape(post['name'])
     
+    post_id = ''
+    if 'id' in post:
+        post_id = post['id']
+        post_id = f'<div class="post-id">{post_id}</div>'
+    
     post_country_name = ''
     if 'country_name' in post:
         post_country_name = post['country_name']
+        post_country_name = f'<div class="post-country-name">{post_country_name}</div>'
 
     post_file = ''
     post_filename = ''
@@ -242,15 +248,15 @@ def print_post(post: dict):
 
     post_com = ''
     if 'com' in post and len(post['com']) > 0:
-        post_com = filter_post_pre(post['com'])
+        post_com = post['com']
+        # post_com = filter_post_pre(post['com'])
         post_com = html.escape(post_com)
         post_com = filter_post_post(post_com)
     
     post_succ = ''
     if 'succ' in post and len(post['succ']) > 0:
-        post_succ += 'Replies: '
         for succ in post['succ']:
-            post_succ += f'<div class="post-a">{succ}</div>, '
+            post_succ += f'<div class="post-a">&gt;&gt;{succ}</div>  '  # whitespace after is important
     
     return f'''
     <div class="post-parent {'collapsed collapsed-originally' if ('hidden' in post) else ''}">
@@ -258,17 +264,16 @@ def print_post(post: dict):
             <div class="post-collapsible-anchor">[+]</div>
             <div class="post-complexity-number">{score}</div>
             <div class="post-complexity">{"+" * complexity_hashes_int}</div>
-            <div class="post-no" id="{post["no"]}"><div class="post-a">#{post["no"]}</div></div>
-        </div>
-        <div class="post-details">
-            <div class="post-country-name">{post_country_name}</div>
+            <div class="post-no" class="post-a" id="{post["no"]}">#{post["no"]}</div>
         </div>
         <div class="post-name">{post_name}</div>
         <div class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{post_filename}{post_ext}</a></div>
         <div class="post">{post_com}</div>
         <div class="post-details-2">
+            {post_id}
+            {post_country_name}
             <div class="post-time">{post_time}</div>
-            <div class="post-succ">{post_succ[:-2]}</div>
+            <div class="post-succ">{post_succ}</div>
         </div>
     </div>
     '''
@@ -277,7 +282,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     # update version when you update css or js to bypass browser cache
-    version_number = "11.0"
+    version_number = "12.0"
     
     # get all local board html files and add greeter links to them
     all_board_names = list()
@@ -329,21 +334,25 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 
         thread_sub = ''
         if 'sub' in thread:
-            thread_sub = filter_post_pre(thread['sub'][0:100])
+            thread_sub = thread['sub'][0:100]
+            # thread_sub = filter_post_pre(thread_sub)
             thread_sub = html.escape(thread_sub)
             thread_sub = filter_post_post(thread_sub)
 
         thread_com = ''
         if 'com' in thread:
-            thread_com_original = filter_post_pre(thread['com'])
+            # calculate the original comment first, for comparison
+            thread_com_original = thread['com']
+            # thread_com_original = filter_post_pre(thread_com_original)
             thread_com_original = html.escape(thread_com_original)
             if len(thread_com_original) > 0 and thread_com_original[-1] == '\n':
                 thread_com_original = thread_com_original[:-1]
             thread_com_original = filter_description_post(thread_com_original)
 
-            # select about the first 100 chars or 2 lines
-            thread_com = filter_post_pre(thread['com'][0:max(0, 120 - math.floor(1.8 * len(thread_sub)))])
-            thread_com = '\n'.join(thread_com.split('\n')[:2])            
+            # select about the first 120 chars or 2 lines (take bold sub and uppercase into account)
+            thread_com = thread['com'][0:max(0, 120 - math.floor(1.7 * (len(thread_sub))) - math.floor(sum(0.3 for c in thread['com'] if c.isupper())))]
+            # thread_com = filter_post_pre(thread_com)
+            thread_com = '\n'.join(thread_com.split('\n')[:2])
             thread_com = html.escape(thread_com)
             if len(thread_com) > 0 and thread_com[-1] == '\n':
                 thread_com = thread_com[:-1]
@@ -362,12 +371,17 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
         <div class="thread-parent collapsed-thread-parent">
             <div class="thread-details">
                 <div class="thread-collapsible-anchor">[+]</div>
-                <div class="thread">
+                <div class="thread-op">
                     <a href="https://boards.4chan.org/{board_name}/thread/{thread_id}" rel="noreferrer" target="_blank">
                         OP
                     </a>
                 </div>
                 <div class="thread-replies">{thread_replies} replies</div>
+            </div>
+            <div class="thread-options">
+                <div class="thread-maximize-replies">Unfold all replies</div>
+                <div class="thread-files-all">List all files</div>
+                <div class="thread-reset">Reset</div>
             </div>
             <div class="thread-thumbnail">
                 <a href="{thread_thumbnail_url}" rel="noreferrer" target="_blank">
@@ -376,12 +390,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
                 </a>
             </div>
             <div class="thread-sub">{thread_sub}</div>
-            <div class="thread-options">
-                <div class="thread-maximize-replies">[Unfold all replies]</div>
-                <div class="thread-files-all">[List all files]</div>
-                <div class="thread-reset">[Reset]</div>
-                <div class="thread-files-dump"></div>
-            </div>
+            <div class="thread-files-dump"></div>
             <div class="thread-description">{thread_com}</div>
             <div class="thread-time">{thread_time}</div>
         ''')
