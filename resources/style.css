@@ -210,11 +210,6 @@ Styling for posts
     color: #555;
 }
 
-.post-name {
-    user-select: none;
-    color: #a39c5f;
-}
-
 .post-sub {
     font-size: 1.1em;
     font-weight: bold;
@@ -255,7 +250,8 @@ Styling for posts
 
 .post-time,
 .post-country-name,
-.post-id {
+.post-id,
+.post-name {
     display: inline;
     margin-right: 1em;
     color: #555;
@@ -281,7 +277,7 @@ Styling for posts
 
 .reply-text {
     display: inline-flex;
-    color: #6d9799;
+    color: #6e7aac;
 }
 
 /*

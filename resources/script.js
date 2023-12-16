@@ -113,6 +113,105 @@ function element_colorize_deterministic(element, post_id) {
 }
 
 
+function event_function_1(self) {
+    let reply_id = self.innerHTML;
+    while (reply_id.startsWith("#")) { reply_id = reply_id.substring(1); }
+    while (reply_id.startsWith("&gt;")) { reply_id = reply_id.substring(4); }
+    post_uncollapse(reply_id);
+    element_colorize_deterministic(self, reply_id);
+    post_colorize_deterministic(reply_id);
+    post_scroll_to(reply_id);
+}
+
+
+function event_function_2(self) {
+    let reply_id = self.innerHTML;
+    while (reply_id.startsWith("#")) { reply_id = reply_id.substring(1); }
+    while (reply_id.startsWith("&gt;")) { reply_id = reply_id.substring(4); }
+    post_uncollapse(reply_id);
+    element_colorize_deterministic(self, reply_id);
+    post_colorize_deterministic(reply_id);
+    post_scroll_to(reply_id);
+}
+
+
+function event_function_3(self) {
+    let thread_element = self.parentNode.parentNode;
+    let thread_post_parents = thread_element.querySelectorAll(".post-parent")
+
+    for (let j = 0; j < thread_post_parents.length; j++) {
+        let post_id = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+        post_uncollapse(post_id);
+    }
+}
+
+
+function event_function_4(self) {
+    let thread_files_dump = self.parentNode.parentNode.getElementsByClassName("thread-files-dump")[0];
+    let thread_files_dump_children = thread_files_dump.children;
+    
+    // clear thread_files_dump of all links first
+    let thread_files_dump_children_length_curr = thread_files_dump_children.length;
+    for (let j = 0; j < thread_files_dump_children_length_curr; j++) {
+        thread_files_dump_children[0].remove();
+    }
+
+    let thread_element = self.parentNode.parentNode;
+    let thread_post_parents = thread_element.querySelectorAll(".post-parent")
+
+    // first uncollapse the ones not originally collapsed
+    for (let j = 0; j < thread_post_parents.length; j++) {
+        let post_id = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+        if (!thread_post_parents[j].classList.contains("collapsed-originally")) {
+            post_uncollapse(post_id);
+        }                
+    }
+
+    // then collapse the ones originally collapsed
+    for (let j = 0; j < thread_post_parents.length; j++) {
+        let post_id = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+
+        if (thread_post_parents[j].classList.contains("collapsed-originally")) {
+            post_collapse(post_id);
+        }                
+    }
+}
+
+
+function event_function_5(self) {
+    let thread_files_dump = self.parentNode.parentNode.getElementsByClassName("thread-files-dump")[0];
+    let thread_files_dump_children = thread_files_dump.children;
+
+    let thread_element = self.parentNode.parentNode;
+    let thread_post_parents = thread_element.querySelectorAll(".post-parent");
+    
+    // clear thread_files_dump of all links first
+    let thread_files_dump_children_length_curr = thread_files_dump_children.length;
+    for (let j = 0; j < thread_files_dump_children_length_curr; j++) {
+        thread_files_dump_children[0].remove();
+    }
+    
+    // dump all file links in thread_files
+    let file_count = 0;
+    for (let j = 0; j < thread_post_parents.length; j++) {
+        let post_file = thread_post_parents[j].getElementsByClassName("post-file")[0].children[0];
+        if (post_file.innerHTML) {
+            let div_curr = document.createElement("div");
+            let a_curr = document.createElement("a");
+            a_curr.innerHTML = post_file.innerHTML;
+            a_curr.href = post_file.href;
+            a_curr.rel = "noreferrer";
+            a_curr.target = "_blank";
+            div_curr.innerHTML = (file_count + 1).toString() + ". ";
+            div_curr.appendChild(a_curr);
+            thread_files_dump.appendChild(div_curr);
+
+            file_count += 1;
+        }
+    }
+}
+
+
 window.onload = function() {
     // add all the event listeners
 
@@ -136,109 +235,35 @@ window.onload = function() {
     let reply_posts = document.getElementsByClassName("reply-text");
     for (let i = 0; i < reply_posts.length; i++) {
         reply_posts[i].addEventListener("click", function() {
-            let reply_id = this.innerHTML;
-            while (reply_id.startsWith("#")) { reply_id = reply_id.substring(1); }
-            while (reply_id.startsWith("&gt;")) { reply_id = reply_id.substring(4); }
-            post_uncollapse(reply_id);
-            element_colorize_deterministic(this, reply_id);
-            post_colorize_deterministic(reply_id);
-            post_scroll_to(reply_id);
+            event_function_1(this);
         });
     }
 
     let post_as = document.querySelectorAll(".post-a,.post-no");
     for (let i = 0; i < post_as.length; i++) {
         post_as[i].addEventListener("click", function() {
-            let reply_id = this.innerHTML;
-            while (reply_id.startsWith("#")) { reply_id = reply_id.substring(1); }
-            while (reply_id.startsWith("&gt;")) { reply_id = reply_id.substring(4); }
-            post_uncollapse(reply_id);
-            element_colorize_deterministic(this, reply_id);
-            post_colorize_deterministic(reply_id);
-            post_scroll_to(reply_id);
+            event_function_2(this);
         });
     }    
 
     let thread_maximize_replies = document.getElementsByClassName("thread-maximize-replies");
     for (let i = 0; i < thread_maximize_replies.length; i++) {
         thread_maximize_replies[i].addEventListener("click", function() {
-            let thread_element = this.parentNode.parentNode;
-            let thread_post_parents = thread_element.querySelectorAll(".post-parent")
-
-            for (let j = 0; j < thread_post_parents.length; j++) {
-                let post_id = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
-                post_uncollapse(post_id);
-            }
+            event_function_3(this);
         });
     }
 
     let thread_reset = document.getElementsByClassName("thread-reset");
     for (let i = 0; i < thread_reset.length; i++) {
         thread_reset[i].addEventListener("click", function() {
-            let thread_files_dump = this.parentNode.parentNode.getElementsByClassName("thread-files-dump")[0];
-            let thread_files_dump_children = thread_files_dump.children;
-            
-            // clear thread_files_dump of all links first
-            let thread_files_dump_children_length_curr = thread_files_dump_children.length;
-            for (let j = 0; j < thread_files_dump_children_length_curr; j++) {
-                thread_files_dump_children[0].remove();
-            }
-
-            let thread_element = this.parentNode.parentNode;
-            let thread_post_parents = thread_element.querySelectorAll(".post-parent")
-
-            // first uncollapse the ones not originally collapsed
-            for (let j = 0; j < thread_post_parents.length; j++) {
-                let post_id = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
-                if (!thread_post_parents[j].classList.contains("collapsed-originally")) {
-                    post_uncollapse(post_id);
-                }                
-            }
-
-            // then collapse the ones originally collapsed
-            for (let j = 0; j < thread_post_parents.length; j++) {
-                let post_id = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
-
-                if (thread_post_parents[j].classList.contains("collapsed-originally")) {
-                    post_collapse(post_id);
-                }                
-            }
+            event_function_4(this);
         });
     }
 
     let thread_files_all = document.getElementsByClassName("thread-files-all");
     for (let i = 0; i < thread_files_all.length; i++) {
         thread_files_all[i].addEventListener("click", function() {
-            let thread_files_dump = this.parentNode.parentNode.getElementsByClassName("thread-files-dump")[0];
-            let thread_files_dump_children = thread_files_dump.children;
-
-            let thread_element = this.parentNode.parentNode;
-            let thread_post_parents = thread_element.querySelectorAll(".post-parent");
-            
-            // clear thread_files_dump of all links first
-            let thread_files_dump_children_length_curr = thread_files_dump_children.length;
-            for (let j = 0; j < thread_files_dump_children_length_curr; j++) {
-                thread_files_dump_children[0].remove();
-            }
-            
-            // dump all file links in thread_files
-            let file_count = 0;
-            for (let j = 0; j < thread_post_parents.length; j++) {
-                let post_file = thread_post_parents[j].getElementsByClassName("post-file")[0].children[0];
-                if (post_file.innerHTML) {
-                    let div_curr = document.createElement("div");
-                    let a_curr = document.createElement("a");
-                    a_curr.innerHTML = post_file.innerHTML;
-                    a_curr.href = post_file.href;
-                    a_curr.rel = "noreferrer";
-                    a_curr.target = "_blank";
-                    div_curr.innerHTML = (file_count + 1).toString() + ". ";
-                    div_curr.appendChild(a_curr);
-                    thread_files_dump.appendChild(div_curr);
-
-                    file_count += 1;
-                }
-            }
+            event_function_5(this);
         });
     }
 }

@@ -30,7 +30,7 @@ cd 4chv
 ./run_on_linux.sh
 ```
 
-
+## Screenshots
 
 ![screenshot](resources/screenshot2.png)
 
@@ -38,30 +38,30 @@ cd 4chv
 
 ![screenshot](resources/screenshot3.png)
 
-## FAQs
+## More information
 
-- **How to use 4CHV?**
+- **How to use 4CHV**
   - Follow the install instructions above
   - Keep the program running in the background, it will download threads and update html files
   - Open any of the html files in your browser
 
-- **How to choose boards to downloaded?**
+- **Choose which /boards/ to download**
   - Edit the `boards.txt` file, add one board per line
 
-- **Why is downloading so slow?**
-  - A new thread is downloaded every 2 seconds
-  - You will have to wait 5 min the first time you run 4chv to see a good number of threads
-
-- **How is post quality calculated?**
+- **Post quality**
   - 4chv automatically sorts threads and replies by quality ("points" and "+"s)
   - "points" depend on the uniqueness of the words used in the post
   - "+"s depend on the quality of the replies to the post
 
-- **Where are threads stored?**
-  - All threads are downloaded to the `threads` folder as Python Pickle files
-  - The folder can be deleted or even copied it to another installation of 4chv
+- **Slow downloads?**
+  - A new thread is downloaded every 2 seconds
+  - You will have to wait 5 min the first time you run 4chv to see a good number of threads
 
-- **How to uninstall 4CHV?**
+- **Where are threads stored**
+  - Threads are downloaded to the `threads` folder as Python Pickle files
+  - This folder can be deleted or even copied it to another installation of 4chv
+
+- **How to uninstall 4CHV**
   - Simply delete the `4chv` folder
 
 

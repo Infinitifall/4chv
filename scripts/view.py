@@ -227,6 +227,7 @@ def print_post(post: dict):
     post_name = ''
     if 'name' in post:
         post_name = '~' + html.escape(post['name'])
+        post_name = f'<div class="post-name">{post_name}</div>'
     
     post_id = ''
     if 'id' in post:
@@ -266,10 +267,10 @@ def print_post(post: dict):
             <div class="post-complexity">{"+" * complexity_hashes_int}</div>
             <div class="post-no" class="post-a" id="{post["no"]}">#{post["no"]}</div>
         </div>
-        <div class="post-name">{post_name}</div>
         <div class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{post_filename}{post_ext}</a></div>
         <div class="post">{post_com}</div>
         <div class="post-details-2">
+            {post_name}
             {post_id}
             {post_country_name}
             <div class="post-time">{post_time}</div>
@@ -282,7 +283,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     # update version when you update css or js to bypass browser cache
-    version_number = "12.0"
+    version_number = "12.1"
     
     # get all local board html files and add greeter links to them
     all_board_names = list()
