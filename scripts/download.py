@@ -6,6 +6,7 @@ import re
 import pickle
 import base64
 import random
+import html
 
 import requests
 import urllib3
@@ -46,11 +47,7 @@ def clean_post(content: str):
         r'<span [^>]+>': '>',
         '<span class="deadlink">': '',
 
-        '&quot;': '\"',
-        '&amp;': '&',
-        '&#039;': "'",
         '&gt;': '',
-
         '<wbr>': '',
         '(<br>)+': '\n',
         '\n+': '\n',
@@ -59,6 +56,8 @@ def clean_post(content: str):
 
     for key, value in clean_dict.items():
         content = re.sub(key, value, content, flags=re.IGNORECASE | re.MULTILINE)
+    
+    content = html.unescape(content)
     return content
 
 
@@ -163,16 +162,16 @@ def get_thread(board_name: str, thread_no: int):
         this_post['time'] = int(post['time'])
         
         if 'com' in post:
-            this_post['com'] = clean_post(str(post['com']))
+            this_post['com'] = clean_post(post['com'])
         else:
             this_post['com'] = ''
 
         if 'sub' in post:
-            this_post['sub'] = clean_post(str(post['sub']))
+            this_post['sub'] = clean_post(post['sub'])
         
         if 'name' in post:
             if post['name'] != 'Anonymous':
-                this_post['name'] = post['name']
+                this_post['name'] = clean_post(post['name'])
         
         if 'id' in post:
             this_post['id'] = post['id']
@@ -242,7 +241,7 @@ def get_boards_wrapper(wait_time: float):
                     if line != '':
                         board_names.append(line)
             
-            print(f'Downloading: {", ".join(board_names)}')
+            print(f'downloading: {", ".join(board_names)}')
             
             get_boards(board_names, wait_time, threads_last_accessed)
             time.sleep(1)

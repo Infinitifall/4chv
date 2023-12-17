@@ -226,7 +226,7 @@ def print_post(post: dict):
 
     post_name = ''
     if 'name' in post:
-        post_name = '~' + html.escape(post['name'])
+        post_name = html.escape(post['name'])
         post_name = f'<div class="post-name">{post_name}</div>'
     
     post_id = ''
