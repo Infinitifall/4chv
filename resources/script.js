@@ -1,5 +1,5 @@
 function post_scroll_to(post_id) {
-        // update window hash with post id. This forces browser to scroll 
+        // update window hash with post id. This forces browser to scroll
         // to the element with that id so we do it before custom scrolling
         // window.location.hash = post_id.toString();
         history.pushState({}, '', '#' + post_id.toString());
@@ -7,9 +7,19 @@ function post_scroll_to(post_id) {
         // scroll into view of the post or thread
         let scroll_post = document.getElementById(post_id).parentElement.parentElement;
         if (scroll_post.parentElement.parentElement.classList.contains("thread-parent")) {
+            // scroll to top of thread
             scroll_post = scroll_post.parentElement.parentElement;
+            scroll_post.scrollIntoView();
+        } else {
+            // scroll to middle of post unless it is too long
+            if (scroll_post.clientHeight > window.screen.height) {
+                scroll_post.scrollIntoView();
+            } else {
+                scroll_post.scrollIntoView({
+                    block: 'center'
+                });
+            }
         }
-        scroll_post.scrollIntoView();
 }
 
 
@@ -37,7 +47,7 @@ function post_uncollapse(post_id) {
     // go up through the parents and uncollapse them all
     let post = original_post.parentElement;
     while(
-        post.classList.contains("post-parent-r") || 
+        post.classList.contains("post-parent-r") ||
         post.classList.contains("thread-parent")
     ) {
         if (post.classList.contains("collapsed-parent")) {
@@ -45,7 +55,7 @@ function post_uncollapse(post_id) {
         }
         for (let i = 0; i < post.children.length; i++) {
             if (
-                (post.children[i].classList.contains('post-parent')) && 
+                (post.children[i].classList.contains('post-parent')) &&
                 (post.children[i].classList.contains('collapsed'))
             ) {
                 post.children[i].classList.remove('collapsed');
@@ -104,12 +114,13 @@ function get_post_color_determinstic(post_id) {
 function post_colorize_deterministic(post_id) {
     let original_post = document.getElementById(post_id).parentElement.parentElement;
     original_post.style.background = get_post_color_determinstic(post_id);
-    original_post.style.border = "1px solid #555";
+    original_post.style.border = "1px solid #666";
 }
 
 
 function element_colorize_deterministic(element, post_id) {
     element.style.background = get_post_color_determinstic(post_id);
+    element.style.border = "1px solid #444";
 }
 
 
@@ -149,7 +160,7 @@ function event_function_3(self) {
 function event_function_4(self) {
     let thread_files_dump = self.parentNode.parentNode.getElementsByClassName("thread-files-dump")[0];
     let thread_files_dump_children = thread_files_dump.children;
-    
+
     // clear thread_files_dump of all links first
     let thread_files_dump_children_length_curr = thread_files_dump_children.length;
     for (let j = 0; j < thread_files_dump_children_length_curr; j++) {
@@ -164,7 +175,7 @@ function event_function_4(self) {
         let post_id = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
         if (!thread_post_parents[j].classList.contains("collapsed-originally")) {
             post_uncollapse(post_id);
-        }                
+        }
     }
 
     // then collapse the ones originally collapsed
@@ -173,7 +184,7 @@ function event_function_4(self) {
 
         if (thread_post_parents[j].classList.contains("collapsed-originally")) {
             post_collapse(post_id);
-        }                
+        }
     }
 }
 
@@ -184,13 +195,13 @@ function event_function_5(self) {
 
     let thread_element = self.parentNode.parentNode;
     let thread_post_parents = thread_element.querySelectorAll(".post-parent");
-    
+
     // clear thread_files_dump of all links first
     let thread_files_dump_children_length_curr = thread_files_dump_children.length;
     for (let j = 0; j < thread_files_dump_children_length_curr; j++) {
         thread_files_dump_children[0].remove();
     }
-    
+
     // dump all file links in thread_files
     let file_count = 0;
     for (let j = 0; j < thread_post_parents.length; j++) {
@@ -244,7 +255,7 @@ window.onload = function() {
         post_as[i].addEventListener("click", function() {
             event_function_2(this);
         });
-    }    
+    }
 
     let thread_maximize_replies = document.getElementsByClassName("thread-maximize-replies");
     for (let i = 0; i < thread_maximize_replies.length; i++) {
@@ -277,4 +288,4 @@ window.onpageshow = function() {
         post_scroll_to(post_id);
     }
 };
-  
+

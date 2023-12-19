@@ -25,7 +25,7 @@ def custom_format_datetime_ago(my_time : str):
             return_time = f'{time_delta_hours}h {time_delta_minutes}m ago'
     else:
         return_time = f'{time_delta_days}d {time_delta_hours}h ago'
-    
+
     return return_time
 
 
@@ -117,7 +117,7 @@ def calculate_post_cumulative_complexity(board : dict, thread_no : int, post_no 
 
     if 'cumulative_complexity' in post:
         return post['cumulative_complexity']
-    
+
     cumulative_post_complexity = 0
     norm = 1
 
@@ -125,11 +125,11 @@ def calculate_post_cumulative_complexity(board : dict, thread_no : int, post_no 
         for succ in post['succ']:
             if succ != post_no:
                 cumulative_post_complexity += calculate_post_cumulative_complexity(board, thread_no, succ)
-        
+
         norm = (len(post['succ'])) ** (1 - 1/3)
 
     cumulative_post_complexity += post['complexity']
-    
+
     post['cumulative_complexity'] = cumulative_post_complexity
     post['cumulative_complexity_normalized'] = cumulative_post_complexity / norm
     return cumulative_post_complexity
@@ -167,7 +167,7 @@ def sort_board_cumulative_complexity(board : dict):
     for thread_no, thread in board.items():
         for post_no, post in thread['thread'].items():
             post['succ'] = sorted(post['succ'], key=lambda x: thread['thread'][x]['cumulative_complexity'], reverse=True)
-        
+
         op_post_no = min(thread['thread'].keys())
         thread['cumulative_complexity_normalized'] = thread['thread'][op_post_no]['cumulative_complexity_normalized']
         threads_sorted.append(thread_no)
@@ -189,7 +189,7 @@ def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: in
         post['occurrences'] = 1
     else:
         post['occurrences'] += 1
-    
+
     occurrences_max = 1
     if (post['occurrences'] > 1 and tabbing <= 1) or \
         (post['occurrences'] > occurrences_max):
@@ -199,17 +199,17 @@ def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: in
     post_complexity_int = int((post['complexity'] / 100) ** 0.8)
     if (post_complexity_int <= 10 + 2 * tabbing) and (tabbing > 0):
         post['hidden'] = True
-    
+
     post_list.append({"post": post, "tabbing": tabbing})
 
     for succ in post['succ']:
         create_post_list_r(board, thread_id, succ, tabbing + 1, post_list)
-    
+
     return post_list
-    
+
 
 # print a single post
-def print_post(post: dict):    
+def print_post(post: dict):
     complexity_int = int((post['complexity'] / 100) ** 0.8)
     # cumulative_complexity_int = int((post['cumulative_complexity'] / 100) ** 0.8)
     # cumulative_complexity_diff_int = int(((post['cumulative_complexity'] - post['complexity']) / 100) ** 0.3)
@@ -221,19 +221,19 @@ def print_post(post: dict):
         score = f'{complexity_int} points'
     else:
         score = f'{complexity_int} point'
-    
+
     post_time = custom_format_datetime_ago(post['time'])
 
     post_name = ''
     if 'name' in post:
         post_name = html.escape(post['name'])
         post_name = f'<div class="post-name">{post_name}</div>'
-    
+
     post_id = ''
     if 'id' in post:
         post_id = post['id']
         post_id = f'<div class="post-id">{post_id}</div>'
-    
+
     post_country_name = ''
     if 'country_name' in post:
         post_country_name = post['country_name']
@@ -253,12 +253,12 @@ def print_post(post: dict):
         # post_com = filter_post_pre(post['com'])
         post_com = html.escape(post_com)
         post_com = filter_post_post(post_com)
-    
+
     post_succ = ''
     if 'succ' in post and len(post['succ']) > 0:
         for succ in post['succ']:
             post_succ += f'<div class="post-a">&gt;&gt;{succ}</div>  '  # whitespace after is important
-    
+
     return f'''
     <div class="post-parent {'collapsed collapsed-originally' if ('hidden' in post) else ''}">
         <div class="post-details">
@@ -283,8 +283,8 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     # update version when you update css or js to bypass browser cache
-    version_number = "12.1"
-    
+    version_number = "12.5"
+
     # get all local board html files and add greeter links to them
     all_board_names = list()
     for each_file in pathlib.Path('.').glob('*.html'):
@@ -309,13 +309,20 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             <link rel='stylesheet' type='text/css' href='resources/style.css?v={version_number}'>
             <script src='resources/script.js?v={version_number}' defer></script>
             <link rel="icon" type="image/x-icon" href="resources/favicon.png">
-            <title>4CHV</title> 
+            <title>4CHV</title>
         </head>
         <body>
             <div class="wrapper">
-            <h1 class="page-title">4CHV: a viewer for a more civilized age</h1>
+            <h1 class="page-title"><a href="https://github.com/Infinitifall/4chv" target="_blank">4CHV</a>: a viewer for a more civilized age</h1>
             <div class="greeter">
                 {all_board_names_links}
+            </div>
+            <div class="greeter-2">
+                <ul class="greeter-2-list">
+                    <li>Click <a>[+]</a> to fold / unfold a post</li>
+                    <li>Click <a>&gt;&gt;1234567</a> to jump to that post</li>
+                    <li>Use browser / phone back button to jump back</li>
+                </ul>
             </div>
     ''')
 
@@ -325,7 +332,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
         thread_replies = 0
         if 'replies' in thread:
             thread_replies = thread['replies'] - 1
-        
+
         thread_thumbnail_url = ''
         thread_thumbnail = ''
         if 'thumbnail' in thread and 'thread' in thread:
@@ -362,11 +369,11 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             # trailing dots if thread_com is prematurely cut off
             if len(thread_com_original) > len(thread_com):
                 thread_com += '...'
-        
+
         thread_time = ''
         if 'last_modified' in thread:
             thread_time = custom_format_datetime_ago(thread['last_modified'])
-        
+
         # append the thread header to the main string list
         html_string.append(f'''
         <div class="thread-parent collapsed-thread-parent">
@@ -467,7 +474,7 @@ def make_html(board_name: str, file_count: int):
     if len(my_board) == 0:
         print(f'skipping {board_name}.html (no threads yet)')
         return
-    
+
     thread_count = math.floor(1/4 * file_count)
     tail_threads = sorted(list(my_board.keys()), reverse=True)[thread_count:]
     for each_thread in tail_threads:
@@ -475,7 +482,7 @@ def make_html(board_name: str, file_count: int):
             my_board.pop(each_thread, None)
         else:
             thread_count += 1
-    
+
     print(f'making {len(my_board)} posts on {board_name}.html')
     # calculate complexity for board (fast)
     # sort threads by cumulative complexity (fast)
@@ -500,7 +507,7 @@ def make_html_wrapper(wait_time: float, file_count: int):
                 for line in lines:
                     if line != '':
                         board_names.append(line)
-            
+
             print(f'making: {", ".join(board_names)}')
 
             # avoid busy spinning by waiting a bit if the list is empty
@@ -518,12 +525,12 @@ def make_html_wrapper(wait_time: float, file_count: int):
                 except Exception as e:
                     print(f'failed to make {board_name}.html')
                     time.sleep(10)
-                
+
         except Exception as e:
             print('an error occurred!')
             print(e)
             time.sleep(10)
-    
+
 
 
 if __name__ == '__main__':

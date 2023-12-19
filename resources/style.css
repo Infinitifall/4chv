@@ -42,7 +42,7 @@ a:hover { color: #6e7aac; text-decoration: underline; }
 
 .greeter {
     user-select: none;
-    margin-bottom: 3em;
+    margin-bottom: 2em;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -50,6 +50,18 @@ a:hover { color: #6e7aac; text-decoration: underline; }
 
 .greeter-element {
     margin-right: 1em;
+}
+
+.greeter-2 {
+    user-select: none;
+    margin: 0 2em 2em 2em;
+    word-break: break-word;
+}
+
+.greeter-2-list {
+    padding-left: 0;
+    color: #aaa;
+    font-size: 0.9em;
 }
 
 /*
@@ -231,17 +243,6 @@ Styling for posts
     margin-top: 0.5em;
     font-size: 0.9em;
     color: #555;
-    overflow: scroll;
-    white-space: nowrap;
-}
-
-.post-details-2 {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-.post-details-2::-webkit-scrollbar { 
-    display: none;
 }
 
 .post-a {
@@ -262,7 +263,7 @@ Styling for posts
 }
 
 .post-succ > .post-a {
-    margin-right: 1em;
+    margin-right: 0.5em;
 }
 
 .post {
