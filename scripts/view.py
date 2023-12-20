@@ -9,26 +9,6 @@ import html
 import math
 
 
-# return how long ago my_time was as
-# '12d 4h ago' or '5h 42m ago' or '15m ago'
-def custom_format_datetime_ago(my_time : str):
-    time_delta = datetime.now() - datetime.fromtimestamp(my_time)
-    time_delta_days = time_delta.days
-    time_delta_hours = int(time_delta.total_seconds() // 3600) % 24
-    time_delta_minutes = int(time_delta.total_seconds() // 60) % 60
-
-    return_time = ''
-    if time_delta_days == 0:
-        if time_delta_hours == 0:
-            return_time = f'{time_delta_minutes}m ago'
-        else:
-            return_time = f'{time_delta_hours}h {time_delta_minutes}m ago'
-    else:
-        return_time = f'{time_delta_days}d {time_delta_hours}h ago'
-
-    return return_time
-
-
 # filter post text pre html escaping
 def filter_post_pre(content : str):
     clean_dict = {
@@ -222,22 +202,22 @@ def print_post(post: dict):
     else:
         score = f'{complexity_int} point'
 
-    post_time = custom_format_datetime_ago(post['time'])
+    post_time = post['time']
 
     post_name = ''
     if 'name' in post:
         post_name = html.escape(post['name'])
-        post_name = f'<div class="post-name">{post_name}</div>'
+        post_name = f'<div title="Poster\'s name" class="post-name">{post_name}</div>'
 
     post_id = ''
     if 'id' in post:
         post_id = post['id']
-        post_id = f'<div class="post-id">{post_id}</div>'
+        post_id = f'<div title="Poster\'s id" class="post-id">{post_id}</div>'
 
     post_country_name = ''
     if 'country_name' in post:
         post_country_name = post['country_name']
-        post_country_name = f'<div class="post-country-name">{post_country_name}</div>'
+        post_country_name = f'<div title="Poster\'s country" class="post-country-name">{post_country_name}</div>'
 
     post_file = ''
     post_filename = ''
@@ -262,18 +242,18 @@ def print_post(post: dict):
     return f'''
     <div class="post-parent {'collapsed collapsed-originally' if ('hidden' in post) else ''}">
         <div class="post-details">
-            <div class="post-collapsible-anchor">[+]</div>
-            <div class="post-complexity-number">{score}</div>
-            <div class="post-complexity">{"+" * complexity_hashes_int}</div>
-            <div class="post-no" class="post-a" id="{post["no"]}">#{post["no"]}</div>
+            <div title="Toggle folding" class="post-collapsible-anchor">[+]</div>
+            <div title="Post points" class="post-complexity-number">{score}</div>
+            <div title="Reply points" class="post-complexity">{"+" * complexity_hashes_int}</div>
+            <div title="Post number" class="post-no" class="post-a" id="{post["no"]}">#{post["no"]}</div>
         </div>
-        <div class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{post_filename}{post_ext}</a></div>
+        <div title="Post attachment" class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{post_filename}{post_ext}</a></div>
         <div class="post">{post_com}</div>
         <div class="post-details-2">
             {post_name}
             {post_id}
             {post_country_name}
-            <div class="post-time">{post_time}</div>
+            <div title="Unix time: {post_time}" class="post-time">{post_time}</div>
             <div class="post-succ">{post_succ}</div>
         </div>
     </div>
@@ -372,35 +352,35 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 
         thread_time = ''
         if 'last_modified' in thread:
-            thread_time = custom_format_datetime_ago(thread['last_modified'])
+            thread_time = thread['last_modified']
 
         # append the thread header to the main string list
         html_string.append(f'''
         <div class="thread-parent collapsed-thread-parent">
             <div class="thread-details">
-                <div class="thread-collapsible-anchor">[+]</div>
-                <div class="thread-op">
+                <div title="Toggle folding" class="thread-collapsible-anchor">[+]</div>
+                <div title="See thread on 4chan.org" class="thread-op">
                     <a href="https://boards.4chan.org/{board_name}/thread/{thread_id}" rel="noreferrer" target="_blank">
                         OP
                     </a>
                 </div>
-                <div class="thread-replies">{thread_replies} replies</div>
+                <div title="Thread replies" class="thread-replies">{thread_replies} replies</div>
             </div>
             <div class="thread-options">
                 <div class="thread-maximize-replies">Unfold all replies</div>
                 <div class="thread-files-all">List all files</div>
                 <div class="thread-reset">Reset</div>
             </div>
-            <div class="thread-thumbnail">
+            <div title="Thread attachment" class="thread-thumbnail">
                 <a href="{thread_thumbnail_url}" rel="noreferrer" target="_blank">
                     <img src="data:image/png;base64, {thread_thumbnail}">
                     </img>
                 </a>
             </div>
-            <div class="thread-sub">{thread_sub}</div>
+            <div title="Thread subject" class="thread-sub">{thread_sub}</div>
             <div class="thread-files-dump"></div>
             <div class="thread-description">{thread_com}</div>
-            <div class="thread-time">{thread_time}</div>
+            <div title="Time since last reply" class="thread-time">{thread_time}</div>
         ''')
 
         # create a sorted and nested post list for the thread

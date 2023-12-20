@@ -94,6 +94,34 @@ function generate_random_string(length, allowed_chars) {
 }
 
 
+function custom_format_datetime_ago(unix_timestamp) {
+    let curr_time = new Date();
+    let post_time = new Date(unix_timestamp * 1000);
+    let post_time_ago = (curr_time.getTime() - post_time.getTime()) / 1000;
+
+    if (post_time_ago < 0) {
+        return '';
+    }
+
+    let time_delta_days = Math.floor(post_time_ago / (60*60*24));
+    let time_delta_hours = Math.floor(post_time_ago / (60*60)) % (24);
+    let time_delta_minutes = Math.floor(post_time_ago / (60)) % (60);
+
+    return_time = ''
+    if (time_delta_days == 0) {
+        if (time_delta_hours == 0) {
+            return_time = time_delta_minutes.toString() + 'm ago';
+        } else {
+            return_time = time_delta_hours.toString() + 'h ' + time_delta_minutes.toString() + 'm ago';
+        }
+    } else {
+        return_time = time_delta_days.toString() + 'd ' + time_delta_hours.toString() + 'h ago';
+    }
+
+    return return_time;
+}
+
+
 function post_colorize_random(post_id) {
     let original_post = document.getElementById(post_id).parentElement.parentElement;
     let color_hex = "#" + generate_random_string(1, "12") + generate_random_string(1, "0123456789abcdef") + generate_random_string(1, "12") + generate_random_string(1, "0123456789abcdef") + generate_random_string(1, "12") + generate_random_string(1, "0123456789abcdef");
@@ -224,6 +252,16 @@ function event_function_5(self) {
 
 
 window.onload = function() {
+    // convert unix timestamps to time ago
+
+    let thread_post_times = document.querySelectorAll(".thread-time,.post-time");
+    for (let i = 0; i < thread_post_times.length; i++) {
+        let time_element_curr = thread_post_times[i];
+        let time_element_time = time_element_curr.innerHTML;
+        time_element_time = custom_format_datetime_ago(time_element_time);
+        time_element_curr.innerHTML = time_element_time;
+    }
+
     // add all the event listeners
 
     let thread_collapsibles = document.getElementsByClassName("thread-collapsible-anchor");
