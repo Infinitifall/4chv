@@ -1,8 +1,13 @@
-function post_scroll_to(post_id) {
+function add_to_history(post_id) {
         // update window hash with post id. This forces browser to scroll
         // to the element with that id so we do it before custom scrolling
+        
         // window.location.hash = post_id.toString();
         history.pushState({}, '', '#' + post_id.toString());
+}
+
+
+function post_scroll_to(post_id) {
 
         // scroll into view of the post or thread
         let scroll_post = document.getElementById(post_id).parentElement.parentElement;
@@ -152,25 +157,39 @@ function element_colorize_deterministic(element, post_id) {
 }
 
 
+function event_function_commons_1(s, rid) {
+    // get rid of certain starting substrings
+    while (rid.startsWith("#")) {rid = rid.substring(1); }
+    while (rid.startsWith("&gt;")) { rid = rid.substring(4); }
+
+    // uncollapse, colorize and colorize, add to history and scroll
+    post_uncollapse(rid);
+    element_colorize_deterministic(s, rid);
+    post_colorize_deterministic(rid);
+    add_to_history(rid);
+    post_scroll_to(rid);
+}
+
+
 function event_function_1(self) {
     let reply_id = self.innerHTML;
-    while (reply_id.startsWith("#")) { reply_id = reply_id.substring(1); }
-    while (reply_id.startsWith("&gt;")) { reply_id = reply_id.substring(4); }
-    post_uncollapse(reply_id);
-    element_colorize_deterministic(self, reply_id);
-    post_colorize_deterministic(reply_id);
-    post_scroll_to(reply_id);
+    event_function_commons_1(self, reply_id);
 }
 
 
 function event_function_2(self) {
+    let post_id = self.parentElement.parentElement.parentElement.getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
     let reply_id = self.innerHTML;
-    while (reply_id.startsWith("#")) { reply_id = reply_id.substring(1); }
-    while (reply_id.startsWith("&gt;")) { reply_id = reply_id.substring(4); }
-    post_uncollapse(reply_id);
-    element_colorize_deterministic(self, reply_id);
-    post_colorize_deterministic(reply_id);
-    post_scroll_to(reply_id);
+    add_to_history(post_id);
+    event_function_commons_1(self, reply_id);
+}
+
+
+function event_function_2_5(self) {
+    let post_id = self.id;
+    let reply_id = self.innerHTML;
+    add_to_history(post_id);
+    event_function_commons_1(self, reply_id);
 }
 
 
@@ -267,17 +286,18 @@ window.onload = function() {
     let thread_collapsibles = document.getElementsByClassName("thread-collapsible-anchor");
     for (let i = 0; i < thread_collapsibles.length; i++) {
         thread_collapsibles[i].addEventListener("click", function() {
-            let post_id_curr = this.parentNode.parentNode.getElementsByClassName("post-parent-r")[0].getElementsByClassName("post-parent")[0].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
-            post_toggle_collapse(post_id_curr);
-            post_scroll_to(post_id_curr);
+            let post_id = this.parentNode.parentNode.getElementsByClassName("post-parent-r")[0].getElementsByClassName("post-parent")[0].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+            post_toggle_collapse(post_id);
+            add_to_history(post_id);
+            post_scroll_to(post_id);
         });
     }
 
     let post_collapsibles = document.getElementsByClassName("post-collapsible-anchor");
     for (let i = 0; i < post_collapsibles.length; i++) {
         post_collapsibles[i].addEventListener("click", function() {
-            let post_id_curr = this.parentNode.parentNode.getElementsByClassName("post-no")[0].id;
-            post_toggle_collapse(post_id_curr);
+            let post_id = this.parentNode.parentNode.getElementsByClassName("post-no")[0].id;
+            post_toggle_collapse(post_id);
         });
     }
 
@@ -288,10 +308,17 @@ window.onload = function() {
         });
     }
 
-    let post_as = document.querySelectorAll(".post-a,.post-no");
+    let post_as = document.getElementsByClassName("post-a");
     for (let i = 0; i < post_as.length; i++) {
         post_as[i].addEventListener("click", function() {
             event_function_2(this);
+        });
+    }
+
+    let post_nos = document.getElementsByClassName("post-no");
+    for (let i = 0; i < post_nos.length; i++) {
+        post_nos[i].addEventListener("click", function() {
+            event_function_2_5(this);
         });
     }
 

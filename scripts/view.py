@@ -190,11 +190,11 @@ def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: in
 
 # print a single post
 def print_post(post: dict):
-    complexity_int = int((post['complexity'] / 100) ** 0.8)
+    complexity_int = math.floor((post['complexity'] / 100) ** 0.8)
     # cumulative_complexity_int = int((post['cumulative_complexity'] / 100) ** 0.8)
     # cumulative_complexity_diff_int = int(((post['cumulative_complexity'] - post['complexity']) / 100) ** 0.3)
     # complexity_hashes_int = int((post['complexity'] / 100) ** 0.7)
-    complexity_hashes_int = int((post['cumulative_complexity_normalized'] / 1000) ** 0.5)
+    complexity_hashes_int = math.floor((max(0, (post['cumulative_complexity_normalized'] - post['complexity'])) / 100) ** 0.3)
 
     score = ''
     if complexity_int != 1:
@@ -263,7 +263,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     # update version when you update css or js to bypass browser cache
-    version_number = "13"
+    version_number = "13.1"
 
     # get all local board html files and add greeter links to them
     all_board_names = list()
@@ -322,7 +322,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 
         thread_sub_com = ''
         if 'sub' in thread:
-            thread_sub_com = thread['sub'][0:60 - math.floor(sum(2 for c in thread['sub'] if c.isupper()))]
+            thread_sub_com = thread['sub'][0:40 - math.floor(sum(0.4 for c in thread['sub'] if c.isupper()))]
             if len(thread_sub_com) < len(thread['sub']):
                 thread_sub_com += '...'
             # thread_sub = filter_post_pre(thread_sub)
@@ -346,10 +346,10 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
                 thread_com_original = thread_com_original[:-1]
             thread_com_original = filter_description_post(thread_com_original)
 
-            # select about the first 120 chars or 2 lines (take bold sub and uppercase into account)
-            thread_com = thread['com'][0:max(20, 100 - math.floor(2 * (len(thread_sub_com))) - math.floor(sum(0.3 for c in thread['com'] if c.isupper())))]
+            # select about the first 120 chars, take bold sub and uppercase into account
+            thread_com = thread['com'][0:110 - math.floor(1.6 * (len(thread_sub_com)))]
+            thread_com = thread_com[0:110 - math.floor(1.6 * (len(thread_sub_com))) - math.floor(sum(1 for c in thread_com if c.isupper()))]
             # thread_com = filter_post_pre(thread_com)
-            thread_com = '\n'.join(thread_com.split('\n')[:2])
             thread_com = html.escape(thread_com)
             if len(thread_com) > 0 and thread_com[-1] == '\n':
                 thread_com = thread_com[:-1]
@@ -370,7 +370,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
                 <div title="Toggle folding" class="thread-collapsible-anchor">[+]</div>
                 <div title="See thread on 4chan.org" class="thread-op">
                     <a href="https://boards.4chan.org/{board_name}/thread/{thread_id}" rel="noreferrer" target="_blank">
-                        OP
+                        -
                     </a>
                 </div>
                 <div title="Thread replies" class="thread-replies">{thread_replies} replies</div>
@@ -526,10 +526,10 @@ def make_html_wrapper(wait_time: float, file_count: int):
 if __name__ == '__main__':
     try:
         assert(len(sys.argv) == 3)
-        board_name = sys.argv[1] # eg. mu, sci, tv
+        wait_time = int(sys.argv[1])
         file_count = int(sys.argv[2])
 
-        make_html_wrapper(board_name, file_count)
+        make_html_wrapper(wait_time, file_count)
 
     except Exception as e:
-        print('Usage: python3 view.py <board> <max_latest_posts>')
+        print('Usage: python3 view.py <wait_time> <max_latest_posts>')
