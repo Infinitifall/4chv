@@ -37,12 +37,12 @@ a:hover { color: #6e7aac; text-decoration: underline; }
 .page-title {
     user-select: none;
     text-align: center;
-    font-size: 2em;
+    font-size: 3em;
 }
 
 .greeter {
     user-select: none;
-    margin-bottom: 2em;
+    margin-bottom: 1em;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -55,13 +55,13 @@ a:hover { color: #6e7aac; text-decoration: underline; }
 .greeter-2 {
     user-select: none;
     margin: 0 2em 2em 2em;
+    color: #aaa;
+    font-size: 1em;
     word-break: break-word;
 }
 
 .greeter-2-list {
     padding-left: 0;
-    color: #aaa;
-    font-size: 0.9em;
 }
 
 /*
@@ -122,6 +122,7 @@ Don't display replies or collapsible anchor for OP
     float: right;
 }
 
+.thread-sub-com,
 .thread-sub {
     user-select: none;
     font-size: 1.3em;
@@ -129,6 +130,10 @@ Don't display replies or collapsible anchor for OP
     color: #fff;
     margin-top: 0.5em;
     margin-bottom: 0.5em;
+}
+
+.thread-sub-com {
+    display: none;
 }
 
 .thread-time {
@@ -313,8 +318,13 @@ Styling for collapsible
     height: 100px;
 }
 
-.collapsed-thread-parent > .thread-sub {
+.collapsed-thread-parent > .thread-sub-com {
+    display: block;
     font-size: 1.1em;
+}
+
+.collapsed-thread-parent > .thread-sub {
+    display: none;
 }
 
 .collapsed-thread-parent > .thread-description {

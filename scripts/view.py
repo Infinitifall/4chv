@@ -263,7 +263,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     # update version when you update css or js to bypass browser cache
-    version_number = "12.5"
+    version_number = "13"
 
     # get all local board html files and add greeter links to them
     all_board_names = list()
@@ -289,11 +289,11 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             <link rel='stylesheet' type='text/css' href='resources/style.css?v={version_number}'>
             <script src='resources/script.js?v={version_number}' defer></script>
             <link rel="icon" type="image/x-icon" href="resources/favicon.png">
-            <title>4CHV</title>
+            <title>/{board_name}/ - 4CHV</title>
         </head>
         <body>
             <div class="wrapper">
-            <h1 class="page-title"><a href="https://github.com/Infinitifall/4chv" target="_blank">4CHV</a>: a viewer for a more civilized age</h1>
+            <h1 class="page-title">/{board_name}/ - <a href="https://github.com/Infinitifall/4chv" target="_blank" rel=“noreferrer”>4CHV</a></h1>
             <div class="greeter">
                 {all_board_names_links}
             </div>
@@ -301,7 +301,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
                 <ul class="greeter-2-list">
                     <li>Click <a>[+]</a> to fold / unfold a post</li>
                     <li>Click <a>&gt;&gt;1234567</a> to jump to that post</li>
-                    <li>Use browser / phone back button to jump back</li>
+                    <li>Use browser / phone back-button to jump back</li>
                 </ul>
             </div>
     ''')
@@ -320,9 +320,18 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             thread_thumbnail_url = op_post['file']
             thread_thumbnail = thread['thumbnail'].decode()
 
+        thread_sub_com = ''
+        if 'sub' in thread:
+            thread_sub_com = thread['sub'][0:60 - math.floor(sum(2 for c in thread['sub'] if c.isupper()))]
+            if len(thread_sub_com) < len(thread['sub']):
+                thread_sub_com += '...'
+            # thread_sub = filter_post_pre(thread_sub)
+            thread_sub_com = html.escape(thread_sub_com)
+            thread_sub_com = filter_post_post(thread_sub_com)
+
         thread_sub = ''
         if 'sub' in thread:
-            thread_sub = thread['sub'][0:100]
+            thread_sub = thread['sub']
             # thread_sub = filter_post_pre(thread_sub)
             thread_sub = html.escape(thread_sub)
             thread_sub = filter_post_post(thread_sub)
@@ -338,7 +347,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             thread_com_original = filter_description_post(thread_com_original)
 
             # select about the first 120 chars or 2 lines (take bold sub and uppercase into account)
-            thread_com = thread['com'][0:max(0, 120 - math.floor(1.7 * (len(thread_sub))) - math.floor(sum(0.3 for c in thread['com'] if c.isupper())))]
+            thread_com = thread['com'][0:max(20, 100 - math.floor(2 * (len(thread_sub_com))) - math.floor(sum(0.3 for c in thread['com'] if c.isupper())))]
             # thread_com = filter_post_pre(thread_com)
             thread_com = '\n'.join(thread_com.split('\n')[:2])
             thread_com = html.escape(thread_com)
@@ -377,6 +386,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
                     </img>
                 </a>
             </div>
+            <div title="Thread subject" class="thread-sub-com">{thread_sub_com}</div>
             <div title="Thread subject" class="thread-sub">{thread_sub}</div>
             <div class="thread-files-dump"></div>
             <div class="thread-description">{thread_com}</div>
