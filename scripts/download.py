@@ -196,7 +196,9 @@ def get_thread(board_name: str, thread_no: int):
         
         for pred in this_post['pred']:
             if int(pred[1:]) in this_thread['thread']:
-                this_thread['thread'][int(pred[1:])]['succ'].append(post['no'])
+                if post['no'] not in this_thread['thread'][int(pred[1:])]['succ']:
+                    # avoid duplicates
+                    this_thread['thread'][int(pred[1:])]['succ'].append(post['no'])
         this_thread['thread'][post['no']] = this_post
 
     # calculate thread details

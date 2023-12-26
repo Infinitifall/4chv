@@ -323,16 +323,15 @@ Styling for collapsible
     font-size: 1.1em;
 }
 
-.collapsed-thread-parent > .thread-sub {
-    display: none;
-}
-
 .collapsed-thread-parent > .thread-description {
     display: block;
     word-break: break-word;
 }
 
-.collapsed-thread-parent> .thread-options {
+.collapsed-thread-parent > .thread-sub,
+.collapsed-thread-parent > .thread-options,
+.collapsed-thread-parent > .thread-files-dump,
+.collapsed-thread-parent > .post-parent-r {
     display: none;
 }
 
@@ -345,10 +344,6 @@ Styling for collapsible
     position: absolute;
     bottom: 0;
     right: 0;
-}
-
-.collapsed-thread-parent > .post-parent-r {
-    display: none;
 }
 
 .post-collapsible-anchor,

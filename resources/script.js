@@ -1,30 +1,29 @@
 function add_to_history(post_id) {
-        // update window hash with post id. This forces browser to scroll
-        // to the element with that id so we do it before custom scrolling
-        
-        // window.location.hash = post_id.toString();
-        history.pushState({}, '', '#' + post_id.toString());
+    // update window hash with post id. This forces browser to scroll
+    // to the element with that id so we do it before custom scrolling
+    
+    // window.location.hash = post_id.toString();
+    history.pushState({}, '', '#' + post_id.toString());
 }
 
 
 function post_scroll_to(post_id) {
-
-        // scroll into view of the post or thread
-        let scroll_post = document.getElementById(post_id).parentElement.parentElement;
-        if (scroll_post.parentElement.parentElement.classList.contains("thread-parent")) {
-            // scroll to top of thread
-            scroll_post = scroll_post.parentElement.parentElement;
+    // scroll into view of the post or thread
+    let scroll_post = document.getElementById(post_id).parentElement.parentElement;
+    if (scroll_post.parentElement.parentElement.classList.contains("thread-parent")) {
+        // scroll to top of thread
+        scroll_post = scroll_post.parentElement.parentElement;
+        scroll_post.scrollIntoView();
+    } else {
+        // scroll to middle of post unless it is too long
+        if (scroll_post.clientHeight > window.screen.height) {
             scroll_post.scrollIntoView();
         } else {
-            // scroll to middle of post unless it is too long
-            if (scroll_post.clientHeight > window.screen.height) {
-                scroll_post.scrollIntoView();
-            } else {
-                scroll_post.scrollIntoView({
-                    block: 'center'
-                });
-            }
+            scroll_post.scrollIntoView({
+                block: 'center'
+            });
         }
+    }
 }
 
 
@@ -157,43 +156,60 @@ function element_colorize_deterministic(element, post_id) {
 }
 
 
-function event_function_commons_1(s, rid) {
+function strip_post_id_start_chars(rid) {
     // get rid of certain starting substrings
-    while (rid.startsWith("#")) {rid = rid.substring(1); }
+    while (rid.startsWith("#")) { rid = rid.substring(1); }
     while (rid.startsWith("&gt;")) { rid = rid.substring(4); }
+    return rid;
+}
+
+
+function event_reply_text(self) {
+    let post_id = self.parentElement.parentElement.getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+    let reply_id = self.innerHTML;
+    reply_id = strip_post_id_start_chars(reply_id);
 
     // uncollapse, colorize and colorize, add to history and scroll
-    post_uncollapse(rid);
-    element_colorize_deterministic(s, rid);
-    post_colorize_deterministic(rid);
-    add_to_history(rid);
-    post_scroll_to(rid);
+    post_uncollapse(reply_id);
+    element_colorize_deterministic(self, reply_id);
+    post_colorize_deterministic(reply_id);
+    add_to_history(post_id);
+    // post_scroll_to(post_id);
+    add_to_history(reply_id);
+    post_scroll_to(reply_id);
 }
 
 
-function event_function_1(self) {
-    let reply_id = self.innerHTML;
-    event_function_commons_1(self, reply_id);
-}
-
-
-function event_function_2(self) {
+function event_post_a(self) {
     let post_id = self.parentElement.parentElement.parentElement.getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
     let reply_id = self.innerHTML;
+    reply_id = strip_post_id_start_chars(reply_id);
+
+    // uncollapse, colorize and colorize, add to history and scroll
+    post_uncollapse(reply_id);
+    element_colorize_deterministic(self, reply_id);
+    post_colorize_deterministic(reply_id);
     add_to_history(post_id);
-    event_function_commons_1(self, reply_id);
+    // post_scroll_to(post_id);
+    add_to_history(reply_id);
+    post_scroll_to(reply_id);
 }
 
 
-function event_function_2_5(self) {
+function event_post_no(self) {
     let post_id = self.id;
-    let reply_id = self.innerHTML;
+    post_id = strip_post_id_start_chars(post_id);
+
+    // uncollapse, colorize and colorize, add to history and scroll
+    post_uncollapse(post_id);
+    element_colorize_deterministic(self, post_id);
+    post_colorize_deterministic(post_id);
     add_to_history(post_id);
-    event_function_commons_1(self, reply_id);
+    post_scroll_to(post_id);
 }
 
 
-function event_function_3(self) {
+function event_thread_maximize_replies(self) {
     let thread_element = self.parentNode.parentNode;
     let thread_post_parents = thread_element.querySelectorAll(".post-parent")
 
@@ -204,7 +220,7 @@ function event_function_3(self) {
 }
 
 
-function event_function_4(self) {
+function event_thread_reset(self) {
     let thread_files_dump = self.parentNode.parentNode.getElementsByClassName("thread-files-dump")[0];
     let thread_files_dump_children = thread_files_dump.children;
 
@@ -236,7 +252,7 @@ function event_function_4(self) {
 }
 
 
-function event_function_5(self) {
+function event_thread_files_all(self) {
     let thread_files_dump = self.parentNode.parentNode.getElementsByClassName("thread-files-dump")[0];
     let thread_files_dump_children = thread_files_dump.children;
 
@@ -270,9 +286,37 @@ function event_function_5(self) {
 }
 
 
+function addEventListenerToClass(class_name, execute_function) {
+    let all_elements = document.getElementsByClassName(class_name);
+    for (let i = 0; i < all_elements.length; i++) {
+        all_elements[i].addEventListener("click", function() {
+            execute_function(this);
+        });
+    }
+}
+
+
+function onpageload_popstate() {
+    // uncollapse, colorize, scroll to the post in the url hash
+    if(window.location.hash) {
+    let post_id = Number(window.location.hash.substring(1));
+    post_uncollapse(post_id);
+    post_colorize_deterministic(post_id);
+    setTimeout(function() {
+        post_scroll_to(post_id);
+        }, 100);  // for some reason it doesn't work well without a timeout
+    }
+}
+
+
+window.addEventListener('popstate', function() {
+    // make back button work perfectly, scroll to prev post regardless of divs uncollapsing
+    onpageload_popstate();
+});
+
+
 window.onload = function() {
     // convert unix timestamps to time ago
-
     let thread_post_times = document.querySelectorAll(".thread-time,.post-time");
     for (let i = 0; i < thread_post_times.length; i++) {
         let time_element_curr = thread_post_times[i];
@@ -282,7 +326,6 @@ window.onload = function() {
     }
 
     // add all the event listeners
-
     let thread_collapsibles = document.getElementsByClassName("thread-collapsible-anchor");
     for (let i = 0; i < thread_collapsibles.length; i++) {
         thread_collapsibles[i].addEventListener("click", function() {
@@ -301,56 +344,13 @@ window.onload = function() {
         });
     }
 
-    let reply_posts = document.getElementsByClassName("reply-text");
-    for (let i = 0; i < reply_posts.length; i++) {
-        reply_posts[i].addEventListener("click", function() {
-            event_function_1(this);
-        });
-    }
+    addEventListenerToClass("reply-text",       event_reply_text);
+    addEventListenerToClass("post-a",           event_post_a);
+    addEventListenerToClass("post-no",          event_post_no);
+    addEventListenerToClass("thread-maximize-replies",  event_thread_maximize_replies);
+    addEventListenerToClass("thread-reset",             event_thread_reset);
+    addEventListenerToClass("thread-files-all",         event_thread_files_all);
 
-    let post_as = document.getElementsByClassName("post-a");
-    for (let i = 0; i < post_as.length; i++) {
-        post_as[i].addEventListener("click", function() {
-            event_function_2(this);
-        });
-    }
-
-    let post_nos = document.getElementsByClassName("post-no");
-    for (let i = 0; i < post_nos.length; i++) {
-        post_nos[i].addEventListener("click", function() {
-            event_function_2_5(this);
-        });
-    }
-
-    let thread_maximize_replies = document.getElementsByClassName("thread-maximize-replies");
-    for (let i = 0; i < thread_maximize_replies.length; i++) {
-        thread_maximize_replies[i].addEventListener("click", function() {
-            event_function_3(this);
-        });
-    }
-
-    let thread_reset = document.getElementsByClassName("thread-reset");
-    for (let i = 0; i < thread_reset.length; i++) {
-        thread_reset[i].addEventListener("click", function() {
-            event_function_4(this);
-        });
-    }
-
-    let thread_files_all = document.getElementsByClassName("thread-files-all");
-    for (let i = 0; i < thread_files_all.length; i++) {
-        thread_files_all[i].addEventListener("click", function() {
-            event_function_5(this);
-        });
-    }
+    // scroll to the #fragment
+    onpageload_popstate();
 }
-
-window.onpageshow = function() {
-    // uncollapse, colorize, scroll to the post in the url hash
-    if(window.location.hash) {
-        let post_id = Number(window.location.hash.substring(1));
-        post_uncollapse(post_id);
-        post_colorize_deterministic(post_id);
-        post_scroll_to(post_id);
-    }
-};
-
