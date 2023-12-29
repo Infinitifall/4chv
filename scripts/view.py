@@ -1,5 +1,5 @@
 import sys
-import os
+import copy
 import pathlib
 import time
 import re
@@ -263,7 +263,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     # update version when you update css or js to bypass browser cache
-    version_number = "15"
+    version_number = "18"
 
     # get all local board html files and add greeter links to them
     all_board_names = list()
@@ -327,14 +327,15 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
                 thread_sub_com += '...'
             # thread_sub = filter_post_pre(thread_sub)
             thread_sub_com = html.escape(thread_sub_com)
-            thread_sub_com = filter_post_post(thread_sub_com)
+            # thread_sub_com = filter_post_post(thread_sub_com)
+            thread_sub_com = filter_description_post(thread_sub_com)
 
         thread_sub = ''
         if 'sub' in thread:
             thread_sub = thread['sub']
             # thread_sub = filter_post_pre(thread_sub)
             thread_sub = html.escape(thread_sub)
-            thread_sub = filter_post_post(thread_sub)
+            # thread_sub = filter_post_post(thread_sub)
 
         thread_com = ''
         if 'com' in thread:
@@ -436,44 +437,88 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 # wrapper function to make html page for a board
 def make_html(board_name: str, file_count: int):
 
-    # our strategy to filter out high traffic low quality posts is as follows
-    # first we get the most recent 3 * file_count thread files and unpickle them
-    # from these threads, the most recent 1/4 * file_count are selected immediately
-    # this gives new threads a fair chance to appear on 4chv, albeit at the bottom
-    # then we loop over the remaining (3 - 1/4) * file_count threads ("tail_threads")
-    # and pick the ones with at least 10 replies to combine with the earlier selection
+    # our strategy to filter out high traffic low quality posts is as follows:
+    #
+    # 1. Choose the most recent 30 * file_count thread files and unpickle them
+    #
+    # 2. The most recent 1/4 * file_count are selected immediately, giving new threads a chance
+    #
+    # 3. For the rest (30 - 1/4) * file_count threads aka "tail_threads", we pick the threads 
+    #    with the highest time adjusted cumulative complexity scores
 
     # get list of latest thread files for board
     if not pathlib.Path(f'threads/{board_name}').is_dir():
-        print(f'skipping {board_name}.html (no folder found yet)')
+        print(f'skipping {board_name}.html, no folder found', flush=True)
         return
-    thread_files = pathlib.Path(f'threads/{board_name}').glob('*')
-    latest_files = sorted(list(thread_files), reverse=True)[:(3 * file_count)]
+
+    thread_files = sorted(pathlib.Path(f'threads/{board_name}').iterdir())
+    latest_files = sorted(list(thread_files), reverse=True)[:(10 * file_count)]
 
     # read the files
     my_board = dict()
     for each_file in latest_files:
-        if each_file.is_file():
-            try:
-                with open(each_file, 'rb') as f:
-                    my_board[int(each_file.stem)] = pickle.load(f)
-            except:
-                continue;
+        if not each_file.is_file():
+            continue
+        try:
+            with open(each_file, 'rb') as f:
+                my_board[int(each_file.stem)] = pickle.load(f)
+        except:
+            continue
 
     # skip if board has no threads
     if len(my_board) == 0:
-        print(f'skipping {board_name}.html (no threads yet)')
+        print(f'skipping {board_name}.html, no files found', flush=True)
         return
 
-    thread_count = math.floor(1/4 * file_count)
-    tail_threads = sorted(list(my_board.keys()), reverse=True)[thread_count:]
-    for each_thread in tail_threads:
-        if (thread_count >= file_count) or (my_board[each_thread]['replies'] < 10):
-            my_board.pop(each_thread, None)
-        else:
-            thread_count += 1
+    print(f'making {board_name}.html', flush=True)
+    
+    #########################################################################################
+    # Too slow for Python :(
+    #########################################################################################
+    #
+    # # calculate time adjusted complexity scores for the threads
+    # # i.e, a thread loses points for every hour old it is
+    # thread_cumulative_complexity_time_decay = dict()
+    # # my_board_copy = copy.deepcopy(my_board)  # make a deep copy in case of tampering
+    # my_board_copy = my_board  # deep copy not strictly needed, since complexity gets overwritten
+    # calculate_board_complexity(my_board_copy)
+    # for thread_no in my_board_copy:
+    #     op_post_no = min(my_board_copy[thread_no]['thread'].keys())
+    #     datetime_now = datetime.utcnow().timestamp()
+    #     last_modified = my_board_copy[thread_no]['last_modified'] if 'last_modified' in my_board_copy[thread_no] else datetime_now
+    #     thread_cumulative_complexity_time_decay[thread_no] = (my_board_copy[thread_no]['thread'][op_post_no]['cumulative_complexity_normalized'] / 100) ** 0.3 - (datetime_now - last_modified) / (60 * 60) * 6
 
-    print(f'making {len(my_board)} posts on {board_name}.html')
+    # tail_threads = sorted(list(my_board.keys()), reverse=True)[:math.floor(1/4 * file_count)]
+    # complexity_sorted_threads = sorted(list(my_board.keys()), key=lambda x: thread_cumulative_complexity_time_decay[x], reverse=True)
+    # thread_count = 0
+    # for thread_no in complexity_sorted_threads:
+    #     if thread_count >= file_count:
+    #         my_board.pop(thread_no, None)
+    #     elif thread_no in tail_threads:
+    #         thread_count += 1
+    #     elif my_board[thread_no]['replies'] > 10:
+    #         thread_count += 1
+    #     else:
+    #         my_board.pop(thread_no, None)
+    #
+    #########################################################################################
+    
+    # calculate time adjusted complexity scores for the threads
+    # i.e, a thread loses points for every hour old it is
+    tail_threads = sorted(list(my_board.keys()), reverse=True)[:math.floor(1/4 * file_count)]
+    complexity_sorted_threads = sorted(list(my_board.keys()), reverse=True)
+    thread_count = 0
+    for thread_no in complexity_sorted_threads:
+        if thread_count >= file_count:
+            my_board.pop(thread_no, None)
+        elif thread_no in tail_threads:
+            thread_count += 1
+        elif my_board[thread_no]['replies'] > 10:
+            thread_count += 1
+        else:
+            my_board.pop(thread_no, None)
+
+    print(f'populating {board_name}.html with {len(my_board)} threads', flush=True)
     # calculate complexity for board (fast)
     # sort threads by cumulative complexity (fast)
     # print the entire board to html (slow)
@@ -483,8 +528,7 @@ def make_html(board_name: str, file_count: int):
     html_string = print_board(my_board, threads_sorted, board_name)
     with open(f'{board_name}.html', 'w') as f:
         f.write(html_string)
-    print(f'built {board_name}.html')
-    sys.stdout.flush()
+    print(f'built {board_name}.html', flush=True)
 
 
 def make_html_wrapper(wait_time: float, file_count: int):
@@ -495,15 +539,17 @@ def make_html_wrapper(wait_time: float, file_count: int):
             with open('boards.txt', 'r') as f:
                 lines = f.read().splitlines()
                 for line in lines:
-                    if line != '':
-                        board_names.append(line)
-
-            print(f'making: {", ".join(board_names)}')
+                    if line == '':
+                        continue
+                    board_names.append(line)
 
             # avoid busy spinning by waiting a bit if the list is empty
             if len(board_names) == 0:
-                time.sleep(5)
+                print(f'no boards to make!', flush=True)
+                time.sleep(10)
                 continue
+
+            print(f'making: {", ".join(board_names)}', flush=True)
 
             # dont make the same board more frequently than once every 2 min
             better_wait_time = max(wait_time, 120/len(board_names))
@@ -513,14 +559,13 @@ def make_html_wrapper(wait_time: float, file_count: int):
                     make_html(board_name, file_count)
                     time.sleep(better_wait_time)
                 except Exception as e:
-                    print(f'failed to make {board_name}.html')
+                    print(f'failed to make {board_name}.html', flush=True)
                     time.sleep(10)
 
         except Exception as e:
-            print('an error occurred!')
-            print(e)
+            print('an error occurred!', flush=True)
+            print(e, flush=True)
             time.sleep(10)
-
 
 
 if __name__ == '__main__':
@@ -532,4 +577,4 @@ if __name__ == '__main__':
         make_html_wrapper(wait_time, file_count)
 
     except Exception as e:
-        print('Usage: python3 view.py <wait_time> <max_latest_posts>')
+        print('Usage: python3 view.py <wait_time> <max_latest_posts>', flush=True)
