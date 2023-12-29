@@ -82,8 +82,7 @@ def get_boards(board_names: list, wait_time: float, threads_last_accessed: dict)
         # fetch threadlist
         request = get_url_custom(threadlist_url(board_name))
         threadlist = json.loads(request.text)
-        print(f'downloaded /{board_name}/ threadlist')
-        sys.stdout.flush()
+        print(f'downloaded /{board_name}/ threadlist', flush=True)
         time.sleep(random.randint(wait_time // 2, (wait_time * 3) // 2))
 
         for page in threadlist:
@@ -129,18 +128,17 @@ def get_boards(board_names: list, wait_time: float, threads_last_accessed: dict)
                 with open(f'threads/{thread["board_name"]}/' + str(thread['no']) + '.pkl', 'rb') as my_file:
                     local_thread = pickle.load(my_file)
                     if 'last_modified' in local_thread and thread['last_modified'] == local_thread['last_modified']:
-                        print(f'[{thread_index}/{len(massive_threads_list_sorted)}] skipping   /{thread["board_name"]}/thread/{thread["no"]}')
+                        print(f'[{thread_index}/{len(massive_threads_list_sorted)}] skipping   /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
                         continue
         
         # if modified since, download the thread
         try:
             get_thread(thread["board_name"], thread['no'])
-            print(f'[{thread_index}/{len(massive_threads_list_sorted)}] downloaded /{thread["board_name"]}/thread/{thread["no"]}')
-            sys.stdout.flush()
+            print(f'[{thread_index}/{len(massive_threads_list_sorted)}] downloaded /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
             time.sleep(random.randint(wait_time // 2, (wait_time * 3) // 2))
         except Exception as e:
-            print(f'[{thread_index}/{len(massive_threads_list_sorted)}] failed!    /{thread["board_name"]}/thread/{thread["no"]}')
-            print(e)
+            print(f'[{thread_index}/{len(massive_threads_list_sorted)}] failed!    /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
+            print(e, flush=True)
             time.sleep(random.randint(10,20))
 
 
@@ -240,16 +238,17 @@ def get_boards_wrapper(wait_time: float):
             with open('boards.txt', 'r') as f:
                 lines = f.read().splitlines()
                 for line in lines:
-                    if line != '':
-                        board_names.append(line)
+                    if line == '':
+                        continue
+                    board_names.append(line)
             
-            print(f'downloading: {", ".join(board_names)}')
-            
+            print(f'downloading: {", ".join(board_names)}', flush=True)
             get_boards(board_names, wait_time, threads_last_accessed)
             time.sleep(1)
+
         except Exception as e:
-            print('an error occurred!')
-            print(e)
+            print('an error occurred!', flush=True)
+            print(e, flush=True)
             time.sleep(10)
 
 
@@ -262,5 +261,5 @@ if __name__ == '__main__':
         get_boards_wrapper(board_names, wait_time)
 
     except Exception as e:
-        print('Usage: python3 download.py <wait_time_between_requests> <board-1> <board-2> ...')
+        print('Usage: python3 download.py <wait_time_between_requests> <board-1> <board-2> ...', flush=True)
     

@@ -1,4 +1,11 @@
 function add_to_history(post_id) {
+
+    // avoid duplication
+    let urlFragment = window.location.href.split('#')[1] || {};
+    if (urlFragment === post_id) {
+        return;
+    }
+
     // update window hash with post id. This forces browser to scroll
     // to the element with that id so we do it before custom scrolling
     
@@ -13,14 +20,19 @@ function post_scroll_to(post_id) {
     if (scroll_post.parentElement.parentElement.classList.contains("thread-parent")) {
         // scroll to top of thread
         scroll_post = scroll_post.parentElement.parentElement;
-        scroll_post.scrollIntoView();
+        scroll_post.scrollIntoView({
+            behavior:"smooth",
+        });
     } else {
         // scroll to middle of post unless it is too long
         if (scroll_post.clientHeight > window.screen.height) {
-            scroll_post.scrollIntoView();
+            scroll_post.scrollIntoView({
+                "behavior":"smooth",
+            });
         } else {
             scroll_post.scrollIntoView({
-                block: 'center'
+                block: "center",
+                behavior:"smooth",
             });
         }
     }
@@ -304,7 +316,7 @@ function onpageload_popstate() {
     post_colorize_deterministic(post_id);
     setTimeout(function() {
         post_scroll_to(post_id);
-        }, 100);  // for some reason it doesn't work well without a timeout
+        }, 500);  // for some reason it doesn't work well without a timeout
     }
 }
 
