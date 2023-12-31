@@ -164,12 +164,13 @@ Don't display replies or collapsible anchor for OP
 }
 
 .thread-thumbnail > a {
-    display: grid;
+    display: flex;
+    justify-content: center;
     height: 100%;
 }
 
 .thread-thumbnail > a > img {
-    margin: auto auto auto auto;
+    margin: auto;
 }
 
 /*
