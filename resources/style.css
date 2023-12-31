@@ -4,22 +4,28 @@ body {
     line-height: 1.5em;
 
     background-color: #1e2022;
-    color: #ccc;
+    color: #bbb;
     margin: 0 0;
 }
 
 img {
     max-height: 100%;
     max-width: 100%;
-    object-fit: contain;
+    /* object-fit: contain; */
 }
 
 a { color: #6e7aac; text-decoration: none; }
 a:visited { color: #6e7aac; text-decoration: none; }
 a:hover { color: #6e7aac; text-decoration: underline; }
 
+hr {
+    border: transparent;
+    border-top: 1px solid #333;
+    margin: 0.5em 0 0.5em 0;
+}
+
 .wrapper {
-    max-width: min(95%, 1600px);
+    max-width: min(95%, 1700px);
     margin-left: auto;
     margin-right: auto;
 }
@@ -33,13 +39,13 @@ a:hover { color: #6e7aac; text-decoration: underline; }
 .page-title {
     user-select: none;
     text-align: center;
-    font-size: 3em;
+    font-size: 3.5em;
 }
 
 .greeter {
     user-select: none;
-    margin-bottom: 1em;
     display: flex;
+    font-size: 1.5em;
     flex-wrap: wrap;
     justify-content: center;
 }
@@ -50,14 +56,17 @@ a:hover { color: #6e7aac; text-decoration: underline; }
 
 .greeter-2 {
     user-select: none;
-    margin: 0 2em 2em 2em;
+    margin: 0 2em 0 2em;
     color: #aaa;
-    font-size: 1em;
     word-break: break-word;
 }
 
 .greeter-2-list {
     padding-left: 0;
+}
+
+.all-threads {
+    margin-top: 2em;
 }
 
 /*
@@ -67,7 +76,7 @@ Styling for threads
 .thread-parent {
     padding: 0.5em 1em;
     margin-bottom: 5em;
-    background-color: #151618;
+    background: #151618;
 }
 
 @media only screen and (max-width: 600px) {
@@ -75,10 +84,6 @@ Styling for threads
         padding: 0.2em 0.5em;
     }
 }
-
-/* .thread-parent > .post-parent-r > .post-parent {
-    background-color: #151618;
-} */
 
 .thread-parent > .post-parent-r {
     margin-left: -1em;
@@ -104,11 +109,6 @@ Don't display replies or collapsible anchor for OP
     margin-bottom: 0.5em;
 }
 
-.thread-replies {
-    display: inline;
-    color: #9ee7e0;
-}
-
 .thread-op,
 .thread-op > a,
 .thread-op > a:hover,
@@ -118,32 +118,58 @@ Don't display replies or collapsible anchor for OP
     float: right;
 }
 
-.thread-sub-com,
-.thread-sub {
+.thread-sub-description {
     user-select: none;
-    font-size: 1.3em;
-    font-weight: bold;
-    color: #fff;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-}
-
-.thread-sub-com {
-    display: none;
-}
-
-.thread-time {
-    display: none;
+    display: block;
+    max-height: 140px;
+    overflow: hidden;
 }
 
 .thread-description {
     display: none;
 }
 
+.thread-sub {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #ddd;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.thread-details-2 {
+    user-select: none;
+    display: none;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.thread-replies {
+    display: block;
+    text-align: center;
+    color: #777;
+}
+
+.thread-time {
+    user-select: none;
+    display: block;
+    text-align: center;
+    color: #555;
+}
+
 .thread-thumbnail {
     user-select: none;
     height: 150px;
     max-width: 200px;
+}
+
+.thread-thumbnail > a {
+    display: grid;
+    height: 100%;
+}
+
+.thread-thumbnail > a > img {
+    margin: auto auto auto auto;
 }
 
 /*
@@ -223,13 +249,6 @@ Styling for posts
     color: #555;
 }
 
-.post-sub {
-    font-size: 1.1em;
-    font-weight: bold;
-    color: #fff;
-    margin-bottom: 1em;
-}
-
 .post-file {
     word-break: break-all;
     margin-bottom: 0.4em;
@@ -244,10 +263,6 @@ Styling for posts
     margin-top: 0.5em;
     font-size: 0.9em;
     color: #555;
-}
-
-.post-a {
-    display: inline;
 }
 
 .post-time,
@@ -282,6 +297,10 @@ Styling for posts
     color: #6e7aac;
 }
 
+.post-a {
+    display: inline;
+}
+
 /*
 Styling for collapsible 
 */
@@ -290,7 +309,7 @@ Styling for collapsible
     min-height: 1.5em;
     max-height: 1.5em;
     overflow: hidden;
-    background-color: #202022;
+    background: #202022;
 }
 
 .collapsed-parent > .post-parent-r {
@@ -301,10 +320,10 @@ Styling for collapsible
     padding: 0.6em 1em;
     display: inline-block;
     vertical-align: top;
-    height: 260px;
-    width: 180px;
+    height: 330px;
+    width: 160px;
     margin-right: 1em;
-    margin-bottom: 2em;
+    margin-bottom: 3em;
     line-height: 1.3em;
     overflow: hidden;
     position: relative;
@@ -314,47 +333,37 @@ Styling for collapsible
     height: 100px;
 }
 
-.collapsed-thread-parent > .thread-sub-com {
-    display: block;
-    font-size: 1.1em;
+.collapsed-thread-parent > .thread-sub-description > .thread-description {
+    display: inline;
+    /* word-break: break-word; */
 }
 
-.collapsed-thread-parent > .thread-description {
-    display: block;
-    word-break: break-word;
+.collapsed-thread-parent > .thread-sub-description > .thread-sub {
+    display: inline;
+    font-size: 1em;
 }
 
-.collapsed-thread-parent > .thread-sub,
 .collapsed-thread-parent > .thread-options,
 .collapsed-thread-parent > .thread-files-dump,
 .collapsed-thread-parent > .post-parent-r {
     display: none;
 }
 
-.collapsed-thread-parent > .thread-time {
-    user-select: none;
-    display: inline;
-    color: #555;
-    margin-bottom: 0.2em;
-    margin-right: 0.5em;
-    position: absolute;
-    bottom: 0;
-    right: 0;
+.collapsed-thread-parent > .thread-details-2 {
+    display: block;
 }
 
 .post-collapsible-anchor,
-.thread-collapsible-anchor
-{
+.thread-collapsible-anchor {
     display: inline;
     margin-right: 0.5em;
-    font-size: 1.4em;
     color: #555;
+    font-size: 1.4em;
 }
 
 /*
 pointer + underline for clicky stuff
 */
-
 .post-collapsible-anchor:hover,
 .thread-collapsible-anchor:hover,
 .post-a:hover,

@@ -1,5 +1,4 @@
 import sys
-import copy
 import pathlib
 import time
 import re
@@ -68,7 +67,7 @@ def complexity_score(sentences_array):
     # create complexity value for each word
     words_complexity = dict()
     max_word_count = max(words_count.values())
-    for word in words_count.keys():
+    for word in words_count:
         words_complexity[word] = max_word_count / words_count[word]
 
     # populate sentences_complexity
@@ -152,7 +151,22 @@ def sort_board_cumulative_complexity(board : dict):
         thread['cumulative_complexity_normalized'] = thread['thread'][op_post_no]['cumulative_complexity_normalized']
         threads_sorted.append(thread_no)
 
-    threads_sorted = sorted(threads_sorted, key=lambda x: board[x]['cumulative_complexity_normalized'], reverse=True)
+    # decay older threads by decreasing points by a ratio for every hour
+    datetime_now = datetime.utcnow().timestamp()
+    decay_limit_hours = 24 * 4  # no more decrease after this
+
+    for thread_no in board:
+        if 'last_modified' not in board[thread_no]:
+            board[thread_no]['last_modified'] = 0
+        
+        time_delta_hours = math.floor((datetime_now - board[thread_no]['last_modified']) / (60 * 60))
+        board[thread_no]['cumulative_complexity_normalized_timed'] = board[thread_no]['cumulative_complexity_normalized'] * (0.15 + max(0, decay_limit_hours - time_delta_hours) / decay_limit_hours) ** 2
+        pass
+
+    threads_sorted = sorted(threads_sorted, key=lambda x: board[x]['cumulative_complexity_normalized_timed'], reverse=True)
+    threads_sorted2 = sorted(threads_sorted, key=lambda x: board[x]['cumulative_complexity_normalized'], reverse=True)
+    
+    
     return threads_sorted
 
 
@@ -263,7 +277,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
     # update version when you update css or js to bypass browser cache
-    version_number = "18"
+    version_number = "20"
 
     # get all local board html files and add greeter links to them
     all_board_names = list()
@@ -293,17 +307,23 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
         </head>
         <body>
             <div class="wrapper">
-            <h1 class="page-title">/{board_name}/ - <a href="https://github.com/Infinitifall/4chv" target="_blank" rel=“noreferrer”>4CHV</a></h1>
-            <div class="greeter">
-                {all_board_names_links}
-            </div>
-            <div class="greeter-2">
-                <ul class="greeter-2-list">
-                    <li>Click <a>[+]</a> to fold / unfold a post</li>
-                    <li>Click <a>&gt;&gt;1234567</a> to jump to that post</li>
-                    <li>Use browser / phone back-button to jump back</li>
-                </ul>
-            </div>
+                <h1 class="page-title">
+                    <a href="">/{board_name}/</a> - 4CHV
+                </h1>
+                <hr>
+                <div class="greeter">
+                    {all_board_names_links}
+                </div>
+                <hr>
+                <div class="greeter-2">
+                    <ul class="greeter-2-list">
+                        <li>Click <a>[+]</a> to fold / unfold threads and posts</li>
+                        <li>Click <a>&gt;&gt;1234567</a> to jump to that post</li>
+                        <li>Use browser / phone back-button to jump back</li>
+                    </ul>
+                </div>
+                <hr>
+                <div class="all-threads">
     ''')
 
     for thread_id in threads_sorted:
@@ -320,16 +340,6 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             thread_thumbnail_url = op_post['file']
             thread_thumbnail = thread['thumbnail'].decode()
 
-        thread_sub_com = ''
-        if 'sub' in thread:
-            thread_sub_com = thread['sub'][0:40 - math.floor(sum(0.4 for c in thread['sub'] if c.isupper()))]
-            if len(thread_sub_com) < len(thread['sub']):
-                thread_sub_com += '...'
-            # thread_sub = filter_post_pre(thread_sub)
-            thread_sub_com = html.escape(thread_sub_com)
-            # thread_sub_com = filter_post_post(thread_sub_com)
-            thread_sub_com = filter_description_post(thread_sub_com)
-
         thread_sub = ''
         if 'sub' in thread:
             thread_sub = thread['sub']
@@ -337,28 +347,15 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             thread_sub = html.escape(thread_sub)
             # thread_sub = filter_post_post(thread_sub)
 
+            if thread_sub != '':
+                thread_sub += ': '
+
         thread_com = ''
         if 'com' in thread:
-            # calculate the original comment first, for comparison
-            thread_com_original = thread['com']
-            # thread_com_original = filter_post_pre(thread_com_original)
-            thread_com_original = html.escape(thread_com_original)
-            if len(thread_com_original) > 0 and thread_com_original[-1] == '\n':
-                thread_com_original = thread_com_original[:-1]
-            thread_com_original = filter_description_post(thread_com_original)
-
-            # select about the first 120 chars, take bold sub and uppercase into account
-            thread_com = thread['com'][0:110 - math.floor(1.6 * (len(thread_sub_com)))]
-            thread_com = thread_com[0:110 - math.floor(1.6 * (len(thread_sub_com))) - math.floor(sum(1 for c in thread_com if c.isupper()))]
+            thread_com = thread['com']            
             # thread_com = filter_post_pre(thread_com)
             thread_com = html.escape(thread_com)
-            if len(thread_com) > 0 and thread_com[-1] == '\n':
-                thread_com = thread_com[:-1]
             thread_com = filter_description_post(thread_com)
-
-            # trailing dots if thread_com is prematurely cut off
-            if len(thread_com_original) > len(thread_com):
-                thread_com += '...'
 
         thread_time = ''
         if 'last_modified' in thread:
@@ -374,7 +371,6 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
                         -
                     </a>
                 </div>
-                <div title="Thread replies" class="thread-replies">{thread_replies} replies</div>
             </div>
             <div class="thread-options">
                 <div class="thread-maximize-replies">Unfold all replies</div>
@@ -383,15 +379,18 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             </div>
             <div title="Thread attachment" class="thread-thumbnail">
                 <a href="{thread_thumbnail_url}" rel="noreferrer" target="_blank">
-                    <img src="data:image/png;base64, {thread_thumbnail}">
-                    </img>
+                    <img src="data:image/png;base64, {thread_thumbnail}"></img>
                 </a>
             </div>
-            <div title="Thread subject" class="thread-sub-com">{thread_sub_com}</div>
-            <div title="Thread subject" class="thread-sub">{thread_sub}</div>
+            <div class="thread-details-2">
+                <div title="Thread replies" class="thread-replies">{thread_replies} replies</div>
+                <div title="Time since last reply" class="thread-time">{thread_time}</div>
+            </div>
+            <div class="thread-sub-description">
+                <div title="Thread subject" class="thread-sub">{thread_sub}</div>
+                <div class="thread-description">{thread_com}</div>
+            </div>
             <div class="thread-files-dump"></div>
-            <div class="thread-description">{thread_com}</div>
-            <div title="Time since last reply" class="thread-time">{thread_time}</div>
         ''')
 
         # create a sorted and nested post list for the thread
@@ -426,7 +425,16 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
         ''')
 
     html_string.append('''
-        </div>
+                </div>
+                <hr>
+                <div class="greeter-2">
+                    <ul class="greeter-2-list">
+                        <li><a href="#">Go to top</a></li>
+                        <li>Host your own instance of 4CHV! (<a href="https://github.com/Infinitifall/4chv" target="_blank" rel=“noreferrer”>source</a>)</li>
+                    </ul>
+                </div>
+                <hr>
+            </div>
         </body>
     </html>
     ''')
@@ -436,15 +444,11 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 
 # wrapper function to make html page for a board
 def make_html(board_name: str, file_count: int):
-
-    # our strategy to filter out high traffic low quality posts is as follows:
-    #
-    # 1. Choose the most recent 30 * file_count thread files and unpickle them
-    #
-    # 2. The most recent 1/4 * file_count are selected immediately, giving new threads a chance
-    #
-    # 3. For the rest (30 - 1/4) * file_count threads aka "tail_threads", we pick the threads 
-    #    with the highest time adjusted cumulative complexity scores
+    # Pre-selection strategy to filter out high traffic low quality threads:
+    # 1. Choose the newest (10 * file_count) thread files and unpickle them
+    # 2. The newest (1/4 * file_count) threads are always selected, giving them a fair chance
+    # 3. From the rest ((10 - 1/4) * file_count) threads aka "tail_threads", order by last replied
+    # and pick the ones with at least 10 replies
 
     # get list of latest thread files for board
     if not pathlib.Path(f'threads/{board_name}').is_dir():
@@ -471,42 +475,8 @@ def make_html(board_name: str, file_count: int):
         return
 
     print(f'making {board_name}.html', flush=True)
-    
-    #########################################################################################
-    # Too slow for Python :(
-    #########################################################################################
-    #
-    # # calculate time adjusted complexity scores for the threads
-    # # i.e, a thread loses points for every hour old it is
-    # thread_cumulative_complexity_time_decay = dict()
-    # # my_board_copy = copy.deepcopy(my_board)  # make a deep copy in case of tampering
-    # my_board_copy = my_board  # deep copy not strictly needed, since complexity gets overwritten
-    # calculate_board_complexity(my_board_copy)
-    # for thread_no in my_board_copy:
-    #     op_post_no = min(my_board_copy[thread_no]['thread'].keys())
-    #     datetime_now = datetime.utcnow().timestamp()
-    #     last_modified = my_board_copy[thread_no]['last_modified'] if 'last_modified' in my_board_copy[thread_no] else datetime_now
-    #     thread_cumulative_complexity_time_decay[thread_no] = (my_board_copy[thread_no]['thread'][op_post_no]['cumulative_complexity_normalized'] / 100) ** 0.3 - (datetime_now - last_modified) / (60 * 60) * 6
-
-    # tail_threads = sorted(list(my_board.keys()), reverse=True)[:math.floor(1/4 * file_count)]
-    # complexity_sorted_threads = sorted(list(my_board.keys()), key=lambda x: thread_cumulative_complexity_time_decay[x], reverse=True)
-    # thread_count = 0
-    # for thread_no in complexity_sorted_threads:
-    #     if thread_count >= file_count:
-    #         my_board.pop(thread_no, None)
-    #     elif thread_no in tail_threads:
-    #         thread_count += 1
-    #     elif my_board[thread_no]['replies'] > 10:
-    #         thread_count += 1
-    #     else:
-    #         my_board.pop(thread_no, None)
-    #
-    #########################################################################################
-    
-    # calculate time adjusted complexity scores for the threads
-    # i.e, a thread loses points for every hour old it is
     tail_threads = sorted(list(my_board.keys()), reverse=True)[:math.floor(1/4 * file_count)]
-    complexity_sorted_threads = sorted(list(my_board.keys()), reverse=True)
+    complexity_sorted_threads = sorted(list(my_board.keys()), key=lambda x: my_board[x]['last_modified'] if 'last_modified' in my_board[x] else 0, reverse=True)
     thread_count = 0
     for thread_no in complexity_sorted_threads:
         if thread_count >= file_count:
@@ -520,15 +490,15 @@ def make_html(board_name: str, file_count: int):
 
     print(f'populating {board_name}.html with {len(my_board)} threads', flush=True)
     # calculate complexity for board (fast)
-    # sort threads by cumulative complexity (fast)
-    # print the entire board to html (slow)
-    # write board html to file (fast)
     calculate_board_complexity(my_board)
+    # sort threads by cumulative complexity (fast)
     threads_sorted = sort_board_cumulative_complexity(my_board)
+    # print the entire board to html (slow)
     html_string = print_board(my_board, threads_sorted, board_name)
+    # write board html to file (fast)
     with open(f'{board_name}.html', 'w') as f:
         f.write(html_string)
-    print(f'built {board_name}.html', flush=True)
+        print(f'built {board_name}.html', flush=True)
 
 
 def make_html_wrapper(wait_time: float, file_count: int):
@@ -550,10 +520,8 @@ def make_html_wrapper(wait_time: float, file_count: int):
                 continue
 
             print(f'making: {", ".join(board_names)}', flush=True)
-
             # dont make the same board more frequently than once every 2 min
             better_wait_time = max(wait_time, 120/len(board_names))
-
             for board_name in board_names:
                 try:
                     make_html(board_name, file_count)
