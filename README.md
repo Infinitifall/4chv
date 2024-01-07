@@ -7,18 +7,17 @@ A 4chan downloader/viewer. Downloads threads and builds offline html pages for a
 - Threads posts ordered by quality
 - Tiny download size (1MB)
 
-
 ## Install
 
 - **Windows**
-
-  1. Have [Python](https://www.python.org/downloads/) installed
-  2. [Download 4CHV](https://github.com/Infinitifall/4chv/archive/refs/heads/main.zip) and unzip the folder
+  1. Have [Python](https://www.python.org/downloads/) and [SQLite](https://www.sqlite.org/index.html) installed
+  2. Download the latest version of 4CHV [from here](https://github.com/Infinitifall/4chv/archive/refs/heads/main.zip) and unzip it
   3. Double click on `run_on_windows.bat`
-  4. To update to the latest version in the future, follow steps 2 and 3 again
 
 
-- **Linux/macOS/BSD** 
+- **Linux/BSD/macOS**
+
+  `python3`, `sqlite3` required
 
   ```bash
   # clone repo
@@ -29,6 +28,7 @@ A 4chan downloader/viewer. Downloads threads and builds offline html pages for a
   ./run_on_linux.sh
   ```
 
+
 ## Screenshots
 
 ![screenshot](resources/screenshot2.png)
@@ -37,30 +37,34 @@ A 4chan downloader/viewer. Downloads threads and builds offline html pages for a
 
 ![screenshot](resources/screenshot3.png)
 
+
+## Usage
+
+After following the install instructions above, you can keep 4chv running in the background whenever and however long you like. While running it will
+
+1. Keep downloading new threads
+2. Keep updating the board html files
+
+Open the board html files in your web browser :)
+
+
 ## FAQs
 
-- **How to use 4CHV**
-  - Follow the install instructions above
-  - Keep the program running in the background, it will download threads and update html files
-  - Open any of the html files in your browser
-
 - **Choose which /boards/ to download**
-  - Edit the `boards.txt` file, add one board per line
-
-- **Post quality**
-  - 4chv automatically sorts threads and replies by quality ("points" and "+"s)
-  - "points" depend on the uniqueness of the words used in the post
-  - "+"s depend on the quality of the replies to the post
+  - Uncomment your boards in [scripts/chv_boards.py](./scripts/chv_boards.py) (remove the `#` character at the start of the line)
 
 - **Slow downloads?**
   - A new thread is downloaded every 2 seconds
-  - You will have to wait 5 min the first time you run 4chv to see a good number of threads
+  - You will have to wait 5 min the very first time you run 4chv to see a good number of threads
 
-- **Where are threads stored**
-  - Threads are downloaded to the `threads` folder as Python Pickle files
-  - This folder can be deleted or even copied it to another installation of 4chv
+- **Post quality**
+  - 4chv automatically sorts threads and replies by quality ("points" and "+"s)
+    - "points" depend on the uniqueness of the words used in the post
+    - "+"s depend on the quality of the replies to the post
+
+- **Where threads are stored**
+  - Threads are downloaded to the `threads` folder as SQLite files
+  - They can be deleted or even copied it to another installation of 4chv
 
 - **How to uninstall 4CHV**
-  - Simply delete the `4chv` folder
-
-
+  - Simply delete the `4chv` folder (everything is contained inside)

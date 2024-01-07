@@ -69,6 +69,17 @@ hr {
     margin-top: 2em;
 }
 
+.greeter-3 {
+    user-select: none;
+    display: block;
+    text-align: center;
+    color: #555;
+}
+
+.board-time {
+    display: inline;
+}
+
 /*
 Styling for threads
 */

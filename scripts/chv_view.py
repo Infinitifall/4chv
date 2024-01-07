@@ -1,11 +1,14 @@
 import sys
 import pathlib
-import time
 import re
-import pickle
+import time
 from datetime import datetime
 import html
-import math
+import sqlite3
+
+# local imports
+import chv_boards
+import chv_database
 
 
 # filter post text pre html escaping
@@ -32,81 +35,68 @@ def filter_post_post(content : str):
     return content
 
 
-# filter thread description post html escaping
-def filter_description_post(content : str):
-    clean_dict = {
-        r'^(\&gt;.+)': r'<div class="green-text">\1</div>',  # greentext
-    }
-
-    for key, value in clean_dict.items():
-        content = re.sub(key, value, content, flags=re.IGNORECASE | re.MULTILINE)
-    return content
-
-
 # given a list of sentences, returns a list of the same length of their 'complexity scores'
 def complexity_score(sentences_array):
+    # populate with global count of words
     words_count = dict()
+    # populate with words from each sentence
     sentences_words = dict()
 
-    # populate words_count with global count of words
-    # and sentences_words with words from each sentence
+    # calculate words_count and sentences_words
     for sentence in sentences_array:
-        words = list()
-        temp_words = re.findall(r'[\w\'"]+', sentence)
-        for word in temp_words:
-            words.append(word.lower())
-
+        words = [w.lower() for w in re.findall(r'[\w\']+', sentence)]
         sentences_words[sentence] = words
-
         for word in words:
             if word in words_count:
                 words_count[word] += 1
             else:
                 words_count[word] = 1
 
-    # create complexity value for each word
+    # populate with complexity of each word
     words_complexity = dict()
     max_word_count = max(words_count.values())
     for word in words_count:
         words_complexity[word] = max_word_count / words_count[word]
 
-    # populate sentences_complexity
-    sentences_complexity = list()
+    # populate with complexity of each sentence
+    sentences_complexity = dict()
+    # sentences_complexity - list()
     for sentence in sentences_array:
-        words = sentences_words[sentence]
-        number_of_words = len(words)
+        sentence_words = sentences_words[sentence]
+        sentence_word_count = len(sentence_words)
+        sentence_complexity = 0
 
-        temp_list = [sentence, 0]
+        # add up the complexity of each word in sentence
+        for word in sentence_words:
+            sentence_complexity += words_complexity[word]
+        # normalize complexity of sentence by its word count powered to (1 - delta)
+        if sentence_word_count not in [0, 1]:
+            sentence_complexity /= sentence_word_count ** (1 - 2/3)
 
-        # add up the complexity of each word
-        for word in words:
-            temp_list[1] += words_complexity[word]
+        sentences_complexity[sentence] = sentence_complexity
+        # sentences_complexity.append([sentence, sentence_complexity])
 
-        if number_of_words not in [0, 1]:
-            temp_list[1] /= number_of_words ** (1 - 2/3)  # normalize by length powered to 1 - delta
-        sentences_complexity.append(temp_list)
-
-    # finally, sort sentences by their complexity in desc order
-    return sorted(sentences_complexity, key=lambda x: -x[1])
+    return sentences_complexity
+    # return sorted(sentences_complexity, key=lambda x: -x[1])    
 
 
-# Calculate the cumulative complexity for a post, which depends on the complexities of its replies
+# Calculate the cumulative complexity for a post,
+# which depends on the complexities of its replies
 def calculate_post_cumulative_complexity(board : dict, thread_no : int, post_no : int):
     post : dict = board[thread_no]['thread'][post_no]
 
+    # base case
     if 'cumulative_complexity' in post:
         return post['cumulative_complexity']
 
+    # recursive case
     cumulative_post_complexity = 0
     norm = 1
-
     if len(post['succ']) > 0:
         for succ in post['succ']:
             if succ != post_no:
                 cumulative_post_complexity += calculate_post_cumulative_complexity(board, thread_no, succ)
-
         norm = (len(post['succ'])) ** (1 - 1/3)
-
     cumulative_post_complexity += post['complexity']
 
     post['cumulative_complexity'] = cumulative_post_complexity
@@ -123,21 +113,21 @@ def calculate_board_complexity(board : dict):
             if 'com' in post:
                 all_posts.append(post['com'])
 
-    all_posts_complexity = complexity_score(all_posts)
-    all_posts_complexity_dict = dict()
-    for complexity_pair in all_posts_complexity:
-        all_posts_complexity_dict[complexity_pair[0]] = complexity_pair[1]
+    if len(all_posts) == 0:
+        return
 
+    all_posts_complexity_dict = complexity_score(all_posts)
     for thread_no, thread in board.items():
         for post_no, post in thread['thread'].items():
+            post['complexity'] = 0
             if post['com'] in all_posts_complexity_dict:
                 post['complexity'] = all_posts_complexity_dict[post['com']]
-            else:
-                post['complexity'] = 0
 
     for thread_no, thread in board.items():
         for post_no, post in thread['thread'].items():
             calculate_post_cumulative_complexity(board, thread_no, post_no)
+
+    return
 
 
 # sort a board's posts and threads by cumulative_complexity
@@ -146,27 +136,21 @@ def sort_board_cumulative_complexity(board : dict):
     for thread_no, thread in board.items():
         for post_no, post in thread['thread'].items():
             post['succ'] = sorted(post['succ'], key=lambda x: thread['thread'][x]['cumulative_complexity'], reverse=True)
-
         op_post_no = min(thread['thread'].keys())
         thread['cumulative_complexity_normalized'] = thread['thread'][op_post_no]['cumulative_complexity_normalized']
         threads_sorted.append(thread_no)
 
     # decay older threads by decreasing points by a ratio for every hour
-    datetime_now = datetime.utcnow().timestamp()
+    datetime_now = datetime.now().timestamp()
     decay_limit_hours = 24 * 4  # no more decrease after this
-
     for thread_no in board:
         if 'last_modified' not in board[thread_no]:
             board[thread_no]['last_modified'] = 0
-        
-        time_delta_hours = math.floor((datetime_now - board[thread_no]['last_modified']) / (60 * 60))
+        time_delta_hours = (datetime_now - board[thread_no]['last_modified']) // (60 * 60)
         board[thread_no]['cumulative_complexity_normalized_timed'] = board[thread_no]['cumulative_complexity_normalized'] * (0.15 + max(0, decay_limit_hours - time_delta_hours) / decay_limit_hours) ** 2
-        pass
-
     threads_sorted = sorted(threads_sorted, key=lambda x: board[x]['cumulative_complexity_normalized_timed'], reverse=True)
-    threads_sorted2 = sorted(threads_sorted, key=lambda x: board[x]['cumulative_complexity_normalized'], reverse=True)
-    
-    
+    # threads_sorted2 = sorted(threads_sorted, key=lambda x: board[x]['cumulative_complexity_normalized'], reverse=True)
+
     return threads_sorted
 
 
@@ -183,7 +167,6 @@ def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: in
         post['occurrences'] = 1
     else:
         post['occurrences'] += 1
-
     occurrences_max = 1
     if (post['occurrences'] > 1 and tabbing <= 1) or \
         (post['occurrences'] > occurrences_max):
@@ -196,6 +179,7 @@ def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: in
 
     post_list.append({"post": post, "tabbing": tabbing})
 
+    # recursively call succs
     for succ in post['succ']:
         create_post_list_r(board, thread_id, succ, tabbing + 1, post_list)
 
@@ -204,11 +188,11 @@ def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: in
 
 # print a single post
 def print_post(post: dict):
-    complexity_int = math.floor((post['complexity'] / 100) ** 0.8)
+    complexity_int = int((post['complexity'] / 100) ** 0.8)
     # cumulative_complexity_int = int((post['cumulative_complexity'] / 100) ** 0.8)
     # cumulative_complexity_diff_int = int(((post['cumulative_complexity'] - post['complexity']) / 100) ** 0.3)
     # complexity_hashes_int = int((post['complexity'] / 100) ** 0.7)
-    complexity_hashes_int = math.floor((max(0, (post['cumulative_complexity_normalized'] - post['complexity'])) / 100) ** 0.3)
+    complexity_hashes_int = int((max(0, (post['cumulative_complexity_normalized'] - post['complexity'])) / 100) ** 0.3)
 
     score = ''
     if complexity_int != 1:
@@ -234,12 +218,11 @@ def print_post(post: dict):
         post_country_name = f'<div title="Poster\'s country" class="post-country-name">{post_country_name}</div>'
 
     post_file = ''
-    post_filename = ''
-    post_ext = ''
     if 'file' in post:
         post_file = post['file']
         post_filename = post['filename']
         post_ext = post['ext']
+        post_file = f'<div title="Post attachment" class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{post_filename}{post_ext}</a></div>'
 
     post_com = ''
     if 'com' in post and len(post['com']) > 0:
@@ -261,7 +244,7 @@ def print_post(post: dict):
             <div title="Reply points" class="post-complexity">{"+" * complexity_hashes_int}</div>
             <div title="Post number" class="post-no" class="post-a" id="{post["no"]}">#{post["no"]}</div>
         </div>
-        <div title="Post attachment" class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{post_filename}{post_ext}</a></div>
+        {post_file}
         <div class="post">{post_com}</div>
         <div class="post-details-2">
             {post_name}
@@ -276,8 +259,10 @@ def print_post(post: dict):
 
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_name : str):
-    # update version when you update css or js to bypass browser cache
-    version_number = "20"
+    datetime_now = datetime.now().timestamp()
+
+    # update version when you update css, js, images to bypass browser cache
+    version_number = "21"
 
     # get all local board html files and add greeter links to them
     all_board_names = list()
@@ -302,7 +287,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             <meta property="og:type" content="website">
             <link rel='stylesheet' type='text/css' href='resources/style.css?v={version_number}'>
             <script src='resources/script.js?v={version_number}' defer></script>
-            <link rel="icon" type="image/x-icon" href="resources/favicon.png">
+            <link rel="icon" type="image/x-icon" href="resources/favicon.png?v={version_number}">
             <title>/{board_name}/ - 4CHV</title>
         </head>
         <body>
@@ -310,6 +295,9 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
                 <h1 class="page-title">
                     <a href="">/{board_name}/</a> - 4CHV
                 </h1>
+                <div class="greeter-3">
+                Board updated <div title="Time since board was last built" class="board-time">{datetime_now}</div>
+                </div>
                 <hr>
                 <div class="greeter">
                     {all_board_names_links}
@@ -333,12 +321,20 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
         if 'replies' in thread:
             thread_replies = thread['replies'] - 1
 
-        thread_thumbnail_url = ''
-        thread_thumbnail = ''
+        thread_thumbnail_html = '''
+        <a>
+            <img src="./resources/thumbnail_not_found.png"></img>
+        </a>
+        '''
         if 'thumbnail' in thread and 'thread' in thread:
             op_post = thread['thread'][min(thread['thread'])]
             thread_thumbnail_url = op_post['file']
             thread_thumbnail = thread['thumbnail'].decode()
+            thread_thumbnail_html = f'''
+                <a href="{thread_thumbnail_url}" rel="noreferrer" target="_blank">
+                    <img src="data:image/png;base64, {thread_thumbnail}"></img>
+                </a>
+            '''
 
         thread_sub = ''
         if 'sub' in thread:
@@ -355,7 +351,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
             thread_com = thread['com']            
             # thread_com = filter_post_pre(thread_com)
             thread_com = html.escape(thread_com)
-            thread_com = filter_description_post(thread_com)
+            thread_com = filter_post_post(thread_com)
 
         thread_time = ''
         if 'last_modified' in thread:
@@ -378,13 +374,11 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
                 <div class="thread-reset">Reset</div>
             </div>
             <div title="Thread attachment" class="thread-thumbnail">
-                <a href="{thread_thumbnail_url}" rel="noreferrer" target="_blank">
-                    <img src="data:image/png;base64, {thread_thumbnail}"></img>
-                </a>
+                {thread_thumbnail_html}
             </div>
             <div class="thread-details-2">
-                <div title="Thread replies" class="thread-replies">{thread_replies} replies</div>
                 <div title="Time since last reply" class="thread-time">{thread_time}</div>
+                <div title="Thread replies" class="thread-replies">{thread_replies} replies</div>
             </div>
             <div class="thread-sub-description">
                 <div title="Thread subject" class="thread-sub">{thread_sub}</div>
@@ -430,7 +424,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
                 <div class="greeter-2">
                     <ul class="greeter-2-list">
                         <li><a href="#">Go to top</a></li>
-                        <li>Host your own instance of 4CHV! (<a href="https://github.com/Infinitifall/4chv" target="_blank" rel=“noreferrer”>source</a>)</li>
+                        <li>4CHV is free and open source software! (<a href="https://github.com/Infinitifall/4chv" target="_blank" rel=“noreferrer”>source repo</a>)</li>
                     </ul>
                 </div>
                 <hr>
@@ -444,90 +438,71 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 
 # wrapper function to make html page for a board
 def make_html(board_name: str, file_count: int):
-    # Pre-selection strategy to filter out high traffic low quality threads:
-    # 1. Choose the newest (10 * file_count) thread files and unpickle them
-    # 2. The newest (1/4 * file_count) threads are always selected, giving them a fair chance
-    # 3. From the rest ((10 - 1/4) * file_count) threads aka "tail_threads", order by last replied
-    # and pick the ones with at least 10 replies
-
-    # get list of latest thread files for board
-    if not pathlib.Path(f'threads/{board_name}').is_dir():
-        print(f'skipping {board_name}.html, no folder found', flush=True)
+    # check if db file exists
+    if not pathlib.Path(f'threads/{board_name}.sqlite').is_file():
+        print(f'skipping {board_name}.html, no database yet', flush=True)
         return
 
-    thread_files = sorted(pathlib.Path(f'threads/{board_name}').iterdir())
-    latest_files = sorted(list(thread_files), reverse=True)[:(10 * file_count)]
+    # connect to board db
+    db_connection = sqlite3.connect(f'threads/{board_name}.sqlite')
 
-    # read the files
-    my_board = dict()
-    for each_file in latest_files:
-        if not each_file.is_file():
-            continue
-        try:
-            with open(each_file, 'rb') as f:
-                my_board[int(each_file.stem)] = pickle.load(f)
-        except:
-            continue
+    # Strategy to filter out high traffic low quality threads:
+    # 1. Choose the newest created (file_count // 4) thread files
+    # 2. Choose the last modified (file_count * 1) with at least 10 replies ordered by replies
+    # 3. Combine the second list with the first, limiting elements to (file_count * 1)
+    tail_threads = chv_database.get_thread_nos_by_created(db_connection, file_count // 4)
+    latest_files = chv_database.get_thread_nos_by_last_modified_ordered_by_replies(db_connection, file_count)
+    all_threads = set()
+    for thread_no in tail_threads:
+        all_threads.add(thread_no)
+    for thread_no in latest_files:
+        if thread_no not in all_threads and len(all_threads) <= file_count:
+            all_threads.add(thread_no)
+
+    all_threads = list(all_threads)
+    my_board = chv_database.get_threads(db_connection, all_threads)
 
     # skip if board has no threads
     if len(my_board) == 0:
-        print(f'skipping {board_name}.html, no files found', flush=True)
+        print(f'skipping {board_name}.html, no threads to be made yet', flush=True)
         return
 
-    print(f'making {board_name}.html', flush=True)
-    tail_threads = sorted(list(my_board.keys()), reverse=True)[:math.floor(1/4 * file_count)]
-    complexity_sorted_threads = sorted(list(my_board.keys()), key=lambda x: my_board[x]['last_modified'] if 'last_modified' in my_board[x] else 0, reverse=True)
-    thread_count = 0
-    for thread_no in complexity_sorted_threads:
-        if thread_count >= file_count:
-            my_board.pop(thread_no, None)
-        elif thread_no in tail_threads:
-            thread_count += 1
-        elif my_board[thread_no]['replies'] > 10:
-            thread_count += 1
-        else:
-            my_board.pop(thread_no, None)
-
-    print(f'populating {board_name}.html with {len(my_board)} threads', flush=True)
-    # calculate complexity for board (fast)
+    print(f'making {board_name}.html with {len(my_board)} threads', flush=True)
+    # calculate complexity for board (medium)
     calculate_board_complexity(my_board)
     # sort threads by cumulative complexity (fast)
     threads_sorted = sort_board_cumulative_complexity(my_board)
     # print the entire board to html (slow)
     html_string = print_board(my_board, threads_sorted, board_name)
+
     # write board html to file (fast)
     with open(f'{board_name}.html', 'w') as f:
         f.write(html_string)
         print(f'built {board_name}.html', flush=True)
+    return
 
 
 def make_html_wrapper(wait_time: float, file_count: int):
     while True:
         try:
-            # get list of board names from boards.txt
-            board_names = list()
-            with open('boards.txt', 'r') as f:
-                lines = f.read().splitlines()
-                for line in lines:
-                    if line == '':
-                        continue
-                    board_names.append(line)
-
-            # avoid busy spinning by waiting a bit if the list is empty
+            # get list of board names
+            board_names = chv_boards.boards_active
+            # avoid busy wait if no active boards
             if len(board_names) == 0:
-                print(f'no boards to make!', flush=True)
+                print(f'no active boards! Uncomment lines in scripts/chv_boards.py!', flush=True)
                 time.sleep(10)
                 continue
-
             print(f'making: {", ".join(board_names)}', flush=True)
-            # dont make the same board more frequently than once every 2 min
-            better_wait_time = max(wait_time, 120/len(board_names))
+
+            # make all boards
+            better_wait_time = max(wait_time // len(board_names), 10)
             for board_name in board_names:
                 try:
                     make_html(board_name, file_count)
                     time.sleep(better_wait_time)
                 except Exception as e:
                     print(f'failed to make {board_name}.html', flush=True)
+                    print(e, flush=True)
                     time.sleep(10)
 
         except Exception as e:
@@ -541,7 +516,6 @@ if __name__ == '__main__':
         assert(len(sys.argv) == 3)
         wait_time = int(sys.argv[1])
         file_count = int(sys.argv[2])
-
         make_html_wrapper(wait_time, file_count)
 
     except Exception as e:
