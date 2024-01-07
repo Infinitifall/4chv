@@ -8,7 +8,7 @@ function add_to_history(post_id) {
 
     // update window hash with post id. This forces browser to scroll
     // to the element with that id so we do it before custom scrolling
-    
+
     // window.location.hash = post_id.toString();
     history.pushState({}, '', '#' + post_id.toString());
 }
