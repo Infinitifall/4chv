@@ -125,8 +125,8 @@ def download_all_boards(board_names: list, wait_time: float):
     # remove threads not modified since last download
     all_threads = [
         t for t in all_threads
-        if thread['no'] not in db_threads[thread['board_name']]
-            or db_threads[thread['board_name']][thread['no']]['last_modified'] != t['last_modified']
+        if t['no'] not in db_threads[t['board_name']]
+            or db_threads[t['board_name']][t['no']]['last_modified'] != t['last_modified']
     ]
 
     for thread_index, thread in enumerate(all_threads):
