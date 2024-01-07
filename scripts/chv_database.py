@@ -164,8 +164,8 @@ def get_thread_nos_by_created(db_connection, thread_count: int):
     return db_output
 
 
-# get most recent threads
-def get_thread_nos_by_last_modified_ordered_by_replies(db_connection, thread_count: int):
+# custom function to get threads
+def get_thread_nos_custom_1(db_connection, reply_min_count: int, thread_count: int):
     db_cursor = db_connection.cursor()
     db_cursor.execute(f"""
         SELECT no
@@ -173,11 +173,11 @@ def get_thread_nos_by_last_modified_ordered_by_replies(db_connection, thread_cou
         (
             SELECT no, replies
             FROM threads
-            WHERE replies > 10
-            ORDER BY replies DESC
+            WHERE replies > {reply_min_count}
+            ORDER BY last_modified DESC
             LIMIT {thread_count}
         )
-        ORDER BY replies;
+        ORDER BY replies DESC;
         """)
     db_output = db_cursor.fetchall()
     db_output = [x[0] for x in db_output]
@@ -202,6 +202,11 @@ def create_board_db(db_connection):
     db_connection.execute('''
     CREATE INDEX IF NOT EXISTS threads_indexed_by_no
     ON threads (no); 
+    ''')
+
+    db_connection.execute('''
+    CREATE INDEX IF NOT EXISTS threads_indexed_by_last_modified
+    ON threads (last_modified); 
     ''')
 
     db_connection.execute('''

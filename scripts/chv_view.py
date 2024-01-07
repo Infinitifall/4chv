@@ -451,7 +451,7 @@ def make_html(board_name: str, file_count: int):
     # 2. Choose the last modified (file_count * 1) with at least 10 replies ordered by replies
     # 3. Combine the second list with the first, limiting elements to (file_count * 1)
     tail_threads = chv_database.get_thread_nos_by_created(db_connection, file_count // 4)
-    latest_files = chv_database.get_thread_nos_by_last_modified_ordered_by_replies(db_connection, file_count)
+    latest_files = chv_database.get_thread_nos_custom_1(db_connection, 10, file_count)
     all_threads = set()
     for thread_no in tail_threads:
         all_threads.add(thread_no)
