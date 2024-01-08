@@ -124,7 +124,7 @@ Don't display replies or collapsible anchor for OP
 .thread-op > a,
 .thread-op > a:hover,
 .thread-op > a:visited
-{   
+{
     color: #555;
     float: right;
 }
@@ -314,7 +314,7 @@ Styling for posts
 }
 
 /*
-Styling for collapsible 
+Styling for collapsible
 */
 
 .collapsed {

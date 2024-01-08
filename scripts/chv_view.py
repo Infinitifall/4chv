@@ -77,7 +77,7 @@ def complexity_score(sentences_array):
         # sentences_complexity.append([sentence, sentence_complexity])
 
     return sentences_complexity
-    # return sorted(sentences_complexity, key=lambda x: -x[1])    
+    # return sorted(sentences_complexity, key=lambda x: -x[1])
 
 
 # Calculate the cumulative complexity for a post,
@@ -348,7 +348,7 @@ def print_board(board: dict, threads_sorted : list, board_name : str):
 
         thread_com = ''
         if 'com' in thread:
-            thread_com = thread['com']            
+            thread_com = thread['com']
             # thread_com = filter_post_pre(thread_com)
             thread_com = html.escape(thread_com)
             thread_com = filter_post_post(thread_com)
