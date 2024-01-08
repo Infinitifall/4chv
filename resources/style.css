@@ -18,6 +18,10 @@ a { color: #6e7aac; text-decoration: none; }
 a:visited { color: #6e7aac; text-decoration: none; }
 a:hover { color: #6e7aac; text-decoration: underline; }
 
+h1 {
+    margin: 0.5em 0 0.3em 0;
+}
+
 hr {
     border: transparent;
     border-top: 1px solid #333;
@@ -39,13 +43,14 @@ hr {
 .page-title {
     user-select: none;
     text-align: center;
-    font-size: 3.5em;
+    font-size: 3em;
+    line-height: 1em;
 }
 
 .greeter {
     user-select: none;
     display: flex;
-    font-size: 1.5em;
+    font-size: 1.2em;
     flex-wrap: wrap;
     justify-content: center;
 }
@@ -78,6 +83,13 @@ hr {
 
 .board-time {
     display: inline;
+}
+
+.greeter-4 {
+    user-select: none;
+    display: block;
+    text-align: center;
+    height: 100px;
 }
 
 /*
