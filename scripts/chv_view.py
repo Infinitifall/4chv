@@ -202,27 +202,27 @@ def print_post(post: dict):
 
     post_time = post['time']
 
-    post_name = ''
+    post_name_html = ''
     if 'name' in post:
         post_name = html.escape(post['name'])
-        post_name = f'<div title="Poster\'s name" class="post-name">{post_name}</div>'
+        post_name_html = f'<div title="Poster\'s name" class="post-name">{post_name}</div>'
 
-    post_id = ''
+    post_id_html = ''
     if 'id' in post:
         post_id = post['id']
-        post_id = f'<div title="Poster\'s id" class="post-id">{post_id}</div>'
+        post_id_html = f'<div title="Poster\'s id" class="post-id">{post_id}</div>'
 
-    post_country_name = ''
+    post_country_name_html = ''
     if 'country_name' in post:
         post_country_name = post['country_name']
-        post_country_name = f'<div title="Poster\'s country" class="post-country-name">{post_country_name}</div>'
+        post_country_name_html = f'<div title="Poster\'s country" class="post-country-name">{post_country_name}</div>'
 
-    post_file = ''
+    post_file_html = ''
     if 'file' in post:
         post_file = post['file']
         post_filename = post['filename']
         post_ext = post['ext']
-        post_file = f'<div title="Post attachment" class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{post_filename}{post_ext}</a></div>'
+        post_file_html = f'<div title="Post attachment" class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{post_filename}{post_ext}</a></div>'
 
     post_com = ''
     if 'com' in post and len(post['com']) > 0:
@@ -244,35 +244,32 @@ def print_post(post: dict):
             <div title="Reply points" class="post-complexity">{"+" * complexity_hashes_int}</div>
             <div title="Post number" class="post-no" class="post-a" id="{post["no"]}">#{post["no"]}</div>
         </div>
-        {post_file}
+        {post_file_html}
         <div class="post">{post_com}</div>
         <div class="post-details-2">
-            {post_name}
-            {post_id}
-            {post_country_name}
-            <div title="Unix time: {post_time}" class="post-time">{post_time}</div>
-            <div class="post-succ">{post_succ}</div>
+            {post_name_html}
+            {post_id_html}
+            {post_country_name_html}
+            <div title="Post time" class="post-time">{post_time}</div>
+            <div title="Post replies" class="post-succ">{post_succ}</div>
         </div>
     </div>
     '''
 
 
 # print an entire board
-def print_board(board: dict, threads_sorted : list, board_name : list):
+def print_board(board: dict, threads_sorted : list, board_names: list, board_index: int):
     datetime_now = datetime.now().timestamp()
+    board_name = board_names[board_index]
 
     # update version when you update css, js, images to bypass browser cache
-    version_number = "21"
+    version_number = "22"
 
-    # get all local board html files and add greeter links to them
-    all_board_names = list()
-    for each_file in pathlib.Path('.').glob('*.html'):
-        if each_file.is_file():
-            all_board_names.append(each_file.stem)
-    all_board_names.sort()
-    all_board_names_links = ''
-    for each_board_name in all_board_names:
-        all_board_names_links += f'<a href="{each_board_name}.html" class="greeter-element">/{each_board_name}/</a>'
+    # add greeter links to all boards
+    all_board_names = [b[0] for b in board_names]
+    board_links_html = '[]'
+    if len(all_board_names) != 0:
+        board_links_html = '[ ' + ' / '.join([f'<a href="{e}.html" class="greeter-element">{e}</a>' for e in all_board_names]) + ' ]'
 
     # the main string list
     html_string = list()
@@ -292,22 +289,21 @@ def print_board(board: dict, threads_sorted : list, board_name : list):
         </head>
         <body>
             <div class="wrapper">
+                <div class="greeter">
+                    {board_links_html}
+                </div>
+                <div class="greeter-4">
+                <img src="./resources/logo.png"></img>
+                </div>
+                <hr>
                 <h1 class="page-title">
                     <a href="">/{board_name[0]}/ - {board_name[1]}</a>
                 </h1>
                 <div class="greeter-3">
                 Board updated <div title="Time since board was last built" class="board-time">{int(datetime_now)}</div>
                 </div>
-                <hr>
-                <div class="greeter">
-                    {all_board_names_links}
-                </div>
-                <hr>
-                <div class="greeter-4">
-                <img src="./resources/logo.png"></img>
-                </div>
-                <hr>
                 <div class="greeter-2">
+                    <hr>
                     <ul class="greeter-2-list">
                         <li>Click <a>[+]</a> to fold/unfold threads and <a>&gt;&gt;1234567</a> to jump to posts</li>
                         <li>Use browser/phone back button to jump back to where you were</li>
@@ -320,9 +316,16 @@ def print_board(board: dict, threads_sorted : list, board_name : list):
     for thread_id in threads_sorted:
         thread = board[thread_id]
 
-        thread_replies = 0
+        thread_replies = None
         if 'replies' in thread:
-            thread_replies = thread['replies'] - 1
+            thread_replies = thread['replies']
+        else:
+            thread_replies = len(thread['thread']) - 1
+
+        thread_images_html = ''
+        if 'images' in thread:
+            thread_images = thread['images']
+            thread_images_html = f' / <div title="Thread image count" class="thread-images">I: <b>{thread_images}</b></div>'
 
         thread_thumbnail_html = '''
         <a>
@@ -381,7 +384,10 @@ def print_board(board: dict, threads_sorted : list, board_name : list):
             </div>
             <div class="thread-details-2">
                 <div title="Time since last reply" class="thread-time">{thread_time}</div>
-                <div title="Thread replies" class="thread-replies">{thread_replies} replies</div>
+                <div class="thread-replies-parent">
+                    <div title="Thread reply count" class="thread-replies">R: <b>{thread_replies}</b></div>
+                    {thread_images_html}
+                </div>
             </div>
             <div class="thread-sub-description">
                 <div title="Thread subject" class="thread-sub">{thread_sub}</div>
@@ -424,13 +430,12 @@ def print_board(board: dict, threads_sorted : list, board_name : list):
     html_string.append('''
                 </div>
                 <hr>
-                <div class="greeter-2">
+                <div class="greeter-5">
                     <ul class="greeter-2-list">
                         <li><a href="#">Go to top</a></li>
                         <li>4CHV is free and open source software! (<a href="https://github.com/Infinitifall/4chv" target="_blank" rel=“noreferrer”>source repo</a>)</li>
                     </ul>
                 </div>
-                <hr>
             </div>
         </body>
     </html>
@@ -440,7 +445,9 @@ def print_board(board: dict, threads_sorted : list, board_name : list):
 
 
 # wrapper function to make html page for a board
-def make_html(board_name: list, file_count: int):
+def make_html(board_names: list, board_index: int, file_count: int):
+    board_name = board_names[board_index]
+
     # check if db file exists
     if not pathlib.Path(f'threads/{board_name[0]}.sqlite').is_file():
         print(f'skipping {board_name[0]}.html, no database yet', flush=True)
@@ -448,6 +455,9 @@ def make_html(board_name: list, file_count: int):
 
     # connect to board db
     db_connection = sqlite3.connect(f'threads/{board_name[0]}.sqlite')
+
+    # initialize board db in case it doesn't exist or is on an older version
+    chv_database.create_board_db(db_connection)
 
     # Strategy to filter out high traffic low quality threads:
     # 1. Choose the newest created (file_count // 4) thread files
@@ -476,11 +486,12 @@ def make_html(board_name: list, file_count: int):
     # sort threads by cumulative complexity (fast)
     threads_sorted = sort_board_cumulative_complexity(my_board)
     # print the entire board to html (slow)
-    html_string = print_board(my_board, threads_sorted, board_name)
+    html_string = print_board(my_board, threads_sorted, board_names, board_index)
 
     # write board html to file (fast)
     with open(f'{board_name[0]}.html', 'w') as f:
         f.write(html_string)
+        print(f'built {board_name[0]}.html', flush=True)
     return
 
 
@@ -497,16 +508,17 @@ def make_html_wrapper(wait_time: float, file_count: int):
             print(f'making: {", ".join([b[0] for b in board_names])}', flush=True)
 
             # make all boards
-            better_wait_time = max(wait_time // len(board_names), 10)
-            for board_name in board_names:
+            wait_time_in_between = 5
+            for board_index, board_name in enumerate(board_names):
                 try:
-                    make_html(board_name, file_count)
-                    print(f'built {board_name[0]}.html', flush=True)
-                    time.sleep(better_wait_time)
+                    make_html(board_names, board_index, file_count)
+                    time.sleep(wait_time_in_between)
                 except Exception as e:
                     print(f'failed to make {board_name[0]}.html', flush=True)
                     print(e, flush=True)
                     time.sleep(10)
+
+            time.sleep(wait_time)
 
         except Exception as e:
             print('an error occurred!', flush=True)

@@ -104,7 +104,7 @@ def download_all_boards(board_names: list, wait_time: float):
         # add board db connection to db_connections dict
         db_connections[board_name[0]] = sqlite3.connect(f'threads/{board_name[0]}.sqlite')
 
-        # initialize board db in case it doesn't exist
+        # initialize board db in case it doesn't exist or is on an older version
         chv_database.create_board_db(db_connections[board_name[0]])
 
         # get threads if in db
@@ -152,8 +152,14 @@ def download_thread(board_name: str, thread_no: int, db_connection):
 
     # op post_no is same as thread_no
     op_post_no = thread_no
+    op_post_index = 0
 
     this_thread['thread'] = dict()
+    if 'replies' in thread['posts'][op_post_index]:
+        this_thread['replies'] = thread['posts'][op_post_index]['replies']
+    if 'images' in thread['posts'][op_post_index]:
+        this_thread['images'] = thread['posts'][op_post_index]['images']
+
     for post in thread['posts']:
         post: dict
         this_post = dict()
@@ -204,7 +210,6 @@ def download_thread(board_name: str, thread_no: int, db_connection):
 
     # more thread details
     last_post_no = max(this_thread['thread'])
-    this_thread['replies'] = len(this_thread['thread'])
     if op_post_no in this_thread['thread']:
         op_post = this_thread['thread'][op_post_no]
 

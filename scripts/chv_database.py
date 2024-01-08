@@ -1,7 +1,7 @@
-# import sqlite3
+import sqlite3
 
 
-thread_fields       = ['no', 'last_modified', 'replies', 'sub', 'com', 'thumbnail']
+thread_fields       = ['no', 'last_modified', 'replies', 'sub', 'com', 'thumbnail', 'images']
 thread_posts_fields = ['thread_no', 'post_no']
 post_fields         = ['no', 'com', 'sub', 'name', 'id', 'file', 'time', 'filename', 'ext', 'country', 'country_name']
 post_replies_fields = ['post_no', 'reply_no' ]
@@ -178,7 +178,9 @@ def create_board_db(db_connection):
 
         sub TEXT,
         com TEXT,
-        thumbnail BLOB
+        thumbnail BLOB,
+
+        images INT
     );
     ''')
 
@@ -251,8 +253,20 @@ def create_board_db(db_connection):
     # foreign keys may be added in the future
 
     db_connection.commit()
+
+    # for updating old versions
+    try:
+        db_connection.execute(f"""
+            ALTER TABLE threads
+            ADD images INT;
+            """)
+        db_connection.commit()
+    except Exception as e:
+        # we don't really care
+        pass
+
     return
 
 
-if __name__ == '__main':
+if __name__ == '__main__':
     pass

@@ -24,7 +24,7 @@ h1 {
 
 hr {
     border: transparent;
-    border-top: 1px solid #333;
+    border-top: 1px solid #2a2a2a;
     margin: 0.5em 0 0.5em 0;
 }
 
@@ -43,7 +43,7 @@ hr {
 .page-title {
     user-select: none;
     text-align: center;
-    font-size: 3em;
+    font-size: 2.5em;
     line-height: 1em;
 }
 
@@ -53,21 +53,25 @@ hr {
     font-size: 1.2em;
     flex-wrap: wrap;
     justify-content: center;
+    margin-bottom: 0.5em;
 }
 
 .greeter-element {
-    margin-right: 1em;
+    margin-right: 0.4em;
+    margin-left: 0.4em;
 }
 
 .greeter-2 {
     user-select: none;
-    margin: 0 2em 0 2em;
+    max-width: 500px;
+    margin: auto;
     color: #aaa;
     word-break: break-word;
 }
 
 .greeter-2-list {
     padding-left: 0;
+    margin: 0 2em 0 2em;
 }
 
 .all-threads {
@@ -89,7 +93,16 @@ hr {
     user-select: none;
     display: block;
     text-align: center;
-    height: 100px;
+    height: 70px;
+}
+
+.greeter-5 {
+    user-select: none;
+    max-width: 500px;
+    margin: auto;
+    color: #aaa;
+    word-break: break-word;
+    margin-bottom: 0.5em;
 }
 
 /*
@@ -167,9 +180,18 @@ Don't display replies or collapsible anchor for OP
     margin-bottom: 0.5em;
 }
 
-.thread-replies {
+.thread-replies-parent {
     display: block;
     text-align: center;
+}
+
+.thread-replies {
+    display: inline;
+    color: #777;
+}
+
+.thread-images {
+    display: inline;
     color: #777;
 }
 
