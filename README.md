@@ -10,14 +10,12 @@ A 4chan downloader/viewer. Downloads threads and builds offline html pages for a
 ## Install
 
 - **Windows**
-  1. Have [Python](https://www.python.org/downloads/) and [SQLite](https://www.sqlite.org/index.html) installed
+  1. Have [Python](https://www.python.org/downloads/) installed
   2. Download the latest version of 4CHV [from here](https://github.com/Infinitifall/4chv/archive/refs/heads/main.zip) and unzip it
   3. Double click on `run_on_windows.bat`
 
 
 - **Linux/BSD/macOS**
-
-  `python3`, `sqlite3` required
 
   ```bash
   # clone repo
