@@ -90,17 +90,16 @@ def download_all_boards(board_names: list, wait_time: float):
 
     db_connections = dict()
     all_threads = list()
-    db_threads = dict()
-    for board_name in board_names:        
+    for board_name in board_names:
+        all_threads_2 = list()
+
         # get active threadlist on board
-        board_thread_nos = list()
         request = get_url_custom(threadlist_url(board_name))
         threadlist = json.loads(request.text)
         for page in threadlist:
             for thread in page['threads']:
                 thread['board_name'] = board_name
-                all_threads.append(thread)
-                board_thread_nos.append(thread['no'])
+                all_threads_2.append(thread)
 
         # add board db connection to db_connections dict
         db_connections[board_name] = sqlite3.connect(f'threads/{board_name}.sqlite')
@@ -109,10 +108,18 @@ def download_all_boards(board_names: list, wait_time: float):
         chv_database.create_board_db(db_connections[board_name])
 
         # get threads if in db
-        db_threads[board_name] = chv_database.get_threads(
+        db_thread = chv_database.get_threads(
             db_connections[board_name],
-            board_thread_nos
+            [t['no'] for t in all_threads_2]
         )
+
+        # remove threads not modified since last download
+        all_threads_2 = [
+            t for t in all_threads_2
+            if t['no'] not in db_thread
+                or db_thread[t['no']]['last_modified'] != t['last_modified']
+        ]
+        all_threads.extend(all_threads_2)
 
         print(f'fetched threadlist for /{board_name}/', flush=True)
         time.sleep(random.randint(wait_time // 2, (wait_time * 3) // 2))
@@ -121,13 +128,6 @@ def download_all_boards(board_names: list, wait_time: float):
     all_threads.sort(
         key=lambda x: (datetime_now - x['last_modified']) // (60 * 5) - x['replies']
     )
-
-    # remove threads not modified since last download
-    all_threads = [
-        t for t in all_threads
-        if t['no'] not in db_threads[t['board_name']]
-            or db_threads[t['board_name']][t['no']]['last_modified'] != t['last_modified']
-    ]
 
     for thread_index, thread in enumerate(all_threads):
         # if modified since, download the thread
