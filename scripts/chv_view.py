@@ -44,7 +44,7 @@ def complexity_score(sentences_array):
 
     # calculate words_count and sentences_words
     for sentence in sentences_array:
-        words = [w.lower() for w in re.findall(r'[\w\']+', sentence)]
+        words = [w.lower() for w in re.findall(r'(?:[^\d\W]|\')+', sentence)]
         sentences_words[sentence] = words
         for word in words:
             if word in words_count:
