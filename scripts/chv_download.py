@@ -44,22 +44,22 @@ def thumbnail_url(board_name: str, tim: int):
 # clean post['com'] by removing html tags
 def clean_post(content: str):
     clean_dict = {
-        '\?P<replyquote>>': '>>',
+        '\?P<replyquote>': '',
 
         r'</[asp]+>': '',
         '</span>': '',
         '</pre>': '',
 
         r'<pre [^>]+>': '',
-        r'<[ap] [^>]+>': '>',
-        r'<span [^>]+>': '>',
+        r'<[ap] [^>]+>': '',
+        r'<span [^>]+>': '',
         '<span class="deadlink">': '',
 
-        '&gt;': '',
+        '&gt;': '>',
         '<wbr>': '',
-        '(<br>)+': '\n',
-        '\n+': '\n',
-        r'^\n': '',
+        '<br>': '\n',
+        '\n\n+': '\n\n',
+        # r'^\n': '',
     }
 
     for key, value in clean_dict.items():

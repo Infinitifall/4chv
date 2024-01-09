@@ -3,7 +3,7 @@ body {
     font-size: 14px;
     line-height: 1.5em;
 
-    background-color: #1e2022;
+    background: #1e2022;
     color: #bbb;
     margin: 0 0;
 }
@@ -11,16 +11,11 @@ body {
 img {
     max-height: 100%;
     max-width: 100%;
-    /* object-fit: contain; */
 }
 
 a { color: #6e7aac; text-decoration: none; }
 a:visited { color: #6e7aac; text-decoration: none; }
 a:hover { color: #6e7aac; text-decoration: underline; }
-
-h1 {
-    margin: 0.5em 0 0.3em 0;
-}
 
 hr {
     border: transparent;
@@ -44,32 +39,41 @@ hr {
     user-select: none;
     text-align: center;
     font-size: 2.5em;
-    line-height: 1em;
+    line-height: 1.2em;
+    margin: 0.5em 0 0.3em 0;
 }
 
-.greeter {
+.greeter-links {
     user-select: none;
     display: flex;
     font-size: 1.2em;
     flex-wrap: wrap;
     justify-content: center;
+    margin-top: 0.2em;
     margin-bottom: 0.5em;
 }
 
-.greeter-element {
-    margin-right: 0.4em;
-    margin-left: 0.4em;
+.greeter-links > .greeter-element {
+    margin-right: 0.3em;
+    margin-left: 0.3em;
 }
 
-.greeter-2 {
+.greeter-info {
     user-select: none;
     max-width: 500px;
     margin: auto;
+    font-size: 0.9em;
     color: #aaa;
     word-break: break-word;
 }
 
-.greeter-2-list {
+.greeter-info > b {
+    display: block;
+    margin-top: 1em;
+}
+
+.greeter-info-list,
+.greeter-footer-list {
     padding-left: 0;
     margin: 0 2em 0 2em;
 }
@@ -78,7 +82,7 @@ hr {
     margin-top: 2em;
 }
 
-.greeter-3 {
+.greeter-subtitle {
     user-select: none;
     display: block;
     text-align: center;
@@ -89,14 +93,14 @@ hr {
     display: inline;
 }
 
-.greeter-4 {
+.greeter-logo {
     user-select: none;
     display: block;
     text-align: center;
     height: 70px;
 }
 
-.greeter-5 {
+.greeter-footer {
     user-select: none;
     max-width: 500px;
     margin: auto;
@@ -269,6 +273,8 @@ Styling for posts
     background: #282a2e;
     padding: 0.5em 1em;
     margin-bottom: 0.5em;
+    display: table;
+    border: 1px transparent;
 }
 
 .post-details {
@@ -339,7 +345,7 @@ Styling for posts
 }
 
 .reply-text {
-    display: inline-flex;
+    display: inline;
     color: #6e7aac;
 }
 
@@ -352,10 +358,18 @@ Styling for collapsible
 */
 
 .collapsed {
+    display: inline-block;
     min-height: 1.5em;
     max-height: 1.5em;
-    overflow: hidden;
     background: #202022;
+}
+
+.collapsed > * {
+    display: none;
+}
+
+.collapsed > .post-details {
+    display: block;
 }
 
 .collapsed-parent > .post-parent-r {

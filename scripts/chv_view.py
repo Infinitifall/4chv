@@ -28,6 +28,7 @@ def filter_post_post(content : str):
         r'(\&gt;)+(\d{5,20})': r'<div class="reply-text">&gt;&gt;\2</div>',  # reply quotes
         r'^(\&gt;.+)': r'<div class="green-text">\1</div>',  # greentext
         r'(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@;:%_\+.~#?&\/=]*))': r'<a href="\1" rel="noreferrer" target="_blank">\1</a>',  # links
+        r'\n': '<br>',  # line breaks
     }
 
     for key, value in clean_dict.items():
@@ -266,10 +267,9 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     version_number = "22"
 
     # add greeter links to all boards
-    all_board_names = [b[0] for b in board_names]
     board_links_html = '[]'
-    if len(all_board_names) != 0:
-        board_links_html = '[ ' + ' / '.join([f'<a href="{e}.html" class="greeter-element">{e}</a>' for e in all_board_names]) + ' ]'
+    if len(board_names) != 0:
+        board_links_html = '[ ' + ' / '.join([f'<a href="{b[0]}.html" title="{b[1]}" class="greeter-element">{b[0]}</a>' for b in board_names]) + ' ]'
 
     # the main string list
     html_string = list()
@@ -289,22 +289,23 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
         </head>
         <body>
             <div class="wrapper">
-                <div class="greeter">
+                <div class="greeter-links">
                     {board_links_html}
                 </div>
-                <div class="greeter-4">
-                <img src="./resources/logo.png"></img>
+                <div class="greeter-logo">
+                    <img title="4CHV logo" src="./resources/logo.png"></img>
                 </div>
                 <hr>
                 <h1 class="page-title">
-                    <a href="">/{board_name[0]}/ - {board_name[1]}</a>
+                    <a title="Board title" href="">/{board_name[0]}/ - {board_name[1]}</a>
                 </h1>
-                <div class="greeter-3">
+                <div class="greeter-subtitle">
                 Board updated <div title="Time since board was last built" class="board-time">{int(datetime_now)}</div>
                 </div>
-                <div class="greeter-2">
+                <div class="greeter-info">
                     <hr>
-                    <ul class="greeter-2-list">
+                    <b>Instructions</b>
+                    <ul class="greeter-info-list">
                         <li>Click <a>[+]</a> to fold/unfold threads and <a>&gt;&gt;1234567</a> to jump to posts</li>
                         <li>Use browser/phone back button to jump back to where you were</li>
                     </ul>
@@ -370,7 +371,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                 <div title="Toggle folding" class="thread-collapsible-anchor">[+]</div>
                 <div title="See thread on 4chan.org" class="thread-op">
                     <a href="https://boards.4chan.org/{board_name[0]}/thread/{thread_id}" rel="noreferrer" target="_blank">
-                        -
+                        ~
                     </a>
                 </div>
             </div>
@@ -430,8 +431,8 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     html_string.append('''
                 </div>
                 <hr>
-                <div class="greeter-5">
-                    <ul class="greeter-2-list">
+                <div class="greeter-footer">
+                    <ul class="greeter-footer-list">
                         <li><a href="#">Go to top</a></li>
                         <li>4CHV is free and open source software! (<a href="https://github.com/Infinitifall/4chv" target="_blank" rel=“noreferrer”>source repo</a>)</li>
                     </ul>
@@ -441,7 +442,12 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     </html>
     ''')
 
-    return ''.join(html_string)
+    return_string = ''.join(html_string)
+    
+    # trim whitespaces and newlines between html tags
+    return_string = re.sub(r'>[\n ]+<', r'><' , return_string)
+
+    return return_string
 
 
 # wrapper function to make html page for a board
