@@ -284,8 +284,9 @@ function event_thread_files_all(self) {
     // dump all file links in thread_files
     let file_count = 0;
     for (let j = 0; j < thread_post_parents.length; j++) {
-        let post_file = thread_post_parents[j].getElementsByClassName("post-file")[0].children[0];
-        if (post_file.innerHTML) {
+        let post_file = thread_post_parents[j].getElementsByClassName("post-file")[0];
+        if (post_file) {
+            post_file = post_file.children[0];
             let div_curr = document.createElement("div");
             let a_curr = document.createElement("a");
             a_curr.innerHTML = post_file.innerHTML;
