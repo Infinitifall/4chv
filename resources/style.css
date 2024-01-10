@@ -273,8 +273,10 @@ Styling for posts
     background: #282a2e;
     padding: 0.5em 1em;
     margin-bottom: 0.5em;
-    display: table;
+    display: inline-block;
     border: 1px transparent;
+    box-sizing: border-box;
+    max-width: 100%;
 }
 
 .post-details {
@@ -290,7 +292,7 @@ Styling for posts
 .post-complexity {
     display: inline-flex;
     margin-right: 0.5em;
-    color: #c676eb;
+    color: #b35071;
     max-width: calc(100% - 15em);
     overflow: hidden;
 }
@@ -334,6 +336,10 @@ Styling for posts
     margin-right: 0.5em;
 }
 
+.post-succ > .post-a::after {
+    content: "\0020";
+}
+
 .post {
     white-space: pre-line;
     word-break: break-word;
@@ -359,6 +365,8 @@ Styling for collapsible
 
 .collapsed {
     display: inline-block;
+    box-sizing: unset;
+    min-width: min(40em, 80%);
     min-height: 1.5em;
     max-height: 1.5em;
     background: #202022;

@@ -235,7 +235,7 @@ def print_post(post: dict):
     post_succ = ''
     if 'succ' in post and len(post['succ']) > 0:
         for succ in post['succ']:
-            post_succ += f'<div class="post-a">&gt;&gt;{succ}</div>  '  # whitespace after is important
+            post_succ += f'<div class="post-a">&gt;&gt;{succ}</div>'
 
     return f'''
     <div class="post-parent {'collapsed collapsed-originally' if ('hidden' in post) else ''}">
@@ -264,7 +264,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     board_name = board_names[board_index]
 
     # update version when you update css, js, images to bypass browser cache
-    version_number = "22"
+    version_number = "25"
 
     # add greeter links to all boards
     board_links_html = '[]'
