@@ -196,6 +196,22 @@ function event_reply_text(self) {
 }
 
 
+function event_file_dump_a(self) {
+    let post_id = self.parentElement.parentElement.parentElement.getElementsByClassName("post-parent-r")[0].getElementsByClassName("post-parent")[0].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+    let reply_id = self.innerHTML;
+    reply_id = strip_post_id_start_chars(reply_id);
+
+    // uncollapse, colorize and colorize, add to history and scroll
+    post_uncollapse(reply_id);
+    element_colorize_deterministic(self, reply_id);
+    post_colorize_deterministic(reply_id);
+    add_to_history(post_id);
+    // post_scroll_to(post_id);
+    add_to_history(reply_id);
+    post_scroll_to(reply_id);
+}
+
+
 function event_post_a(self) {
     let post_id = self.parentElement.parentElement.parentElement.getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
     let reply_id = self.innerHTML;
@@ -285,15 +301,26 @@ function event_thread_files_all(self) {
     let file_count = 0;
     for (let j = 0; j < thread_post_parents.length; j++) {
         let post_file = thread_post_parents[j].getElementsByClassName("post-file")[0];
+        let post_no = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
         if (post_file) {
             post_file = post_file.children[0];
             let div_curr = document.createElement("div");
+            let div_curr_child = document.createElement("div");
             let a_curr = document.createElement("a");
+
             a_curr.innerHTML = post_file.innerHTML;
             a_curr.href = post_file.href;
             a_curr.rel = "noreferrer";
             a_curr.target = "_blank";
-            div_curr.innerHTML = (file_count + 1).toString() + ". ";
+
+            div_curr_child.innerHTML = ">>" + post_no.toString();
+            div_curr_child.classList.add("file-dump-a");
+            // manipulating innerHTML destroys and recreates everything in div, removing event listeners
+            div_curr_child.addEventListener("click", function() {
+                event_file_dump_a(this);
+            })
+            
+            div_curr.appendChild(div_curr_child);
             div_curr.appendChild(a_curr);
             thread_files_dump.appendChild(div_curr);
 

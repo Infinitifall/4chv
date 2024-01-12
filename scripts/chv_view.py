@@ -159,7 +159,7 @@ def sort_board_cumulative_complexity(board : dict):
 def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: int, post_list: list):
     if post_id not in board[thread_id]['thread']:
         # post might have been deleted
-        return
+        return -2
 
     post = board[thread_id]['thread'][post_id]
 
@@ -171,7 +171,7 @@ def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: in
     occurrences_max = 1
     if (post['occurrences'] > 1 and tabbing <= 1) or \
         (post['occurrences'] > occurrences_max):
-        return
+        return -1
 
     # logic for hiding a post by default
     post_complexity_int = int((post['complexity'] / 100) ** 0.8)
@@ -181,10 +181,16 @@ def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: in
     post_list.append({"post": post, "tabbing": tabbing})
 
     # recursively call succs
+    if 'succ_display' not in post:
+        post['succ_display'] = list()
     for succ in post['succ']:
-        create_post_list_r(board, thread_id, succ, tabbing + 1, post_list)
+        succ_return = create_post_list_r(board, thread_id, succ, tabbing + 1, post_list)
+        
+        # don't display succ that are direct descendants
+        if succ_return != 0:
+            post['succ_display'].append(succ)
 
-    return post_list
+    return 0
 
 
 # print a single post
@@ -232,10 +238,11 @@ def print_post(post: dict):
         post_com = html.escape(post_com)
         post_com = filter_post_post(post_com)
 
-    post_succ = ''
-    if 'succ' in post and len(post['succ']) > 0:
-        for succ in post['succ']:
-            post_succ += f'<div class="post-a">&gt;&gt;{succ}</div>'
+    post_succ_html = ''
+    if 'succ_display' in post and len(post['succ_display']) > 0:
+        post_succ_html = 'Other replies: '
+        for succ in post['succ_display']:
+            post_succ_html += f'<div class="post-a">&gt;&gt;{succ}</div>'
 
     return f'''
     <div class="post-parent {'collapsed collapsed-originally' if ('hidden' in post) else ''}">
@@ -252,7 +259,7 @@ def print_post(post: dict):
             {post_id_html}
             {post_country_name_html}
             <div title="Post time" class="post-time">{post_time}</div>
-            <div title="Post replies" class="post-succ">{post_succ}</div>
+            <div title="Post replies not directly below post" class="post-succ">{post_succ_html}</div>
         </div>
     </div>
     '''
@@ -264,7 +271,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     board_name = board_names[board_index]
 
     # update version when you update css, js, images to bypass browser cache
-    version_number = "26"
+    version_number = "27"
 
     # add greeter links to all boards
     board_links_html = '[]'

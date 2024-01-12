@@ -250,6 +250,12 @@ Styling for thread options
 
 .thread-files-dump > div > a {
     color: #579394;
+    word-break: break-all;
+}
+
+.file-dump-a {
+    display: inline;
+    margin-right: 1em;
 }
 
 /*
@@ -275,8 +281,9 @@ Styling for posts
     margin-bottom: 0.5em;
     display: inline-block;
     border: 1px transparent;
-    box-sizing: border-box;
+    /* box-sizing: border-box; */
     max-width: 100%;
+    min-width: min(30em, 80%);
 }
 
 .post-details {
@@ -293,7 +300,7 @@ Styling for posts
     display: inline-flex;
     margin-right: 0.5em;
     color: #b35071;
-    max-width: calc(100% - 15em);
+    max-width: 8em;
     overflow: hidden;
 }
 
@@ -321,15 +328,14 @@ Styling for posts
 
 .post-time,
 .post-country-name,
-.post-id,
-.post-name {
+.post-id {
     display: inline;
     margin-right: 1em;
     color: #555;
 }
 
 .post-succ {
-    display: inline;
+    display: block;
 }
 
 .post-succ > .post-a {
@@ -364,9 +370,8 @@ Styling for collapsible
 */
 
 .collapsed {
-    display: inline-block;
-    box-sizing: unset;
-    min-width: min(40em, 80%);
+    /* box-sizing: unset; */
+    min-width: min(30em, 80%);
     min-height: 1.5em;
     max-height: 1.5em;
     background: #202022;
@@ -439,7 +444,8 @@ pointer + underline for clicky stuff
 .reply-text:hover,
 .thread-maximize-replies:hover,
 .thread-reset:hover,
-.thread-files-all:hover
+.thread-files-all:hover,
+.file-dump-a:hover
 {
     cursor: pointer;
     text-decoration: underline;
