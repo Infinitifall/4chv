@@ -10,20 +10,8 @@ import sqlite3
 import chv_boards
 import chv_database
 
-
-# filter post text pre html escaping
-def filter_post_pre(content : str):
-    clean_dict = {
-        r'[^!@#\$%\^&*\(\)-_=\+\[\]\{\};:\'",<.>\/\?\|\\\s\w]': '_',  # weird unicode
-    }
-
-    for key, value in clean_dict.items():
-        content = re.sub(key, value, content, flags=re.IGNORECASE | re.MULTILINE)
-    return content
-
-
 # filter post text post html escaping
-def filter_post_post(content : str):
+def filter_post(content : str):
     clean_dict = {
         r'(\&gt;)+(\d{5,20})': r'<div class="reply-text">&gt;&gt;\2</div>',  # reply quotes
         r'^(\&gt;.+)': r'<div class="green-text">\1</div>',  # greentext
@@ -156,12 +144,12 @@ def sort_board_cumulative_complexity(board : dict):
 
 
 # create a list of posts in the order they should be printed
-def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: int, post_list: list):
-    if post_id not in board[thread_id]['thread']:
+def create_post_list_r(board : dict, thread_no : int, post_no : int, tabbing: int, post_list: list, posts_list_set: set):
+    if post_no not in board[thread_no]['thread']:
         # post might have been deleted
         return -2
 
-    post = board[thread_id]['thread'][post_id]
+    post = board[thread_no]['thread'][post_no]
 
     # logic for how many occurrences are allowed
     if 'occurrences' not in post:
@@ -178,17 +166,24 @@ def create_post_list_r(board : dict, thread_id : int, post_id : int, tabbing: in
     if (post_complexity_int <= 10 + 2 * tabbing) and (tabbing > 0):
         post['hidden'] = True
 
-    post_list.append({"post": post, "tabbing": tabbing})
+    post_list.append({'post': post, 'tabbing': tabbing})
+    if 'no' in post:
+        posts_list_set.add(post['no'])
 
     # recursively call succs
     if 'succ_display' not in post:
         post['succ_display'] = list()
     for succ in post['succ']:
-        succ_return = create_post_list_r(board, thread_id, succ, tabbing + 1, post_list)
-        
-        # don't display succ that are direct descendants
-        if succ_return != 0:
+        # only display succ that have been processed already
+        if succ in posts_list_set:
             post['succ_display'].append(succ)
+        
+        succ_return = create_post_list_r(board, thread_no, succ, tabbing + 1, post_list, posts_list_set)
+        
+        # commented out since we are doing the thing above instead
+        # don't display succ that are direct descendants
+        # if succ_return != 0:
+        #     post['succ_display'].append(succ)
 
     return 0
 
@@ -234,9 +229,8 @@ def print_post(post: dict):
     post_com = ''
     if 'com' in post and len(post['com']) > 0:
         post_com = post['com']
-        # post_com = filter_post_pre(post['com'])
         post_com = html.escape(post_com)
-        post_com = filter_post_post(post_com)
+        post_com = filter_post(post_com)
 
     post_succ_html = ''
     if 'succ_display' in post and len(post['succ_display']) > 0:
@@ -321,8 +315,8 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                 <div class="all-threads">
     ''')
 
-    for thread_id in threads_sorted:
-        thread = board[thread_id]
+    for thread_no in threads_sorted:
+        thread = board[thread_no]
 
         thread_replies = None
         if 'replies' in thread:
@@ -353,7 +347,6 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
         thread_sub = ''
         if 'sub' in thread:
             thread_sub = thread['sub']
-            # thread_sub = filter_post_pre(thread_sub)
             thread_sub = html.escape(thread_sub)
             # thread_sub = filter_post_post(thread_sub)
 
@@ -363,9 +356,8 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
         thread_com = ''
         if 'com' in thread:
             thread_com = thread['com']
-            # thread_com = filter_post_pre(thread_com)
             thread_com = html.escape(thread_com)
-            thread_com = filter_post_post(thread_com)
+            thread_com = filter_post(thread_com)
 
         thread_time = ''
         if 'last_modified' in thread:
@@ -377,7 +369,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
             <div class="thread-details">
                 <div title="Toggle folding" class="thread-collapsible-anchor">[+]</div>
                 <div title="See thread on 4chan.org" class="thread-op">
-                    <a href="https://boards.4chan.org/{board_name[0]}/thread/{thread_id}" rel="noreferrer" target="_blank">
+                    <a href="https://boards.4chan.org/{board_name[0]}/thread/{thread_no}" rel="noreferrer" target="_blank">
                         ~
                     </a>
                 </div>
@@ -406,10 +398,11 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
 
         # create a sorted and nested post list for the thread
         post_list = list()
+        post_list_set = set()
         if 'thread' in thread:
             posts = thread['thread']
-            for post_id in posts:
-                create_post_list_r(board, thread_id, post_id, 0, post_list)
+            for post_no in posts:
+                create_post_list_r(board, thread_no, post_no, 0, post_list, post_list_set)
 
         # go through the created post list and start building the html
         posts_string = list()
