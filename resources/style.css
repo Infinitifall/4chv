@@ -13,6 +13,11 @@ img {
     max-width: 100%;
 }
 
+code {
+    background-color: #151618;
+    padding: 0.1em 0.1em;
+}
+
 a { color: #6e7aac; text-decoration: none; }
 a:visited { color: #6e7aac; text-decoration: none; }
 a:hover { color: #6e7aac; text-decoration: underline; }

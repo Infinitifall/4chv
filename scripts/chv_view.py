@@ -265,7 +265,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     board_name = board_names[board_index]
 
     # update version when you update css, js, images to bypass browser cache
-    version_number = "27"
+    version_number = "30"
 
     # add greeter links to all boards
     board_links_html = '[]'
@@ -309,6 +309,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                     <ul class="greeter-info-list">
                         <li>Click <a>[+]</a> to fold/unfold threads and <a>&gt;&gt;1234567</a> to jump to posts</li>
                         <li>Use browser/phone back button to jump back to where you were</li>
+                        <li>Keypress <code>n</code>, <code>N</code>, <code>p</code>, <code>c</code> to jump to next, previous, parent and child posts</li>
                     </ul>
                 </div>
                 <hr>

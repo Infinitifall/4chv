@@ -1,26 +1,100 @@
-function add_to_history(post_id) {
+function get_post_from_no(post_no) {
+    return document.getElementById(post_no).parentElement.parentElement;
+}
 
+
+function get_post_no_from_post(post) {
+    return post.getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+}
+
+
+function is_post_a_thread(post) {
+    return post.parentElement.parentElement.classList.contains("thread-parent");
+}
+
+
+function get_thread_from_post(post) {
+    return post.parentElement.parentElement;
+}
+
+
+function get_post_no_from_thread(thread) {
+    return thread.getElementsByClassName("post-parent-r")[0].getElementsByClassName("post-parent")[0].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+}
+
+
+function get_child_post_no(post_no) {
+    let curr_post = get_post_from_no(post_no);
+    let next_post_parent_r = curr_post.parentElement.getElementsByClassName("post-parent-r");
+    if (next_post_parent_r.length == 0) {
+        return null;
+    }
+    next_post = next_post_parent_r[0].getElementsByClassName("post-parent")[0];
+    return get_post_no_from_post(next_post);
+}
+
+
+function get_parent_post_no(post_no) {
+    let curr_post = get_post_from_no(post_no);
+    let parent_post = curr_post.parentElement.parentElement.getElementsByClassName("post-parent")[0];
+    return get_post_no_from_post(parent_post);
+}
+
+
+function get_next_post_no(post_no, previous) {
+    let current_post = get_post_from_no(post_no);
+    let current_post_parent_r = current_post.parentElement;
+    let next_post_parent_r = null;
+    if (previous) {
+        next_post_parent_r = current_post_parent_r.previousSibling;
+    } else {
+        next_post_parent_r = current_post_parent_r.nextSibling;
+    }
+    if (!next_post_parent_r) {
+        return null;
+    }
+    let next_post = next_post_parent_r.getElementsByClassName("post-parent")[0]
+    return get_post_no_from_post(next_post);    
+}
+
+
+function get_next_thread_no(post_no, previous) {
+    let current_post = get_post_from_no(post_no);
+    let current_thread = get_thread_from_post(current_post);
+    let next_thread = null;
+    if (previous) {
+        next_thread = current_thread.previousSibling;
+    } else {
+        next_thread = current_thread.nextSibling;
+    }
+    if (!next_thread) {
+        return null;
+    }
+    return get_post_no_from_thread(next_thread);
+}
+
+
+function add_to_history(post_no) {
     // avoid duplication
     let urlFragment = window.location.href.split('#')[1] || {};
-    if (urlFragment === post_id) {
+    if (urlFragment === post_no) {
         return;
     }
 
     // update window hash with post id. This forces browser to scroll
     // to the element with that id so we do it before custom scrolling
-
-    // window.location.hash = post_id.toString();
-    history.pushState({}, '', '#' + post_id.toString());
+    // window.location.hash = post_no.toString();
+    history.pushState({}, '', '#' + post_no.toString());
 }
 
 
-function post_scroll_to(post_id) {
+function post_scroll_to(post_no) {
     // scroll into view of the post or thread
-    let scroll_post = document.getElementById(post_id).parentElement.parentElement;
-    if (scroll_post.parentElement.parentElement.classList.contains("thread-parent")) {
+    let scroll_post = get_post_from_no(post_no);
+    if (is_post_a_thread(scroll_post)) {
         // scroll to top of thread
-        scroll_post = scroll_post.parentElement.parentElement;
-        scroll_post.scrollIntoView({
+        let scroll_thread = get_thread_from_post(scroll_post);
+        scroll_thread.scrollIntoView({
             behavior:"smooth",
         });
     } else {
@@ -39,12 +113,13 @@ function post_scroll_to(post_id) {
 }
 
 
-function post_collapse(post_id) {
-    let original_post = document.getElementById(post_id).parentElement.parentElement;
+function post_collapse(post_no) {
+    let original_post = get_post_from_no(post_no);
 
     // depending on whether its the OP, collapse the thread or just the post
-    if (original_post.parentElement.parentElement.classList.contains("thread-parent")) {
-        original_post.parentElement.parentElement.classList.add("collapsed-thread-parent");
+    if (is_post_a_thread(original_post)) {
+        let original_thread = get_thread_from_post(original_post);
+        original_thread.classList.add("collapsed-thread-parent");
 
     } else {
         original_post.classList.add("collapsed");
@@ -53,8 +128,8 @@ function post_collapse(post_id) {
 }
 
 
-function post_uncollapse(post_id) {
-    let original_post = document.getElementById(post_id).parentElement.parentElement;
+function post_expand(post_no) {
+    let original_post = get_post_from_no(post_no);
 
     if (original_post.classList.contains("collapsed")) {
         original_post.classList.remove("collapsed");
@@ -85,32 +160,43 @@ function post_uncollapse(post_id) {
 }
 
 
-function post_toggle_collapse(post_id) {
-    let original_post = document.getElementById(post_id).parentElement.parentElement;
+function post_toggle_collapse(post_no) {
+    let original_post = get_post_from_no(post_no);
     let return_value = -1;
 
-    if (original_post.classList.contains("collapsed") || original_post.parentElement.parentElement.classList.contains("collapsed-thread-parent")) {
-        post_uncollapse(post_id);
+    if (original_post.classList.contains("collapsed") || get_thread_from_post(original_post).classList.contains("collapsed-thread-parent")) {
+        post_expand(post_no);
         return_value = 1;
     } else {
-        post_collapse(post_id);
+        post_collapse(post_no);
         return_value = 0;
     }
     return return_value;
 }
 
 
-function generate_random_string(length, allowed_chars) {
-    let return_value = '';
-    for (let i = 0; i < length; i++) {
-        let random_index = Math.floor(Math.random() * allowed_chars.length);
-        return_value += allowed_chars[random_index];
+function add_all_collapse_event_listeners() {
+    let thread_collapsibles = document.getElementsByClassName("thread-collapsible-anchor");
+    for (let i = 0; i < thread_collapsibles.length; i++) {
+        thread_collapsibles[i].addEventListener("click", function() {
+            let post_no = this.parentNode.parentNode.getElementsByClassName("post-parent-r")[0].getElementsByClassName("post-parent")[0].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+            post_toggle_collapse(post_no);
+            add_to_history(post_no);
+            post_scroll_to(post_no);
+        });
     }
-    return return_value;
+
+    let post_collapsibles = document.getElementsByClassName("post-collapsible-anchor");
+    for (let i = 0; i < post_collapsibles.length; i++) {
+        post_collapsibles[i].addEventListener("click", function() {
+            let post_no = this.parentNode.parentNode.getElementsByClassName("post-no")[0].id;
+            post_toggle_collapse(post_no);
+        });
+    }
 }
 
 
-function custom_format_datetime_ago(unix_timestamp) {
+function unix_timestamp_to_time_ago(unix_timestamp) {
     let curr_time = new Date();
     let post_time = new Date(unix_timestamp * 1000);
     let post_time_ago = (curr_time.getTime() - post_time.getTime()) / 1000;
@@ -142,16 +228,37 @@ function custom_format_datetime_ago(unix_timestamp) {
 }
 
 
-function post_colorize_random(post_id) {
-    let original_post = document.getElementById(post_id).parentElement.parentElement;
+function convert_all_elements_to_time_ago() {
+    let all_elements = document.querySelectorAll(".board-time,.thread-time,.post-time");
+    for (let i = 0; i < all_elements.length; i++) {
+        let time_element_curr = all_elements[i];
+        let time_element_time = time_element_curr.innerHTML;
+        time_element_time = unix_timestamp_to_time_ago(time_element_time);
+        time_element_curr.innerHTML = time_element_time;
+    }
+}
+
+
+function generate_random_string(length, allowed_chars) {
+    let return_value = '';
+    for (let i = 0; i < length; i++) {
+        let random_index = Math.floor(Math.random() * allowed_chars.length);
+        return_value += allowed_chars[random_index];
+    }
+    return return_value;
+}
+
+
+function post_colorize_random(post_no) {
+    let original_post = document.getElementById(post_no).parentElement.parentElement;
     let color_hex = "#" + generate_random_string(1, "12") + generate_random_string(1, "0123456789abcdef") + generate_random_string(1, "12") + generate_random_string(1, "0123456789abcdef") + generate_random_string(1, "12") + generate_random_string(1, "0123456789abcdef");
     original_post.style.background = color_hex;
 }
 
 
-function get_post_color_determinstic(post_id) {
-    let random_choice1 = Math.abs(Math.sin(post_id)).toString(16).substring(2 + 1);
-    let random_choice2 = Math.abs(Math.sin(post_id)).toString(2).substring(2 + 1);
+function get_post_color_deterministic(post_no) {
+    let random_choice1 = Math.abs(Math.sin(post_no)).toString(16).substring(2 + 1);
+    let random_choice2 = Math.abs(Math.sin(post_no)).toString(2).substring(2 + 1);
     let random_choice_2_sub = ""
     for (let i = 0; i < random_choice2.length; i++) { if (random_choice2.charAt(i) == 0) { random_choice_2_sub += "2"; } else { random_choice_2_sub += "2"; }}
     let color_hex = "#" + random_choice_2_sub.slice(0,1) + random_choice1.slice(0,1) + random_choice_2_sub.slice(1,2) + random_choice1.slice(1,2) + random_choice_2_sub.slice(2,3) + random_choice1.slice(2,3);
@@ -159,20 +266,23 @@ function get_post_color_determinstic(post_id) {
 }
 
 
-function post_colorize_deterministic(post_id) {
-    let original_post = document.getElementById(post_id).parentElement.parentElement;
-    original_post.style.background = get_post_color_determinstic(post_id);
-    original_post.style.border = "1px solid #666";
+function post_colorize_deterministic(post_no) {
+    let original_post = document.getElementById(post_no).parentElement.parentElement;
+    original_post.style.background = get_post_color_deterministic(post_no);
+    original_post.style.border = "1px solid #fff";
+    setTimeout(function() {
+        original_post.style.border = "1px dashed #666";
+    }, 500)
 }
 
 
-function element_colorize_deterministic(element, post_id) {
-    element.style.background = get_post_color_determinstic(post_id);
+function element_colorize_deterministic(element, post_no) {
+    element.style.background = get_post_color_deterministic(post_no);
     element.style.border = "1px solid #444";
 }
 
 
-function strip_post_id_start_chars(rid) {
+function strip_post_no_start_chars(rid) {
     // get rid of certain starting substrings
     while (rid.startsWith("#")) { rid = rid.substring(1); }
     while (rid.startsWith("&gt;")) { rid = rid.substring(4); }
@@ -180,64 +290,137 @@ function strip_post_id_start_chars(rid) {
 }
 
 
+function keypress_parent() {
+    let post_parent_no = null
+    if(window.location.hash) {
+        // get from #fragment
+        let post_no = Number(window.location.hash.substring(1));
+        post_parent_no = get_parent_post_no(post_no)
+    }
+    if (!post_parent_no) {
+        return;
+    }
+
+    post_expand(post_parent_no);
+    post_colorize_deterministic(post_parent_no);
+    add_to_history(post_parent_no);
+    post_scroll_to(post_parent_no);
+}
+
+
+function keypress_child() {
+    let post_child_no = null
+    if(window.location.hash) {
+        // get from #fragment
+        let post_no = Number(window.location.hash.substring(1));
+        post_child_no = get_child_post_no(post_no)
+    }
+    if (!post_child_no) {
+        return;
+    }
+
+    post_expand(post_child_no);
+    post_colorize_deterministic(post_child_no);
+    add_to_history(post_child_no);
+    post_scroll_to(post_child_no);
+}
+
+
+function keypress_next(previous) {
+    let next_post_no = null;
+    if(window.location.hash) {
+        // get from #fragment
+        let post_no = Number(window.location.hash.substring(1));
+        let post = get_post_from_no(post_no);
+        if (is_post_a_thread(post)) {
+            next_post_no = get_next_thread_no(post_no, previous);
+        } else {
+            next_post_no = get_next_post_no(post_no, previous);
+        }
+    } else {
+        if (previous) {
+            // pick the last thread in the page
+            thread_parents = document.getElementsByClassName("thread-parent");
+            if (thread_parents.length != 0) {
+                next_post_no = get_post_no_from_thread(thread_parents[thread_parents.length - 1]);
+            }
+        } else {
+            // pick the first thread in the page
+            thread_parents = document.getElementsByClassName("thread-parent");
+            if (thread_parents.length != 0) {
+                next_post_no = get_post_no_from_thread(thread_parents[0]);
+            }
+        }
+    }
+    if (!next_post_no) {
+        return;
+    }
+
+    post_expand(next_post_no);
+    post_colorize_deterministic(next_post_no);
+    add_to_history(next_post_no);
+    post_scroll_to(next_post_no);
+}
+
+
 function event_reply_text(self) {
-    let post_id = self.parentElement.parentElement.getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
-    let reply_id = self.innerHTML;
-    reply_id = strip_post_id_start_chars(reply_id);
+    let post_no = self.parentElement.parentElement.getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+    let reply_no = self.innerHTML;
+    reply_no = strip_post_no_start_chars(reply_no);
 
     // uncollapse, colorize and colorize, add to history and scroll
-    post_uncollapse(reply_id);
-    element_colorize_deterministic(self, reply_id);
-    post_colorize_deterministic(reply_id);
-    add_to_history(post_id);
-    // post_scroll_to(post_id);
-    add_to_history(reply_id);
-    post_scroll_to(reply_id);
+    post_expand(reply_no);
+    element_colorize_deterministic(self, reply_no);
+    post_colorize_deterministic(reply_no);
+    add_to_history(post_no);
+    // post_scroll_to(post_no);
+    add_to_history(reply_no);
+    post_scroll_to(reply_no);
 }
 
 
 function event_file_dump_a(self) {
-    let post_id = self.parentElement.parentElement.parentElement.getElementsByClassName("post-parent-r")[0].getElementsByClassName("post-parent")[0].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
-    let reply_id = self.innerHTML;
-    reply_id = strip_post_id_start_chars(reply_id);
+    let post_no = self.parentElement.parentElement.parentElement.getElementsByClassName("post-parent-r")[0].getElementsByClassName("post-parent")[0].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+    let reply_no = self.innerHTML;
+    reply_no = strip_post_no_start_chars(reply_no);
 
     // uncollapse, colorize and colorize, add to history and scroll
-    post_uncollapse(reply_id);
-    element_colorize_deterministic(self, reply_id);
-    post_colorize_deterministic(reply_id);
-    add_to_history(post_id);
-    // post_scroll_to(post_id);
-    add_to_history(reply_id);
-    post_scroll_to(reply_id);
+    post_expand(reply_no);
+    element_colorize_deterministic(self, reply_no);
+    post_colorize_deterministic(reply_no);
+    add_to_history(post_no);
+    // post_scroll_to(post_no);
+    add_to_history(reply_no);
+    post_scroll_to(reply_no);
 }
 
 
 function event_post_a(self) {
-    let post_id = self.parentElement.parentElement.parentElement.getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
-    let reply_id = self.innerHTML;
-    reply_id = strip_post_id_start_chars(reply_id);
+    let post_no = self.parentElement.parentElement.parentElement.getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+    let reply_no = self.innerHTML;
+    reply_no = strip_post_no_start_chars(reply_no);
 
     // uncollapse, colorize and colorize, add to history and scroll
-    post_uncollapse(reply_id);
-    element_colorize_deterministic(self, reply_id);
-    post_colorize_deterministic(reply_id);
-    add_to_history(post_id);
-    // post_scroll_to(post_id);
-    add_to_history(reply_id);
-    post_scroll_to(reply_id);
+    post_expand(reply_no);
+    element_colorize_deterministic(self, reply_no);
+    post_colorize_deterministic(reply_no);
+    add_to_history(post_no);
+    // post_scroll_to(post_no);
+    add_to_history(reply_no);
+    post_scroll_to(reply_no);
 }
 
 
 function event_post_no(self) {
-    let post_id = self.id;
-    post_id = strip_post_id_start_chars(post_id);
+    let post_no = self.id;
+    post_no = strip_post_no_start_chars(post_no);
 
     // uncollapse, colorize and colorize, add to history and scroll
-    post_uncollapse(post_id);
-    element_colorize_deterministic(self, post_id);
-    post_colorize_deterministic(post_id);
-    add_to_history(post_id);
-    post_scroll_to(post_id);
+    post_expand(post_no);
+    element_colorize_deterministic(self, post_no);
+    post_colorize_deterministic(post_no);
+    add_to_history(post_no);
+    post_scroll_to(post_no);
 }
 
 
@@ -246,8 +429,8 @@ function event_thread_maximize_replies(self) {
     let thread_post_parents = thread_element.querySelectorAll(".post-parent")
 
     for (let j = 0; j < thread_post_parents.length; j++) {
-        let post_id = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
-        post_uncollapse(post_id);
+        let post_no = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+        post_expand(post_no);
     }
 }
 
@@ -267,18 +450,18 @@ function event_thread_reset(self) {
 
     // first uncollapse the ones not originally collapsed
     for (let j = 0; j < thread_post_parents.length; j++) {
-        let post_id = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+        let post_no = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
         if (!thread_post_parents[j].classList.contains("collapsed-originally")) {
-            post_uncollapse(post_id);
+            post_expand(post_no);
         }
     }
 
     // then collapse the ones originally collapsed
     for (let j = 0; j < thread_post_parents.length; j++) {
-        let post_id = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+        let post_no = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
 
         if (thread_post_parents[j].classList.contains("collapsed-originally")) {
-            post_collapse(post_id);
+            post_collapse(post_no);
         }
     }
 }
@@ -343,50 +526,28 @@ function addEventListenerToClass(class_name, execute_function) {
 function onpageload_popstate() {
     // uncollapse, colorize, scroll to the post in the url hash
     if(window.location.hash) {
-    let post_id = Number(window.location.hash.substring(1));
-    post_uncollapse(post_id);
-    post_colorize_deterministic(post_id);
-    setTimeout(function() {
-        post_scroll_to(post_id);
-        }, 500);  // for some reason it doesn't work well without a timeout
+        let post_no = Number(window.location.hash.substring(1));
+        post_expand(post_no);
+        post_colorize_deterministic(post_no);
+        setTimeout(function() {
+            post_scroll_to(post_no);
+            }, 500);  // for some reason it doesn't work well without a timeout
     }
 }
 
 
 window.addEventListener('popstate', function() {
-    // make back button work perfectly, scroll to prev post regardless of divs uncollapsing
+    // make back button work perfectly, scroll to prev post regardless of expanding divs
     onpageload_popstate();
 });
 
 
 window.onload = function() {
     // convert unix timestamps to time ago
-    let thread_post_times = document.querySelectorAll(".board-time,.thread-time,.post-time");
-    for (let i = 0; i < thread_post_times.length; i++) {
-        let time_element_curr = thread_post_times[i];
-        let time_element_time = time_element_curr.innerHTML;
-        time_element_time = custom_format_datetime_ago(time_element_time);
-        time_element_curr.innerHTML = time_element_time;
-    }
+    convert_all_elements_to_time_ago();
 
     // add all the event listeners
-    let thread_collapsibles = document.getElementsByClassName("thread-collapsible-anchor");
-    for (let i = 0; i < thread_collapsibles.length; i++) {
-        thread_collapsibles[i].addEventListener("click", function() {
-            let post_id = this.parentNode.parentNode.getElementsByClassName("post-parent-r")[0].getElementsByClassName("post-parent")[0].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
-            post_toggle_collapse(post_id);
-            add_to_history(post_id);
-            post_scroll_to(post_id);
-        });
-    }
-
-    let post_collapsibles = document.getElementsByClassName("post-collapsible-anchor");
-    for (let i = 0; i < post_collapsibles.length; i++) {
-        post_collapsibles[i].addEventListener("click", function() {
-            let post_id = this.parentNode.parentNode.getElementsByClassName("post-no")[0].id;
-            post_toggle_collapse(post_id);
-        });
-    }
+    add_all_collapse_event_listeners();
 
     addEventListenerToClass("reply-text",       event_reply_text);
     addEventListenerToClass("post-a",           event_post_a);
@@ -394,6 +555,19 @@ window.onload = function() {
     addEventListenerToClass("thread-maximize-replies",  event_thread_maximize_replies);
     addEventListenerToClass("thread-reset",             event_thread_reset);
     addEventListenerToClass("thread-files-all",         event_thread_files_all);
+
+    // add keypress listeners
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "n") {
+            keypress_next(false);
+        } else if (e.key === "N") {
+            keypress_next(true);
+        } else if (e.key === "c") {
+            keypress_child();
+        } else if (e.key === "p") {
+            keypress_parent();
+        }
+    })
 
     // scroll to the #fragment
     onpageload_popstate();
