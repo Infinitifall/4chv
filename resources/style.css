@@ -233,17 +233,10 @@ Styling for thread options
 
 .thread-options {
     user-select: none;
-    margin: 1em 0 0.5em -1em;
-    padding-left: 1em;
+    margin: 0 0 0.5em 0.5em;
     color: #666;
     text-align: right;
     float: right;
-}
-
-@media only screen and (max-width: 600px) {
-    .thread-options {
-        float: none;
-    }
 }
 
 .thread-files-dump {

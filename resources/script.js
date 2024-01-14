@@ -560,6 +560,30 @@ window.addEventListener("popstate", function() {
     onpageload_popstate();
 });
 
+function keyboard_shortcuts(e) {
+    // don't activate if other keys are pressed
+    if (e.ctrlKey || e.altKey) {
+        return;
+    }
+
+    if (e.key === "n") {
+        keypress_next(false);
+
+    } else if (e.key === "N") {
+        keypress_next(true);
+
+    } else if (e.key === "c") {
+        keypress_child();
+
+    } else if (e.key === "p") {
+        keypress_parent();
+
+    } else if (e.key === "i") {
+        keypress_file_open();
+    }
+    return;
+}
+
 
 window.onload = function() {
     // convert unix timestamps to time ago
@@ -577,21 +601,7 @@ window.onload = function() {
 
     // add keypress listeners
     document.addEventListener("keydown", function(e) {
-        if (e.key === "n") {
-            keypress_next(false);
-
-        } else if (e.key === "N") {
-            keypress_next(true);
-
-        } else if (e.key === "c") {
-            keypress_child();
-
-        } else if (e.key === "p") {
-            keypress_parent();
-
-        } else if (e.key === "i") {
-            keypress_file_open();
-        }
+        keyboard_shortcuts(e);
     });
 
     // scroll to the #fragment
