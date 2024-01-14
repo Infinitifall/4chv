@@ -5,6 +5,7 @@ A 4chan downloader/viewer. Downloads threads and builds offline html pages for a
 - Catalog view
 - Nested replies
 - Threads posts ordered by quality
+- Fly through posts with keyboard shortcuts
 - Tiny download size (1MB)
 
 ## Install
