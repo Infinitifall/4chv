@@ -177,9 +177,9 @@ def create_post_list_r(board : dict, thread_no : int, post_no : int, tabbing: in
         # only display succ that have been processed already
         if succ in posts_list_set:
             post['succ_display'].append(succ)
-        
+
         succ_return = create_post_list_r(board, thread_no, succ, tabbing + 1, post_list, posts_list_set)
-        
+
         # commented out since we are doing the thing above instead
         # don't display succ that are direct descendants
         # if succ_return != 0:
@@ -265,7 +265,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     board_name = board_names[board_index]
 
     # update version when you update css, js, images to bypass browser cache
-    version_number = "30"
+    version_number = "31"
 
     # add greeter links to all boards
     board_links_html = '[]'
@@ -305,11 +305,17 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                 </div>
                 <div class="greeter-info">
                     <hr>
-                    <b>Instructions</b>
+                    <b>Usage instructions</b>
                     <ul class="greeter-info-list">
-                        <li>Click <a>[+]</a> to fold/unfold threads and <a>&gt;&gt;1234567</a> to jump to posts</li>
-                        <li>Use browser/phone back button to jump back to where you were</li>
-                        <li>Keypress <code>n</code>, <code>N</code>, <code>p</code>, <code>c</code> to jump to next, previous, parent and child posts</li>
+                        <li>Click <a>[+]</a> to expand threads and posts</li>
+                        <li>Click <a>&gt;&gt;1234567</a> to jump to posts</li>
+                        <li>The browser/phone back button will take you back to your previous post</li>
+                    </ul>
+                    <b>Keyboard shortcuts</b>
+                    <ul class="greeter-info-list">
+                        <li><code>n</code>, <code>N</code> to jump to <code>next</code> or <code>previous</code> post</li>
+                        <li><code>p</code>, <code>c</code> to jump to <code>parent</code> or <code>child</code> post</li>
+                        <li><code>i</code> to open post file</li>
                     </ul>
                 </div>
                 <hr>
@@ -368,7 +374,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
         html_string.append(f'''
         <div class="thread-parent collapsed-thread-parent">
             <div class="thread-details">
-                <div title="Toggle folding" class="thread-collapsible-anchor">[+]</div>
+                <div title="Toggle expand" class="thread-collapsible-anchor">[+]</div>
                 <div title="See thread on 4chan.org" class="thread-op">
                     <a href="https://boards.4chan.org/{board_name[0]}/thread/{thread_no}" rel="noreferrer" target="_blank">
                         ~
@@ -444,7 +450,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     ''')
 
     return_string = ''.join(html_string)
-    
+
     # trim whitespaces and newlines between html tags
     return_string = re.sub(r'>[\n ]+<', r'><' , return_string)
 

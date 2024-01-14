@@ -18,6 +18,15 @@ function get_thread_from_post(post) {
 }
 
 
+function get_file_from_post(post) {
+    let post_file = post.getElementsByClassName("post-file")[0];
+    if (!post_file) {
+        return null;
+    }
+    return post_file.children[0];
+}
+
+
 function get_post_no_from_thread(thread) {
     return thread.getElementsByClassName("post-parent-r")[0].getElementsByClassName("post-parent")[0].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
 }
@@ -53,8 +62,8 @@ function get_next_post_no(post_no, previous) {
     if (!next_post_parent_r) {
         return null;
     }
-    let next_post = next_post_parent_r.getElementsByClassName("post-parent")[0]
-    return get_post_no_from_post(next_post);    
+    let next_post = next_post_parent_r.getElementsByClassName("post-parent")[0];
+    return get_post_no_from_post(next_post);
 }
 
 
@@ -76,7 +85,7 @@ function get_next_thread_no(post_no, previous) {
 
 function add_to_history(post_no) {
     // avoid duplication
-    let urlFragment = window.location.href.split('#')[1] || {};
+    let urlFragment = window.location.href.split("#")[1] || {};
     if (urlFragment === post_no) {
         return;
     }
@@ -84,7 +93,7 @@ function add_to_history(post_no) {
     // update window hash with post id. This forces browser to scroll
     // to the element with that id so we do it before custom scrolling
     // window.location.hash = post_no.toString();
-    history.pushState({}, '', '#' + post_no.toString());
+    history.pushState({}, "", "#" + post_no.toString());
 }
 
 
@@ -146,10 +155,10 @@ function post_expand(post_no) {
         }
         for (let i = 0; i < post.children.length; i++) {
             if (
-                (post.children[i].classList.contains('post-parent')) &&
-                (post.children[i].classList.contains('collapsed'))
+                (post.children[i].classList.contains("post-parent")) &&
+                (post.children[i].classList.contains("collapsed"))
             ) {
-                post.children[i].classList.remove('collapsed');
+                post.children[i].classList.remove("collapsed");
             }
         }
         if (post.classList.contains("collapsed-thread-parent")) {
@@ -202,7 +211,7 @@ function unix_timestamp_to_time_ago(unix_timestamp) {
     let post_time_ago = (curr_time.getTime() - post_time.getTime()) / 1000;
 
     if (post_time_ago < 0) {
-        return 'Error! Negative time!';
+        return "Error! Negative time!";
     }
 
     let time_delta_days = Math.floor(post_time_ago / (60*60*24));
@@ -210,19 +219,19 @@ function unix_timestamp_to_time_ago(unix_timestamp) {
     let time_delta_minutes = Math.floor(post_time_ago / (60)) % (60);
     let time_delta_seconds = Math.floor(post_time_ago) % (60);
 
-    return_time = ''
+    return_time = "";
     if (time_delta_days == 0) {
         if (time_delta_hours == 0) {
             if (time_delta_minutes == 0) {
-                return_time = time_delta_seconds.toString() + 's ago';
+                return_time = time_delta_seconds.toString() + "s ago";
             } else {
-                return_time = time_delta_minutes.toString() + 'm ago';
+                return_time = time_delta_minutes.toString() + "m ago";
             }
         } else {
-            return_time = time_delta_hours.toString() + 'h ' + time_delta_minutes.toString() + 'm ago';
+            return_time = time_delta_hours.toString() + "h " + time_delta_minutes.toString() + "m ago";
         }
     } else {
-        return_time = time_delta_days.toString() + 'd ' + time_delta_hours.toString() + 'h ago';
+        return_time = time_delta_days.toString() + "d " + time_delta_hours.toString() + "h ago";
     }
     return return_time;
 }
@@ -240,7 +249,7 @@ function convert_all_elements_to_time_ago() {
 
 
 function generate_random_string(length, allowed_chars) {
-    let return_value = '';
+    let return_value = "";
     for (let i = 0; i < length; i++) {
         let random_index = Math.floor(Math.random() * allowed_chars.length);
         return_value += allowed_chars[random_index];
@@ -259,7 +268,7 @@ function post_colorize_random(post_no) {
 function get_post_color_deterministic(post_no) {
     let random_choice1 = Math.abs(Math.sin(post_no)).toString(16).substring(2 + 1);
     let random_choice2 = Math.abs(Math.sin(post_no)).toString(2).substring(2 + 1);
-    let random_choice_2_sub = ""
+    let random_choice_2_sub = "";
     for (let i = 0; i < random_choice2.length; i++) { if (random_choice2.charAt(i) == 0) { random_choice_2_sub += "2"; } else { random_choice_2_sub += "2"; }}
     let color_hex = "#" + random_choice_2_sub.slice(0,1) + random_choice1.slice(0,1) + random_choice_2_sub.slice(1,2) + random_choice1.slice(1,2) + random_choice_2_sub.slice(2,3) + random_choice1.slice(2,3);
     return color_hex;
@@ -272,7 +281,7 @@ function post_colorize_deterministic(post_no) {
     original_post.style.border = "1px solid #fff";
     setTimeout(function() {
         original_post.style.border = "1px dashed #666";
-    }, 500)
+    }, 500);
 }
 
 
@@ -291,11 +300,10 @@ function strip_post_no_start_chars(rid) {
 
 
 function keypress_parent() {
-    let post_parent_no = null
+    let post_parent_no = null;
     if(window.location.hash) {
-        // get from #fragment
         let post_no = Number(window.location.hash.substring(1));
-        post_parent_no = get_parent_post_no(post_no)
+        post_parent_no = get_parent_post_no(post_no);
     }
     if (!post_parent_no) {
         return;
@@ -309,11 +317,10 @@ function keypress_parent() {
 
 
 function keypress_child() {
-    let post_child_no = null
+    let post_child_no = null;
     if(window.location.hash) {
-        // get from #fragment
         let post_no = Number(window.location.hash.substring(1));
-        post_child_no = get_child_post_no(post_no)
+        post_child_no = get_child_post_no(post_no);
     }
     if (!post_child_no) {
         return;
@@ -329,7 +336,6 @@ function keypress_child() {
 function keypress_next(previous) {
     let next_post_no = null;
     if(window.location.hash) {
-        // get from #fragment
         let post_no = Number(window.location.hash.substring(1));
         let post = get_post_from_no(post_no);
         if (is_post_a_thread(post)) {
@@ -360,6 +366,21 @@ function keypress_next(previous) {
     post_colorize_deterministic(next_post_no);
     add_to_history(next_post_no);
     post_scroll_to(next_post_no);
+}
+
+
+function keypress_file_open() {
+    let post_file = null;
+    if(window.location.hash) {
+        let post_no = Number(window.location.hash.substring(1));
+        let post = get_post_from_no(post_no);
+        post_file = get_file_from_post(post);
+    }
+    if (!post_file) {
+        return;
+    }
+    // triggers browser popup block unfortunately
+    window.open(post_file.href, "_blank", "noreferrer");
 }
 
 
@@ -426,7 +447,7 @@ function event_post_no(self) {
 
 function event_thread_maximize_replies(self) {
     let thread_element = self.parentNode.parentNode;
-    let thread_post_parents = thread_element.querySelectorAll(".post-parent")
+    let thread_post_parents = thread_element.querySelectorAll(".post-parent");
 
     for (let j = 0; j < thread_post_parents.length; j++) {
         let post_no = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
@@ -446,7 +467,7 @@ function event_thread_reset(self) {
     }
 
     let thread_element = self.parentNode.parentNode;
-    let thread_post_parents = thread_element.querySelectorAll(".post-parent")
+    let thread_post_parents = thread_element.querySelectorAll(".post-parent");
 
     // first uncollapse the ones not originally collapsed
     for (let j = 0; j < thread_post_parents.length; j++) {
@@ -483,30 +504,28 @@ function event_thread_files_all(self) {
     // dump all file links in thread_files
     let file_count = 0;
     for (let j = 0; j < thread_post_parents.length; j++) {
-        let post_file = thread_post_parents[j].getElementsByClassName("post-file")[0];
-        let post_no = thread_post_parents[j].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
+        let post_file = get_file_from_post(thread_post_parents[j]);
+        let post_no = get_post_no_from_post(thread_post_parents[j]);
         if (post_file) {
-            post_file = post_file.children[0];
-            let div_curr = document.createElement("div");
-            let div_curr_child = document.createElement("div");
             let a_curr = document.createElement("a");
-
             a_curr.innerHTML = post_file.innerHTML;
             a_curr.href = post_file.href;
             a_curr.rel = "noreferrer";
             a_curr.target = "_blank";
 
+            let div_curr_child = document.createElement("div");
             div_curr_child.innerHTML = ">>" + post_no.toString();
             div_curr_child.classList.add("file-dump-a");
             // manipulating innerHTML destroys and recreates everything in div, removing event listeners
             div_curr_child.addEventListener("click", function() {
                 event_file_dump_a(this);
-            })
-            
+            });
+
+            let div_curr = document.createElement("div");
             div_curr.appendChild(div_curr_child);
             div_curr.appendChild(a_curr);
-            thread_files_dump.appendChild(div_curr);
 
+            thread_files_dump.appendChild(div_curr);
             file_count += 1;
         }
     }
@@ -536,7 +555,7 @@ function onpageload_popstate() {
 }
 
 
-window.addEventListener('popstate', function() {
+window.addEventListener("popstate", function() {
     // make back button work perfectly, scroll to prev post regardless of expanding divs
     onpageload_popstate();
 });
@@ -560,14 +579,20 @@ window.onload = function() {
     document.addEventListener("keydown", function(e) {
         if (e.key === "n") {
             keypress_next(false);
+
         } else if (e.key === "N") {
             keypress_next(true);
+
         } else if (e.key === "c") {
             keypress_child();
+
         } else if (e.key === "p") {
             keypress_parent();
+
+        } else if (e.key === "i") {
+            keypress_file_open();
         }
-    })
+    });
 
     // scroll to the #fragment
     onpageload_popstate();
