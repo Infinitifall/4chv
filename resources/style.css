@@ -267,11 +267,11 @@ Styling for posts
 
 @media only screen and (max-width: 600px) {
     .post-parent-r {
-        margin-left: 0.4em;
+        margin-left: 0.3em;
     }
 }
 
-.post-parent-r > .no-embed { margin-left: 0em; }
+.post-parent-r > .no-embed { margin-left: 0; }
 
 .post-parent {
     background: #282a2e;
@@ -294,11 +294,19 @@ Styling for posts
     float: right;
 }
 
+.post-has-file {
+    display: inline-flex;
+    margin-right: 0.5em;
+    color: #4f7576;
+    max-width: 2em;
+    overflow: hidden;
+}
+
 .post-complexity {
     display: inline-flex;
     margin-right: 0.5em;
     color: #b35071;
-    max-width: 8em;
+    max-width: 15em;
     overflow: hidden;
 }
 
@@ -373,6 +381,8 @@ Styling for collapsible
     min-height: 1.5em;
     max-height: 1.5em;
     background: #202022;
+    overflow: hidden;
+    vertical-align: top;
 }
 
 .collapsed > * {

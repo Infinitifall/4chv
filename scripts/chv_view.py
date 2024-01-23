@@ -220,11 +220,13 @@ def print_post(post: dict):
         post_country_name_html = f'<div title="Poster\'s country" class="post-country-name">{post_country_name}</div>'
 
     post_file_html = ''
+    post_has_file_html = ''
     if 'file' in post:
         post_file = post['file']
         post_filename = post['filename']
         post_ext = post['ext']
         post_file_html = f'<div title="Post attachment" class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{post_filename}{post_ext}</a></div>'
+        post_has_file_html = f'<div title="Post has file" class="post-has-file">{post_ext}</div>'
 
     post_com = ''
     if 'com' in post and len(post['com']) > 0:
@@ -242,6 +244,7 @@ def print_post(post: dict):
     <div class="post-parent {'collapsed collapsed-originally' if ('hidden' in post) else ''}">
         <div class="post-details">
             <div title="Toggle folding" class="post-collapsible-anchor">[+]</div>
+            {post_has_file_html}
             <div title="Post points" class="post-complexity-number">{score}</div>
             <div title="Reply points" class="post-complexity">{"+" * complexity_hashes_int}</div>
             <div title="Post number" class="post-no" class="post-a" id="{post["no"]}">#{post["no"]}</div>
@@ -265,7 +268,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     board_name = board_names[board_index]
 
     # update version when you update css, js, images to bypass browser cache
-    version_number = "32"
+    version_number = "33"
 
     # add greeter links to all boards
     board_links_html = '[]'
