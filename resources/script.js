@@ -384,6 +384,37 @@ function keypress_file_open() {
 }
 
 
+function keypress_toggle_collapse() {
+    let post_no = null;
+    if(window.location.hash) {
+        post_no = Number(window.location.hash.substring(1));
+    }
+    if (!post_no) {
+        return;
+    }
+
+    post_toggle_collapse(post_no);
+}
+
+
+function keypress_go_forward() {
+    history.forward();
+}
+
+
+function keypress_go_back() {
+    let post_no = null;
+    if(window.location.hash) {
+        post_no = Number(window.location.hash.substring(1));
+    }
+    if (!post_no) {
+        // don't go back if it takes you away from 4chv
+        return;
+    }
+    history.back();
+}
+
+
 function event_reply_text(self) {
     let post_no = self.parentElement.parentElement.getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
     let reply_no = self.innerHTML;
@@ -580,6 +611,16 @@ function keyboard_shortcuts(e) {
 
     } else if (e.key === "i") {
         keypress_file_open();
+
+    } else if (e.key === "t") {
+        keypress_toggle_collapse();
+
+    } else if (e.key === "f") {
+        keypress_go_forward();
+
+    } else if (e.key === "b") {
+        keypress_go_back();
+
     }
     return;
 }

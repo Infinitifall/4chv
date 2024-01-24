@@ -268,7 +268,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     board_name = board_names[board_index]
 
     # update version when you update css, js, images to bypass browser cache
-    version_number = "33"
+    version_number = "34"
 
     # add greeter links to all boards
     board_links_html = '[]'
@@ -308,18 +308,24 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                 </div>
                 <div class="greeter-info">
                     <hr>
-                    <b>Usage instructions</b>
-                    <ul class="greeter-info-list">
-                        <li>Click <a>[+]</a> to expand threads and posts</li>
-                        <li>Click <a>&gt;&gt;1234567</a> to jump to posts</li>
-                        <li>The browser/phone back button will take you back to your previous post</li>
-                    </ul>
-                    <b>Keyboard shortcuts</b>
-                    <ul class="greeter-info-list">
-                        <li><code>n</code>, <code>N</code> to jump to <code>next</code> or <code>previous</code> post</li>
-                        <li><code>p</code>, <code>c</code> to jump to <code>parent</code> or <code>child</code> post</li>
-                        <li><code>i</code> to open post file</li>
-                    </ul>
+                    <div class="greeter-usage-parent">
+                        <b>Basic usage</b>
+                        <ul class="greeter-usage-list">
+                            <li>Click <a>[+]</a> to expand threads and posts</li>
+                            <li>Click <a>&gt;&gt;1234567</a> to jump to posts</li>
+                            <li>The browser/phone back button will take you back to your previous post</li>
+                        </ul>
+                    </div>
+                    <div class="greeter-shortcut-parent">
+                        <b>Keyboard shortcuts</b>
+                        <ul class="greeter-shortcut-list">
+                            <li><code>n</code>, <code>N</code> for <code>next</code>, <code>previous</code> post</li>
+                            <li><code>p</code>, <code>c</code> for <code>parent</code>, <code>child</code> post</li>
+                            <li><code>b</code>, <code>f</code> to go back, forward in history</li>
+                            <li><code>t</code> to toggle post collapse</li>
+                            <li><code>i</code> to open post file</li>
+                        </ul>
+                    </div>
                 </div>
                 <hr>
                 <div class="all-threads">

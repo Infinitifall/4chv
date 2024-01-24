@@ -72,15 +72,23 @@ hr {
     word-break: break-word;
 }
 
-.greeter-info > b {
+.greeter-info > div > b,
+.greeter-shortcut-list > div > b {
     display: block;
     margin-top: 0.5em;
 }
 
-.greeter-info-list,
+.greeter-usage-list,
+.greeter-shortcut-list,
 .greeter-footer-list {
     padding-left: 0;
     margin: 0 2em 0 2em;
+}
+
+@media only screen and (max-width: 600px) {
+    .greeter-shortcut-parent {
+        display: none;
+    }
 }
 
 .all-threads {
