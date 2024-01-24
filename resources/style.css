@@ -316,6 +316,7 @@ Styling for posts
     color: #b35071;
     max-width: 15em;
     overflow: hidden;
+    max-height: 1em;
 }
 
 .post-complexity-number {

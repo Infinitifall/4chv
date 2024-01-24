@@ -394,6 +394,8 @@ function keypress_toggle_collapse() {
     }
 
     post_toggle_collapse(post_no);
+    post_colorize_deterministic(post_no);
+    post_scroll_to(post_no);
 }
 
 
