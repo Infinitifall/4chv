@@ -243,7 +243,7 @@ def print_post(post: dict):
     return f'''
     <div class="post-parent {'collapsed collapsed-originally' if ('hidden' in post) else ''}">
         <div class="post-details">
-            <div title="Toggle folding" class="post-collapsible-anchor">[+]</div>
+            <div title="Toggle expand" class="post-collapsible-anchor">[+]</div>
             {post_has_file_html}
             <div title="Post points" class="post-complexity-number">{score}</div>
             <div title="Reply points" class="post-complexity">{"+" * complexity_hashes_int}</div>
@@ -268,7 +268,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     board_name = board_names[board_index]
 
     # update version when you update css, js, images to bypass browser cache
-    version_number = "35"
+    version_number = "38"
 
     # add greeter links to all boards
     board_links_html = '[]'
@@ -319,11 +319,10 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                     <div class="greeter-shortcut-parent">
                         <b>Keyboard shortcuts</b>
                         <ul class="greeter-shortcut-list">
-                            <li><code>n</code>, <code>N</code> for <code>next</code>, <code>previous</code> post</li>
-                            <li><code>p</code>, <code>c</code> for <code>parent</code>, <code>child</code> post</li>
-                            <li><code>b</code>, <code>f</code> to go back, forward in history</li>
-                            <li><code>t</code> to toggle post collapse</li>
-                            <li><code>i</code> to open post file</li>
+                            <li>(Post) <code>n</code> = next, <code>N</code> = previous</li>
+                            <li>(Post) <code>p</code> = parent, <code>c</code> = child</li>
+                            <li>(Post) <code>t</code> = toggle expand, <code>i</code> = open file</li>
+                            <li>(History) <code>b</code> = go back, <code>f</code> = go forward</li>
                         </ul>
                     </div>
                 </div>
@@ -391,9 +390,9 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                 </div>
             </div>
             <div class="thread-options">
-                <div class="thread-maximize-replies">Unfold all replies</div>
+                <div class="thread-maximize-replies">Expand all posts</div>
                 <div class="thread-files-all">List all files</div>
-                <div class="thread-reset">Reset</div>
+                <div class="thread-reset">Reset thread</div>
             </div>
             <div title="Thread attachment" class="thread-thumbnail">
                 {thread_thumbnail_html}

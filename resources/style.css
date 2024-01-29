@@ -192,14 +192,14 @@ Don't display replies or collapsible anchor for OP
 
 .thread-details-2 {
     user-select: none;
-    display: none;
+    display: block;
     margin-top: 0.5em;
     margin-bottom: 0.5em;
 }
 
 .thread-replies-parent {
     display: block;
-    text-align: center;
+    text-align: left;
 }
 
 .thread-replies {
@@ -215,7 +215,7 @@ Don't display replies or collapsible anchor for OP
 .thread-time {
     user-select: none;
     display: block;
-    text-align: center;
+    text-align: left;
     color: #555;
 }
 
@@ -306,7 +306,7 @@ Styling for posts
     display: inline-flex;
     margin-right: 0.5em;
     color: #4f7576;
-    max-width: 2em;
+    max-width: 3em;
     overflow: hidden;
 }
 
@@ -439,8 +439,9 @@ Styling for collapsible
     display: none;
 }
 
-.collapsed-thread-parent > .thread-details-2 {
-    display: block;
+.collapsed-thread-parent > .thread-details-2 > .thread-time,
+.collapsed-thread-parent > .thread-details-2 > .thread-replies-parent {
+    text-align: center;
 }
 
 .post-collapsible-anchor,
