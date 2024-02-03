@@ -284,7 +284,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     board_name = board_names[board_index]
 
     # update version when you update css, js, images to bypass browser cache
-    version_number = "38"
+    version_number = "39"
 
     # add greeter links to all boards
     board_links_html = '[]'
@@ -460,6 +460,14 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
         ''')
 
     html_string.append('''
+                </div>
+                <div class="mobile-controls">
+                    <div class="mobile-controls-button mobile-controls-button-next">Next</div>
+                    <div class="mobile-controls-button mobile-controls-button-child">Child</div>
+                    <div class="mobile-controls-button mobile-controls-button-toggle-collapse">Toggle</div>
+                    <div class="mobile-controls-button mobile-controls-button-previous">Previous</div>
+                    <div class="mobile-controls-button mobile-controls-button-parent">Parent</div>
+                    <div class="mobile-controls-button mobile-controls-button-forward">Forward</div>
                 </div>
                 <hr>
                 <div class="greeter-footer">

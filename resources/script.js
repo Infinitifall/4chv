@@ -627,6 +627,14 @@ function keyboard_shortcuts(e) {
     return;
 }
 
+function mobile_controls() {
+    addEventListenerToClass("mobile-controls-button-next", function() { keypress_next(false); });
+    addEventListenerToClass("mobile-controls-button-previous", function() { keypress_next(true); });
+    addEventListenerToClass("mobile-controls-button-parent", keypress_parent);
+    addEventListenerToClass("mobile-controls-button-child", keypress_child);
+    addEventListenerToClass("mobile-controls-button-forward", keypress_go_forward);
+    addEventListenerToClass("mobile-controls-button-toggle-collapse", keypress_toggle_collapse);
+}
 
 window.onload = function() {
     // convert unix timestamps to time ago
@@ -646,6 +654,9 @@ window.onload = function() {
     document.addEventListener("keydown", function(e) {
         keyboard_shortcuts(e);
     });
+
+    // add mobile control listeners
+    mobile_controls();
 
     // scroll to the #fragment
     onpageload_popstate();

@@ -122,6 +122,40 @@ hr {
     margin-bottom: 0.5em;
 }
 
+.mobile-controls {
+    display: none;
+}
+
+@media only screen and (max-width: 600px) {
+    .mobile-controls {
+        display: block;
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 4.5em;
+        background-color: #151618;
+        z-index: 1;
+    }
+
+    .mobile-controls-button {
+        display: inline-block;
+        width: calc(33% - 2px);
+        font-size: 1.2em;
+        padding-top: 0.25em;
+        padding-bottom: 0.25em;
+        text-align: center;
+        border: 1px solid #111;
+    }
+
+    .mobile-controls-button-next { background: #353b2a; }
+    .mobile-controls-button-previous { background: #422e2e; }
+    .mobile-controls-button-parent { background: #2b383f; }
+    .mobile-controls-button-child { background: #483e2b; }
+    .mobile-controls-button-forward { background: #222; }
+    .mobile-controls-button-toggle-expand { background: #111; }
+}
+
 /*
 Styling for threads
 */
