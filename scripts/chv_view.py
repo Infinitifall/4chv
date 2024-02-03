@@ -72,7 +72,21 @@ def complexity_score(sentences_array):
 # Calculate the cumulative complexity for a post,
 # which depends on the complexities of its replies
 def calculate_post_cumulative_complexity(board : dict, thread_no : int, post_no : int):
+    post_parent_chain = set()
+    return calculate_post_cumulative_complexity_r(board, thread_no, post_no, post_parent_chain)
+
+def calculate_post_cumulative_complexity_r(board : dict, thread_no : int, post_no : int, post_parent_chain: set):
     post : dict = board[thread_no]['thread'][post_no]
+
+    # sometimes two posts might reply to each other (sneaky) and cause an infinite function stack
+    # this avoids that
+    if post_no in post_parent_chain:
+        cumulative_post_complexity = 0
+        post['cumulative_complexity'] = 0
+        post['cumulative_complexity_normalized'] = 0
+        return cumulative_post_complexity
+
+    post_parent_chain.add(post_no)
 
     # base case
     if 'cumulative_complexity' in post:
@@ -84,9 +98,11 @@ def calculate_post_cumulative_complexity(board : dict, thread_no : int, post_no 
     if len(post['succ']) > 0:
         for succ in post['succ']:
             if succ != post_no:
-                cumulative_post_complexity += calculate_post_cumulative_complexity(board, thread_no, succ)
+                cumulative_post_complexity += calculate_post_cumulative_complexity_r(board, thread_no, succ, post_parent_chain)
         norm = (len(post['succ'])) ** (1 - 1/3)
     cumulative_post_complexity += post['complexity']
+
+    post_parent_chain.remove(post_no)
 
     post['cumulative_complexity'] = cumulative_post_complexity
     post['cumulative_complexity_normalized'] = cumulative_post_complexity / norm
