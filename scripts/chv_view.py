@@ -284,7 +284,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     board_name = board_names[board_index]
 
     # update version when you update css, js, images to bypass browser cache
-    version_number = "39"
+    version_number = "40"
 
     # add greeter links to all boards
     board_links_html = '[]'

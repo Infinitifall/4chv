@@ -190,6 +190,7 @@ function add_all_collapse_event_listeners() {
         thread_collapsibles[i].addEventListener("click", function() {
             let post_no = this.parentNode.parentNode.getElementsByClassName("post-parent-r")[0].getElementsByClassName("post-parent")[0].getElementsByClassName("post-details")[0].getElementsByClassName("post-no")[0].id;
             post_toggle_collapse(post_no);
+            post_colorize_deterministic(post_no);
             add_to_history(post_no);
             post_scroll_to(post_no);
         });
@@ -288,6 +289,14 @@ function post_colorize_deterministic(post_no) {
 function element_colorize_deterministic(element, post_no) {
     element.style.background = get_post_color_deterministic(post_no);
     element.style.border = "1px solid #444";
+}
+
+
+function button_press_highlight(original_div) {
+    original_div.style.background = "#577989";
+    setTimeout(function() {
+        original_div.style.background = null;
+    }, 500);
 }
 
 
@@ -628,12 +637,12 @@ function keyboard_shortcuts(e) {
 }
 
 function mobile_controls() {
-    addEventListenerToClass("mobile-controls-button-next", function() { keypress_next(false); });
-    addEventListenerToClass("mobile-controls-button-previous", function() { keypress_next(true); });
-    addEventListenerToClass("mobile-controls-button-parent", keypress_parent);
-    addEventListenerToClass("mobile-controls-button-child", keypress_child);
-    addEventListenerToClass("mobile-controls-button-forward", keypress_go_forward);
-    addEventListenerToClass("mobile-controls-button-toggle-collapse", keypress_toggle_collapse);
+    addEventListenerToClass("mobile-controls-button-next", function(original_div) { button_press_highlight(original_div); keypress_next(false); });
+    addEventListenerToClass("mobile-controls-button-previous", function(original_div) { button_press_highlight(original_div); keypress_next(true); });
+    addEventListenerToClass("mobile-controls-button-parent", function(original_div) { button_press_highlight(original_div); keypress_parent(); });
+    addEventListenerToClass("mobile-controls-button-child", function(original_div) { button_press_highlight(original_div); keypress_child(); });
+    addEventListenerToClass("mobile-controls-button-forward", function(original_div) { button_press_highlight(original_div); keypress_go_forward(); });
+    addEventListenerToClass("mobile-controls-button-toggle-collapse", function(original_div) { button_press_highlight(original_div); keypress_toggle_collapse(); });
 }
 
 window.onload = function() {
