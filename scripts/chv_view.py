@@ -501,7 +501,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
 
 
 # wrapper function to make html page for a board
-def make_html(board_names: list, board_index: int, file_count: int):
+def make_html(board_names: list, board_index: int, thread_count: int):
     board_name = board_names[board_index]
 
     # check if db file exists
@@ -516,16 +516,16 @@ def make_html(board_names: list, board_index: int, file_count: int):
     chv_database.create_board_db(db_connection)
 
     # Strategy to filter out high traffic low quality threads:
-    # 1. Choose the newest created (file_count // 4) thread files
-    # 2. Choose the last modified (file_count * 1) with at least 10 replies ordered by replies
-    # 3. Combine the second list with the first, limiting elements to (file_count * 1)
-    tail_threads = chv_database.get_thread_nos_by_created(db_connection, file_count // 4)
-    latest_files = chv_database.get_thread_nos_custom_1(db_connection, 10, file_count)
+    # 1. Choose the newest created (thread_count // 4) thread files
+    # 2. Choose the last modified (thread_count * 1) with at least 10 replies ordered by replies
+    # 3. Combine the second list with the first, limiting elements to (thread_count * 1)
+    tail_threads = chv_database.get_thread_nos_by_created(db_connection, thread_count // 4)
+    latest_files = chv_database.get_thread_nos_custom_1(db_connection, 10, thread_count)
     all_threads = set()
     for thread_no in tail_threads:
         all_threads.add(thread_no)
     for thread_no in latest_files:
-        if thread_no not in all_threads and len(all_threads) <= file_count:
+        if thread_no not in all_threads and len(all_threads) < thread_count:
             all_threads.add(thread_no)
 
     all_threads = list(all_threads)
@@ -551,7 +551,7 @@ def make_html(board_names: list, board_index: int, file_count: int):
     return
 
 
-def make_html_wrapper(wait_time: float, file_count: int):
+def make_html_wrapper(wait_time: float, thread_count: int):
     while True:
         try:
             # get list of board names
@@ -567,7 +567,7 @@ def make_html_wrapper(wait_time: float, file_count: int):
             wait_time_in_between = 5
             for board_index, board_name in enumerate(board_names):
                 try:
-                    make_html(board_names, board_index, file_count)
+                    make_html(board_names, board_index, thread_count)
                     time.sleep(wait_time_in_between)
                 except Exception as e:
                     print(f'failed to make {board_name[0]}.html', flush=True)
@@ -586,8 +586,8 @@ if __name__ == '__main__':
     try:
         assert(len(sys.argv) == 3)
         wait_time = int(sys.argv[1])
-        file_count = int(sys.argv[2])
-        make_html_wrapper(wait_time, file_count)
+        thread_count = int(sys.argv[2])
+        make_html_wrapper(wait_time, thread_count)
 
     except Exception as e:
         print('Usage: python3 view.py <wait_time> <max_latest_posts>', flush=True)
