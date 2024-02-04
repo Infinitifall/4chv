@@ -222,7 +222,7 @@ def download_thread(board_name: str, thread_no: int, db_connection):
         if 'filename' in op_post and 'ext' in op_post and 'tim' in op_post:
             thumbnail = get_url_custom(thumbnail_url(board_name, op_post['tim']))
             thumbnail = thumbnail.content
-            
+
             # save thumbnail in db
             # this_thread['thumbnail'] = base64.b64encode(thumbnail)
 
