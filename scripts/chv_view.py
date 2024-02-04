@@ -313,7 +313,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                     {board_links_html}
                 </div>
                 <div class="greeter-logo">
-                    <img title="4CHV logo" src="./resources/logo.png"></img>
+                    <img title="4CHV logo" loading="lazy" src="./resources/logo.png"></img>
                 </div>
                 <hr>
                 <h1 class="page-title">
@@ -362,18 +362,27 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
 
         thread_thumbnail_html = '''
         <a>
-            <img src="./resources/thumbnail_not_found.png"></img>
+            <img loading="lazy"  src="./resources/thumbnail_not_found.png"></img>
         </a>
         '''
         if 'thumbnail' in thread and 'thread' in thread:
             op_post = thread['thread'][min(thread['thread'])]
             thread_thumbnail_url = op_post['file']
-            thread_thumbnail = thread['thumbnail'].decode()
-            thread_thumbnail_html = f'''
+
+            thumbnail_file = pathlib.Path(f'threads/thumbs/{board_name[0]}/{op_post["no"]}.png')
+            if thumbnail_file.is_file():
+                thread_thumbnail_html = f'''
                 <a href="{thread_thumbnail_url}" rel="noreferrer" target="_blank">
-                    <img src="data:image/png;base64, {thread_thumbnail}"></img>
+                    <img loading="lazy" src="threads/thumbs/{board_name[0]}/{op_post["no"]}.png"></img>
                 </a>
-            '''
+                '''
+            else:
+                thread_thumbnail = thread['thumbnail'].decode()
+                thread_thumbnail_html = f'''
+                    <a href="{thread_thumbnail_url}" rel="noreferrer" target="_blank">
+                        <img loading="lazy" src="data:image/png;base64, {thread_thumbnail}"></img>
+                    </a>
+                '''
 
         thread_sub = ''
         if 'sub' in thread:

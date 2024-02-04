@@ -91,6 +91,9 @@ def download_all_boards(board_names: list, wait_time: float):
     db_connections = dict()
     all_threads = list()
     for board_name in board_names:
+        # ensure thumbs folder is created
+        pathlib.Path(f'threads/thumbs/{board_name[0]}/').mkdir(parents=True, exist_ok=True)
+
         all_threads_2 = list()
 
         # get active threadlist on board
@@ -219,7 +222,15 @@ def download_thread(board_name: str, thread_no: int, db_connection):
         if 'filename' in op_post and 'ext' in op_post and 'tim' in op_post:
             thumbnail = get_url_custom(thumbnail_url(board_name, op_post['tim']))
             thumbnail = thumbnail.content
-            this_thread['thumbnail'] = base64.b64encode(thumbnail)
+            
+            # save thumbnail in db
+            # this_thread['thumbnail'] = base64.b64encode(thumbnail)
+
+            # alternatively, save thumbnail in folder
+            thumbnail_file = pathlib.Path(f'threads/thumbs/{board_name}/{op_post_no}.png')
+            if not thumbnail_file.is_file():
+                with thumbnail_file.open('wb') as f:
+                    f.write(thumbnail)
 
         if 'sub' in op_post:
             this_thread['sub'] = op_post['sub']
