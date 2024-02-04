@@ -45,7 +45,11 @@ function get_child_post_no(post_no) {
 
 function get_parent_post_no(post_no) {
     let curr_post = get_post_from_no(post_no);
-    let parent_post = curr_post.parentElement.parentElement.getElementsByClassName("post-parent")[0];
+    let grandparent_post = curr_post.parentElement.parentElement;
+    if (grandparent_post.classList.contains("thread-parent")) {
+        return;
+    }
+    let parent_post = grandparent_post.getElementsByClassName("post-parent")[0];
     return get_post_no_from_post(parent_post);
 }
 
@@ -55,7 +59,10 @@ function get_next_post_no(post_no, previous) {
     let current_post_parent_r = current_post.parentElement;
     let next_post_parent_r = null;
     if (previous) {
-        next_post_parent_r = current_post_parent_r.previousSibling;
+        let prev_sibling = current_post_parent_r.previousSibling;
+        if (!prev_sibling.classList.contains("post-parent")) {
+            next_post_parent_r = prev_sibling;
+        }
     } else {
         next_post_parent_r = current_post_parent_r.nextSibling;
     }
@@ -309,13 +316,17 @@ function strip_post_no_start_chars(rid) {
 
 
 function keypress_parent() {
+    let post_no = null;
     let post_parent_no = null;
     if(window.location.hash) {
-        let post_no = Number(window.location.hash.substring(1));
+        post_no = Number(window.location.hash.substring(1));
         post_parent_no = get_parent_post_no(post_no);
     }
     if (!post_parent_no) {
-        return;
+        if (!post_no) {
+            return;
+        }
+        post_parent_no = post_no;
     }
 
     post_expand(post_parent_no);
@@ -326,13 +337,17 @@ function keypress_parent() {
 
 
 function keypress_child() {
+    let post_no = null;
     let post_child_no = null;
     if(window.location.hash) {
-        let post_no = Number(window.location.hash.substring(1));
+        post_no = Number(window.location.hash.substring(1));
         post_child_no = get_child_post_no(post_no);
     }
     if (!post_child_no) {
-        return;
+        if (!post_no) {
+            return;
+        }
+        post_child_no = post_no;
     }
 
     post_expand(post_child_no);
@@ -343,9 +358,10 @@ function keypress_child() {
 
 
 function keypress_next(previous) {
+    let post_no = null;
     let next_post_no = null;
     if(window.location.hash) {
-        let post_no = Number(window.location.hash.substring(1));
+        post_no = Number(window.location.hash.substring(1));
         let post = get_post_from_no(post_no);
         if (is_post_a_thread(post)) {
             next_post_no = get_next_thread_no(post_no, previous);
@@ -368,7 +384,10 @@ function keypress_next(previous) {
         }
     }
     if (!next_post_no) {
-        return;
+        if (!post_no) {
+            return;
+        }
+        next_post_no = post_no;
     }
 
     post_expand(next_post_no);
