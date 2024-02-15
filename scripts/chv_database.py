@@ -1,7 +1,7 @@
 import sqlite3
 
 
-thread_fields       = ['no', 'last_modified', 'replies', 'sub', 'com', 'thumbnail', 'images']
+thread_fields       = ['no', 'last_modified', 'replies', 'sub', 'com', 'thumbnail', 'images', 'is_archived', 'is_404d']
 thread_posts_fields = ['thread_no', 'post_no']
 post_fields         = ['no', 'com', 'sub', 'name', 'id', 'file', 'time', 'filename', 'ext', 'country', 'country_name']
 post_replies_fields = ['post_no', 'reply_no' ]
@@ -33,7 +33,7 @@ def save_thread(db_connection, thread: dict):
     for post_no in thread['thread']:
         # insert post thread relation in thread_replies table
         db_cursor.execute(f"""
-            INSERT OR REPLACE INTO thread_posts ({thread_posts_fields_comma})
+            INSERT OR IGNORE INTO thread_posts ({thread_posts_fields_comma})
             VALUES ({thread_posts_fields_question});
             """, [thread['no'], post_no])
 
@@ -63,6 +63,58 @@ def save_thread(db_connection, thread: dict):
 
     db_connection.commit()
     return
+
+
+# archive threads
+def archive_threads(db_connection, thread_nos: list):
+    db_cursor = db_connection.cursor()
+
+    # set thread is_archived in threads table
+    db_cursor.execute(f"""
+        UPDATE threads
+        SET is_archived = 1
+        WHERE no in ({','.join(['?' for _ in thread_nos])});
+        """, thread_nos)
+
+    db_connection.commit()
+    return
+
+
+# 404 a thread
+def four_o_four_thread(db_connection, thread_no):
+    db_cursor = db_connection.cursor()
+
+    # set thread is_404d in threads table
+    db_cursor.execute(f"""
+        UPDATE threads
+        SET is_404d = 1
+        WHERE no = ?;
+        """, thread_no)
+
+    db_connection.commit()
+    return
+
+
+# get threads from db, only information from threads table
+def get_threads_shallow(db_connection, thread_nos: list):
+    db_cursor = db_connection.cursor()
+
+    # query the threads table to get basic thread info
+    db_cursor.execute(f"""
+        SELECT *
+        FROM threads
+        WHERE threads.no in ({','.join(['?' for _ in thread_nos])});
+        """, thread_nos)
+    # db_output = db_cursor.fetchall()
+
+    threads_dict = dict()
+    for thread in db_cursor:
+        threads_dict[thread[0]] = dict()
+        for i in range(len(thread_fields)):
+            if thread[i] != None:
+                threads_dict[thread[0]][thread_fields[i]] = thread[i]
+
+    return threads_dict
 
 
 # get threads from db
@@ -180,7 +232,10 @@ def create_board_db(db_connection):
         com TEXT,
         thumbnail BLOB,
 
-        images INT
+        images INT,
+
+        is_archived INT,
+        is_404d INT
     );
     ''')
 
@@ -259,6 +314,26 @@ def create_board_db(db_connection):
         db_connection.execute(f"""
             ALTER TABLE threads
             ADD images INT;
+            """)
+        db_connection.commit()
+    except Exception as e:
+        # we don't really care
+        pass
+
+    try:
+        db_connection.execute(f"""
+            ALTER TABLE threads
+            ADD is_archived INT;
+            """)
+        db_connection.commit()
+    except Exception as e:
+        # we don't really care
+        pass
+
+    try:
+        db_connection.execute(f"""
+            ALTER TABLE threads
+            ADD is_404d INT;
             """)
         db_connection.commit()
     except Exception as e:

@@ -349,7 +349,7 @@ Styling for posts
     display: inline-flex;
     margin-right: 0.5em;
     color: #b35071;
-    max-width: 15em;
+    max-width: min(25%, 15em);
     overflow: hidden;
     max-height: 1em;
 }
@@ -452,6 +452,14 @@ Styling for collapsible
     line-height: 1.3em;
     overflow: hidden;
     position: relative;
+}
+
+.collapsed-thread-parent.thread-is-404d {
+    border-bottom: 6px solid #381919;
+}
+
+.collapsed-thread-parent.thread-is-archived {
+    border-bottom: 6px solid #312d11;
 }
 
 .collapsed-thread-parent > .thread-thumbnail {

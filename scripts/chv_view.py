@@ -284,7 +284,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     board_name = board_names[board_index]
 
     # update version when you update css, js, images to bypass browser cache
-    version_number = "41"
+    version_number = "43"
 
     # add greeter links to all boards
     board_links_html = '[]'
@@ -405,9 +405,15 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
         if 'last_modified' in thread:
             thread_time = thread['last_modified']
 
+        thread_extra_classes = ''
+        if 'is_archived' in thread:
+            thread_extra_classes += ' thread-is-archived'
+        if 'is_404d' in thread:
+            thread_extra_classes += ' thread-is-404d'
+
         # append the thread header to the main string list
         html_string.append(f'''
-        <div class="thread-parent collapsed-thread-parent">
+        <div class="thread-parent collapsed-thread-parent {thread_extra_classes}">
             <div class="thread-details">
                 <div title="Toggle expand" class="thread-collapsible-anchor">[+]</div>
                 <div title="See thread on 4chan.org" class="thread-op">

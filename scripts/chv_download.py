@@ -16,6 +16,11 @@ import chv_boards
 import chv_database
 
 
+# boards api endpoint
+def boards_url():
+    return 'https://a.4cdn.org/boards.json'
+
+
 # thread api endpoint
 def thread_url(board_name: str, thread_no: str):
     return f'https://a.4cdn.org/{board_name}/thread/{thread_no}.json'
@@ -29,6 +34,11 @@ def catalog_url(board_name: str):
 # threadlist api endpoint
 def threadlist_url(board_name: str):
     return f'https://a.4cdn.org/{board_name}/threads.json'
+
+
+# archive api endpoint
+def archive_url(board_name: str):
+    return f'https://a.4cdn.org/{board_name}/archive.json'
 
 
 # file url
@@ -98,8 +108,8 @@ def download_all_boards(board_names: list, wait_time: float):
 
         # get active threadlist on board
         request = get_url_custom(threadlist_url(board_name[0]))
-        threadlist = json.loads(request.text)
-        for page in threadlist:
+        threadlist_json = json.loads(request.text)
+        for page in threadlist_json:
             for thread in page['threads']:
                 thread['board_name'] = board_name[0]
                 all_threads_2.append(thread)
@@ -111,7 +121,7 @@ def download_all_boards(board_names: list, wait_time: float):
         chv_database.create_board_db(db_connections[board_name[0]])
 
         # get threads if in db
-        db_thread = chv_database.get_threads(
+        db_thread = chv_database.get_threads_shallow(
             db_connections[board_name[0]],
             [t['no'] for t in all_threads_2]
         )
@@ -126,6 +136,22 @@ def download_all_boards(board_names: list, wait_time: float):
 
         print(f'fetched threadlist for /{board_name[0]}/', flush=True)
         time.sleep(random.randint(wait_time // 2, (wait_time * 3) // 2))
+
+    # archive threads
+    archived_boards = set()
+    request = get_url_custom(boards_url())
+    boards_json: dict = json.loads(request.text)
+    for board_json in boards_json['boards']:
+        if 'is_archived' in board_json and board_json['is_archived'] == 1:
+            archived_boards.add(board_json['board'])
+    for board_name in board_names:
+        if board_name[0] not in archived_boards:
+            continue
+        request = get_url_custom(archive_url(board_name[0]))
+        archives_json: list = json.loads(request.text)
+        thread_nos = archives_json
+        chv_database.archive_threads(db_connections[board_name[0]], thread_nos)
+        print(f'archived threads on /{board_name[0]}/', flush=True)
 
     # sort to prioritize "hot" threads, weighing a reply as a 5 min bonus
     all_threads.sort(
@@ -142,15 +168,22 @@ def download_all_boards(board_names: list, wait_time: float):
         except Exception as e:
             print(f'[{thread_index + 1}/{len(all_threads)}] failed!    /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
             print(e, flush=True)
+
+            # check if thread was 404d
+            time.sleep(2)
+            request = get_url_custom(thread_url(thread['board_name'], str(thread["no"])))
+            if request.status_code == 404:
+                chv_database.four_o_four_thread(db_connections[thread['board_name']], thread["no"])
+                print(f'[{thread_index + 1}/{len(all_threads)}] 404d     /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
             time.sleep(10)
 
 
 def download_thread(board_name: str, thread_no: int, db_connection):
     request = get_url_custom(thread_url(board_name, str(thread_no)))
-    thread: dict = json.loads(request.text)
+    thread_json: dict = json.loads(request.text)
     this_thread = dict()
 
-    if 'posts' not in thread:
+    if 'posts' not in thread_json:
         return
 
     # op post_no is same as thread_no
@@ -158,12 +191,12 @@ def download_thread(board_name: str, thread_no: int, db_connection):
     op_post_index = 0
 
     this_thread['thread'] = dict()
-    if 'replies' in thread['posts'][op_post_index]:
-        this_thread['replies'] = thread['posts'][op_post_index]['replies']
-    if 'images' in thread['posts'][op_post_index]:
-        this_thread['images'] = thread['posts'][op_post_index]['images']
+    if 'replies' in thread_json['posts'][op_post_index]:
+        this_thread['replies'] = thread_json['posts'][op_post_index]['replies']
+    if 'images' in thread_json['posts'][op_post_index]:
+        this_thread['images'] = thread_json['posts'][op_post_index]['images']
 
-    for post in thread['posts']:
+    for post in thread_json['posts']:
         post: dict
         this_post = dict()
 
@@ -221,16 +254,16 @@ def download_thread(board_name: str, thread_no: int, db_connection):
 
         if 'filename' in op_post and 'ext' in op_post and 'tim' in op_post:
             thumbnail = get_url_custom(thumbnail_url(board_name, op_post['tim']))
-            thumbnail = thumbnail.content
+            thumbnail_content = thumbnail.content
 
             # save thumbnail in db
-            # this_thread['thumbnail'] = base64.b64encode(thumbnail)
+            # this_thread['thumbnail'] = base64.b64encode(thumbnail_content)
 
             # alternatively, save thumbnail in folder
             thumbnail_file = pathlib.Path(f'threads/thumbs/{board_name}/{op_post_no}.png')
             if not thumbnail_file.is_file():
                 with thumbnail_file.open('wb') as f:
-                    f.write(thumbnail)
+                    f.write(thumbnail_content)
 
         if 'sub' in op_post:
             this_thread['sub'] = op_post['sub']
