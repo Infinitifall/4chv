@@ -2,9 +2,11 @@
 .vscode/
 
 # project files
-*.html
-*.pkl
-
+html/*.html
+html/thumbs
 threads/
-**/__pycache__/
+venv_chv/
+
 myenv/
+
+**/__pycache__/

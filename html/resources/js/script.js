@@ -630,7 +630,7 @@ function keyboard_shortcuts(e) {
     if (e.key === "n") {
         keypress_next(false);
 
-    } else if (e.key === "N") {
+    } else if ((e.key === "N") || (e.key === "m")) {
         keypress_next(true);
 
     } else if (e.key === "c") {
@@ -639,7 +639,7 @@ function keyboard_shortcuts(e) {
     } else if (e.key === "p") {
         keypress_parent();
 
-    } else if (e.key === "i") {
+    } else if ((e.key === "i") || (e.key === "o")) {
         keypress_file_open();
 
     } else if (e.key === "t") {

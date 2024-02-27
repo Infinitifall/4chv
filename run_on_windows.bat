@@ -1,10 +1,14 @@
 @echo off
-if exist myenv (
-    call myenv\Scripts\activate.bat
+if exist venv_chv (
+    call venv_chv\Scripts\activate.bat
 ) else (
-    python -m venv myenv
-    call myenv\Scripts\activate.bat
+    python -m venv venv_chv
+    call venv_chv\Scripts\activate.bat
     python -m pip install requests >NUL
 )
 
-python scripts\run.py
+@REM cleanup for old versions of 4chv
+del *.html
+del /S /F "myenv"
+
+python3 scripts\run.py

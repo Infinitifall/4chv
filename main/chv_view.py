@@ -7,7 +7,8 @@ import html
 import sqlite3
 
 # local imports
-import chv_boards
+import custom.chv_boards as chv_boards
+import custom.chv_stylesheet as chv_stylesheet
 import chv_database
 
 # filter post text post html escaping
@@ -284,12 +285,15 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     board_name = board_names[board_index]
 
     # update version when you update css, js, images to bypass browser cache
-    version_number = "43"
+    version_number = "44"
 
     # add greeter links to all boards
     board_links_html = '[]'
     if len(board_names) != 0:
         board_links_html = '[ ' + ' / '.join([f'<a href="{b[0]}.html" title="{b[1]}" class="greeter-element">{b[0]}</a>' for b in board_names]) + ' ]'
+    
+    # get stylesheet filename
+    selected_stylesheet = chv_stylesheet.selected_stylesheet
 
     # the main string list
     html_string = list()
@@ -302,9 +306,9 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <meta property="og:locale" content="en_US">
             <meta property="og:type" content="website">
-            <link rel='stylesheet' type='text/css' href='resources/style.css?v={version_number}'>
-            <script src='resources/script.js?v={version_number}' defer></script>
-            <link rel="icon" type="image/x-icon" href="resources/favicon_small.png?v={version_number}">
+            <link rel='stylesheet' type='text/css' href='resources/stylesheets/{selected_stylesheet}?v={version_number}'>
+            <script src='resources/js/script.js?v={version_number}' defer></script>
+            <link rel="icon" type="image/x-icon" href="resources/images/favicon.png?v={version_number}">
             <title>/{board_name[0]}/ - 4CHV</title>
         </head>
         <body>
@@ -313,7 +317,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                     {board_links_html}
                 </div>
                 <div class="greeter-logo">
-                    <img title="4CHV logo" loading="lazy" src="./resources/logo.png"></img>
+                    <img title="4CHV logo" loading="lazy" src="./resources/images/logo.png"></img>
                 </div>
                 <hr>
                 <h1 class="page-title">
@@ -362,7 +366,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
 
         thread_thumbnail_html = '''
         <a>
-            <img loading="lazy"  src="./resources/thumbnail_not_found.png"></img>
+            <img loading="lazy"  src="./resources/images/thumbnail_not_found.png"></img>
         </a>
         '''
         if 'thread' in thread:
@@ -371,11 +375,11 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
             if 'file' in op_post:
                 thread_thumbnail_url = op_post['file']
 
-                thumbnail_file = pathlib.Path(f'threads/thumbs/{board_name[0]}/{op_post["no"]}.png')
+                thumbnail_file = pathlib.Path(f'html/thumbs/{board_name[0]}/{op_post["no"]}.png')
                 if thumbnail_file.is_file():
                     thread_thumbnail_html = f'''
                     <a href="{thread_thumbnail_url}" rel="noreferrer" target="_blank">
-                        <img loading="lazy" src="threads/thumbs/{board_name[0]}/{op_post["no"]}.png"></img>
+                        <img loading="lazy" src="thumbs/{board_name[0]}/{op_post["no"]}.png"></img>
                     </a>
                     '''
                 elif 'thumbnail' in thread:
@@ -512,7 +516,7 @@ def make_html(board_names: list, board_index: int, thread_count: int):
 
     # check if db file exists
     if not pathlib.Path(f'threads/{board_name[0]}.sqlite').is_file():
-        print(f'skipping {board_name[0]}.html, no database yet', flush=True)
+        print(f'skipping html/{board_name[0]}.html, no database yet', flush=True)
         return
 
     # connect to board db
@@ -539,10 +543,10 @@ def make_html(board_names: list, board_index: int, thread_count: int):
 
     # skip if board has no threads
     if len(my_board) == 0:
-        print(f'skipping {board_name[0]}.html, no threads to be made yet', flush=True)
+        print(f'skipping html/{board_name[0]}.html, no threads to be made yet', flush=True)
         return
 
-    print(f'making {board_name[0]}.html with {len(my_board)} threads', flush=True)
+    print(f'making html/{board_name[0]}.html with {len(my_board)} threads', flush=True)
     # calculate complexity for board (medium)
     calculate_board_complexity(my_board)
     # sort threads by cumulative complexity (fast)
@@ -551,9 +555,9 @@ def make_html(board_names: list, board_index: int, thread_count: int):
     html_string = print_board(my_board, threads_sorted, board_names, board_index)
 
     # write board html to file (fast)
-    with open(f'{board_name[0]}.html', 'w') as f:
+    with open(f'html/{board_name[0]}.html', 'w') as f:
         f.write(html_string)
-        print(f'built {board_name[0]}.html', flush=True)
+        print(f'built html/{board_name[0]}.html', flush=True)
     return
 
 
@@ -564,7 +568,7 @@ def make_html_wrapper(wait_time: float, thread_count: int):
             board_names = chv_boards.boards_active
             # avoid busy wait if no active boards
             if len(board_names) == 0:
-                print(f'no active boards! Uncomment lines in scripts/chv_boards.py!', flush=True)
+                print(f'no active boards! Uncomment lines in main/chv_boards.py!', flush=True)
                 time.sleep(10)
                 continue
             print(f'making: {", ".join([b[0] for b in board_names])}', flush=True)
@@ -576,7 +580,7 @@ def make_html_wrapper(wait_time: float, thread_count: int):
                     make_html(board_names, board_index, thread_count)
                     time.sleep(wait_time_in_between)
                 except Exception as e:
-                    print(f'failed to make {board_name[0]}.html', flush=True)
+                    print(f'failed to make html/{board_name[0]}.html', flush=True)
                     print(e, flush=True)
                     time.sleep(10)
 
