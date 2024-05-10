@@ -1,8 +1,9 @@
 all_stylesheets = {
-    "default": "style.css",
-    # Add custom stylesheet filenames below. Custom stylesheets go in html/resources/stylesheets/
+    "dark": "dark.css",
+
+    # custom stylesheets can be put in html/resources/stylesheets/ and added here
 }
-selected_stylesheet = all_stylesheets["default"]
+selected_stylesheet = all_stylesheets["dark"]
 
 
 # average time in seconds in-between downloading threads
