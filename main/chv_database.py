@@ -46,6 +46,8 @@ def save_thread(db_connection, thread: dict):
             VALUES ({post_fields_question});
             """, post_values)
 
+    # do this in another for loop so sql foreign key constraints are met
+    for post_no in thread['thread']:
         for succ in thread['thread'][post_no]['succ']:
             # insert succ into post_replies table
             db_cursor.execute(f"""
@@ -93,6 +95,56 @@ def four_o_four_thread(db_connection, thread_no):
 
     db_connection.commit()
     return
+
+
+# delete very old threads and return their nos (so that their thumbnails can also be deleted!)
+def delete_very_old_threads(db_connection, threads_keep_count: int):
+    db_cursor = db_connection.cursor()
+
+    db_cursor.execute(f"""
+        DROP TABLE IF EXISTS threads_not_to_nuke;
+        """)
+
+    db_cursor.execute(f"""
+        CREATE TABLE threads_not_to_nuke (
+            no INTEGER PRIMARY KEY
+        );
+        """)
+
+    db_cursor.execute(f"""
+        INSERT INTO threads_not_to_nuke
+        SELECT no
+        FROM threads
+        ORDER BY threads.last_modified DESC
+        LIMIT {threads_keep_count};
+        """)
+
+    db_cursor.execute(f"""
+        SELECT no
+        FROM threads
+        WHERE NOT EXISTS (
+            SELECT NULL
+            FROM threads_not_to_nuke
+            WHERE threads_not_to_nuke.no = threads.no
+        );
+        """)
+    # db_output = db_cursor.fetchall()
+
+    thread_nos_list = list()
+    for thread in db_cursor:
+        thread_nos_list.append(thread[0])
+
+    db_cursor.execute(f"""
+        DELETE FROM threads
+        WHERE NOT EXISTS (
+            SELECT NULL
+            FROM threads_not_to_nuke
+            WHERE threads_not_to_nuke.no = threads.no
+        );
+        """)
+
+    db_connection.commit()
+    return thread_nos_list
 
 
 # get threads from db, only information from threads table
@@ -219,8 +271,14 @@ def get_thread_nos_custom_1(db_connection, reply_min_count: int, thread_count: i
     return db_output
 
 
-# create tables if they didn't already exist
-def create_board_db(db_connection):
+def startup_boards_db(db_connection):
+    # enable foreign keys
+    db_connection.execute('''
+    PRAGMA foreign_keys = ON;
+    ''')
+
+    # create tables if they didn't already exist
+
     db_connection.execute('''
     CREATE TABLE IF NOT EXISTS threads (
         no INTEGER PRIMARY KEY,
@@ -253,7 +311,9 @@ def create_board_db(db_connection):
     CREATE TABLE IF NOT EXISTS thread_posts (
         thread_no INTEGER,
         post_no INTEGER,
-        PRIMARY KEY (thread_no, post_no)
+        PRIMARY KEY (thread_no, post_no),
+        UNIQUE (post_no),
+        FOREIGN KEY (thread_no) REFERENCES threads (no) ON DELETE CASCADE
     );
     ''')
 
@@ -278,7 +338,9 @@ def create_board_db(db_connection):
         ext TEXT,
 
         country TEXT,
-        country_name TEXT
+        country_name TEXT,
+
+        FOREIGN KEY (no) REFERENCES thread_posts (post_no) ON DELETE CASCADE
     );
     ''')
 
@@ -291,7 +353,9 @@ def create_board_db(db_connection):
     CREATE TABLE IF NOT EXISTS post_replies (
         post_no INTEGER,
         reply_no INTEGER,
-        PRIMARY KEY (post_no, reply_no)
+        PRIMARY KEY (post_no, reply_no),
+        FOREIGN KEY (post_no) REFERENCES posts (no) ON DELETE CASCADE,
+        FOREIGN KEY (reply_no) REFERENCES posts (no) ON DELETE CASCADE
     );
     ''')
 
@@ -339,6 +403,39 @@ def create_board_db(db_connection):
     except Exception as e:
         # we don't really care
         pass
+
+    # alter table to add foreign keys doesn't work in sqlite
+
+    # try:
+    #     db_connection.execute(f"""
+    #         ALTER TABLE thread_posts
+    #         ADD CONSTRAINT FOREIGN KEY (thread_no) REFERENCES threads (no) ON DELETE CASCADE;
+    #         """)
+    #     db_connection.commit()
+    # except Exception as e:
+    #     # we don't really care
+    #     pass
+
+    # try:
+    #     db_connection.execute(f"""
+    #         ALTER TABLE posts
+    #         ADD CONSTRAINT FOREIGN KEY (no) REFERENCES thread_posts (post_no) ON DELETE CASCADE;
+    #         """)
+    #     db_connection.commit()
+    # except Exception as e:
+    #     # we don't really care
+    #     pass
+
+    # try:
+    #     db_connection.execute(f"""
+    #         ALTER TABLE post_replies
+    #         ADD CONSTRAINT FOREIGN KEY (post_no) REFERENCES posts (no) ON DELETE CASCADE,
+    #             CONSTRAINT FOREIGN KEY (reply_no) REFERENCES posts (no) ON DELETE CASCADE;
+    #         """)
+    #     db_connection.commit()
+    # except Exception as e:
+    #     # we don't really care
+    #     pass
 
     return
 

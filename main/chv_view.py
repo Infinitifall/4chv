@@ -8,7 +8,7 @@ import sqlite3
 
 # local imports
 import custom.chv_boards as chv_boards
-import custom.chv_stylesheet as chv_stylesheet
+import custom.chv_params as chv_params
 import chv_database
 
 # filter post text post html escaping
@@ -284,6 +284,14 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
     datetime_now = datetime.now().timestamp()
     board_name = board_names[board_index]
 
+    # get latest post time
+    latest_post_time = 0  # if latest post is before 1970, then I'm Santa Claus and this code deserves to break
+    for thread_no in threads_sorted:
+        thread = board[thread_no]
+        if 'last_modified' in thread:
+            if thread['last_modified'] > latest_post_time:
+                latest_post_time = thread['last_modified']
+
     # update version when you update css, js, images to bypass browser cache
     version_number = "44"
 
@@ -293,7 +301,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
         board_links_html = '[ ' + ' / '.join([f'<a href="{b[0]}.html" title="{b[1]}" class="greeter-element">{b[0]}</a>' for b in board_names]) + ' ]'
     
     # get stylesheet filename
-    selected_stylesheet = chv_stylesheet.selected_stylesheet
+    selected_stylesheet = chv_params.selected_stylesheet
 
     # the main string list
     html_string = list()
@@ -324,25 +332,25 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                     <a title="Board title" href="">/{board_name[0]}/ - {board_name[1]}</a>
                 </h1>
                 <div class="greeter-subtitle">
-                Board updated <div title="Time since board was last built" class="board-time">{int(datetime_now)}</div>
+                Board updated <div title="Time since board was last built" class="board-time">{int(datetime_now)}</div>,
+                Latest post <div title="Time since most recent post" class="board-time">{int(latest_post_time)}</div>
                 </div>
                 <div class="greeter-info">
                     <hr>
                     <div class="greeter-usage-parent">
                         <b>Basic usage</b>
                         <ul class="greeter-usage-list">
-                            <li>Click <a>[+]</a> to expand threads and posts</li>
+                            <li>Click <a>[+]</a> to expand posts</li>
                             <li>Click <a>&gt;&gt;1234567</a> to jump to posts</li>
-                            <li>The browser/phone back button will take you back to your previous post</li>
+                            <li>Archived threads have a yellow bar underneath</li>
                         </ul>
                     </div>
                     <div class="greeter-shortcut-parent">
                         <b>Keyboard shortcuts</b>
                         <ul class="greeter-shortcut-list">
-                            <li>(Post) <code>n</code> = next, <code>N</code> = previous</li>
-                            <li>(Post) <code>p</code> = parent, <code>c</code> = child</li>
-                            <li>(Post) <code>t</code> = toggle expand, <code>i</code> = open file</li>
-                            <li>(History) <code>b</code> = go back, <code>f</code> = go forward</li>
+                            <li><code>n</code> = next post, <code>N</code> = previous post, <code>p</code> = parent post, <code>c</code> = child post</li>
+                            <li><code>t</code> = toggle expand post, <code>i</code> = open post file</li>
+                            <li><code>b</code> = go back in history, <code>f</code> = go forward in history</li>
                         </ul>
                     </div>
                 </div>
@@ -523,7 +531,7 @@ def make_html(board_names: list, board_index: int, thread_count: int):
     db_connection = sqlite3.connect(f'threads/{board_name[0]}.sqlite')
 
     # initialize board db in case it doesn't exist or is on an older version
-    chv_database.create_board_db(db_connection)
+    chv_database.startup_boards_db(db_connection)
 
     # Strategy to filter out high traffic low quality threads:
     # 1. Choose the newest created (thread_count // 4) thread files

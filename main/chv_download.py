@@ -13,6 +13,7 @@ import sqlite3
 
 # local imports
 import custom.chv_boards as chv_boards
+import custom.chv_params as chv_params
 import chv_database
 
 
@@ -54,7 +55,7 @@ def thumbnail_url(board_name: str, tim: int):
 # clean post['com'] by removing html tags
 def clean_post(content: str):
     clean_dict = {
-        '\?P<replyquote>': '',
+        '\\?P<replyquote>': '',
 
         r'</[asp]+>': '',
         '</span>': '',
@@ -118,7 +119,13 @@ def download_all_boards(board_names: list, wait_time: float):
         db_connections[board_name[0]] = sqlite3.connect(f'threads/{board_name[0]}.sqlite')
 
         # initialize board db in case it doesn't exist or is on an older version
-        chv_database.create_board_db(db_connections[board_name[0]])
+        chv_database.startup_boards_db(db_connections[board_name[0]])
+
+        # delete very old threads
+        thread_nos_deleted = chv_database.delete_very_old_threads(db_connections[board_name[0]], chv_params.db_max_threads_per_board)
+        for op_post_no_deleted in thread_nos_deleted:
+            pathlib.Path.unlink(f'html/thumbs/{board_name[0]}/{op_post_no_deleted}.png', missing_ok=True)
+        print(f'removed {len(thread_nos_deleted)} very old threads for /{board_name[0]}/', flush=True)
 
         # get threads if in db
         db_thread = chv_database.get_threads_shallow(
@@ -135,7 +142,7 @@ def download_all_boards(board_names: list, wait_time: float):
         all_threads.extend(all_threads_2)
 
         print(f'fetched threadlist for /{board_name[0]}/', flush=True)
-        time.sleep(random.randint(wait_time // 2, (wait_time * 3) // 2))
+        time.sleep(random.randint(int(wait_time // 2), int((wait_time * 3) // 2)))
 
     # archive threads
     archived_boards = set()
@@ -152,6 +159,7 @@ def download_all_boards(board_names: list, wait_time: float):
         thread_nos = archives_json
         chv_database.archive_threads(db_connections[board_name[0]], thread_nos)
         print(f'archived threads on /{board_name[0]}/', flush=True)
+        time.sleep(random.randint(int(wait_time // 2), int((wait_time * 3) // 2)))
 
     # sort to prioritize "hot" threads, weighing a reply as a 5 min bonus
     all_threads.sort(
@@ -163,7 +171,7 @@ def download_all_boards(board_names: list, wait_time: float):
         try:
             download_thread(thread['board_name'], thread['no'], db_connections[thread['board_name']])
             print(f'[{thread_index + 1}/{len(all_threads)}] downloaded /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
-            time.sleep(random.randint(wait_time // 2, (wait_time * 3) // 2))
+            time.sleep(random.randint(int(wait_time // 2), int((wait_time * 3) // 2)))
 
         except Exception as e:
             print(f'[{thread_index + 1}/{len(all_threads)}] failed!    /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
@@ -288,7 +296,7 @@ def download_all_boards_wrapper(wait_time: float):
 
             # download them all
             download_all_boards(board_names, wait_time)
-            time.sleep(random.randint(wait_time // 2, (wait_time * 3) // 2))
+            time.sleep(random.randint(int(wait_time // 2), int((wait_time * 3) // 2)))
 
         except Exception as e:
             print('an error occurred!', flush=True)
