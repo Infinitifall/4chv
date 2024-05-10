@@ -8,7 +8,7 @@ import sqlite3
 
 # local imports
 import custom.chv_boards as chv_boards
-import custom.chv_stylesheet as chv_stylesheet
+import custom.chv_params as chv_params
 import chv_database
 
 # filter post text post html escaping
@@ -282,18 +282,35 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_names: list, board_index: int):
     datetime_now = datetime.now().timestamp()
+    version_number = chv_params.version_number
     board_name = board_names[board_index]
 
-    # update version when you update css, js, images to bypass browser cache
-    version_number = "44"
+    # get latest post time
+    latest_post_time = 0  # if latest post is before 1970, then I'm Santa Claus and this code deserves to break
+    for thread_no in threads_sorted:
+        thread = board[thread_no]
+        if 'last_modified' in thread:
+            if thread['last_modified'] > latest_post_time:
+                latest_post_time = thread['last_modified']
 
     # add greeter links to all boards
     board_links_html = '[]'
     if len(board_names) != 0:
         board_links_html = '[ ' + ' / '.join([f'<a href="{b[0]}.html" title="{b[1]}" class="greeter-element">{b[0]}</a>' for b in board_names]) + ' ]'
-    
+
     # get stylesheet filename
-    selected_stylesheet = chv_stylesheet.selected_stylesheet
+    all_stylesheets = chv_params.all_stylesheets
+    selected_style = chv_params.selected_style
+    selected_stylesheet = chv_params.selected_stylesheet
+
+    # create style-selector dropbox
+    style_selector_html = '<select autocomplete="off" id="style-selector" onchange="set_style();">'
+    for style in all_stylesheets:
+        style_selector_html += f'<option value="{all_stylesheets[style]}"'
+        if style == selected_style:
+            style_selector_html += f' selected="selected"'
+        style_selector_html += f'>{style}</option>'
+    style_selector_html += '</select>'
 
     # the main string list
     html_string = list()
@@ -306,7 +323,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <meta property="og:locale" content="en_US">
             <meta property="og:type" content="website">
-            <link rel='stylesheet' type='text/css' href='resources/stylesheets/{selected_stylesheet}?v={version_number}'>
+            <link rel='stylesheet' id="stylesheet" type='text/css' href='resources/stylesheets/{selected_stylesheet}?v={version_number}'>
             <script src='resources/js/script.js?v={version_number}' defer></script>
             <link rel="icon" type="image/x-icon" href="resources/images/favicon.png?v={version_number}">
             <title>/{board_name[0]}/ - 4CHV</title>
@@ -316,34 +333,65 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                 <div class="greeter-links">
                     {board_links_html}
                 </div>
+                <hr>
                 <div class="greeter-logo">
                     <img title="4CHV logo" loading="lazy" src="./resources/images/logo.png"></img>
                 </div>
-                <hr>
                 <h1 class="page-title">
                     <a title="Board title" href="">/{board_name[0]}/ - {board_name[1]}</a>
                 </h1>
                 <div class="greeter-subtitle">
-                Board updated <div title="Time since board was last built" class="board-time">{int(datetime_now)}</div>
+                Board updated <div title="Time since board was last built" class="board-time">{int(datetime_now)}</div>,
+                Latest post <div title="Time since most recent post" class="board-time">{int(latest_post_time)}</div>
                 </div>
                 <div class="greeter-info">
                     <hr>
                     <div class="greeter-usage-parent">
                         <b>Basic usage</b>
                         <ul class="greeter-usage-list">
-                            <li>Click <a>[+]</a> to expand threads and posts</li>
-                            <li>Click <a>&gt;&gt;1234567</a> to jump to posts</li>
-                            <li>The browser/phone back button will take you back to your previous post</li>
+                            <li><a>[+]</a> to expand posts</li>
+                            <li><a>&gt;&gt;1234567</a> to jump to posts</li>
+                            <li>Archived threads marked yellow</li>
                         </ul>
+                    </div>
+                    <div class="greeter-style-selector-parent">
+                        <b>Options</b>
+                        <label for="style-selector">Style: </label>
+                        {style_selector_html}
                     </div>
                     <div class="greeter-shortcut-parent">
                         <b>Keyboard shortcuts</b>
-                        <ul class="greeter-shortcut-list">
-                            <li>(Post) <code>n</code> = next, <code>N</code> = previous</li>
-                            <li>(Post) <code>p</code> = parent, <code>c</code> = child</li>
-                            <li>(Post) <code>t</code> = toggle expand, <code>i</code> = open file</li>
-                            <li>(History) <code>b</code> = go back, <code>f</code> = go forward</li>
-                        </ul>
+                        <table class="greeter-shortcut-table">
+                            <thead>
+                                <tr>
+                                    <td>Navigate across posts</td>
+                                    <td>Interact with post</td>
+                                    <td>Browser history</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>n</code> = next</td>
+                                    <td><code>t</code> = toggle expand post</td>
+                                    <td><code>b</code> = go back</td>
+                                </tr>
+                                <tr>
+                                    <td><code>N</code> = previous</td>
+                                    <td><code>i</code> = open post file</td>
+                                    <td><code>f</code> = go forward</td>
+                                </tr>
+                                <tr>
+                                    <td><code>p</code> = parent</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><code>c</code> = child</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 <hr>
@@ -494,7 +542,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                 <div class="greeter-footer">
                     <ul class="greeter-footer-list">
                         <li><a href="#">Go to top</a></li>
-                        <li>4CHV is free and open source software! (<a href="https://github.com/Infinitifall/4chv" target="_blank" rel=“noreferrer”>source repo</a>)</li>
+                        <li><a href="https://github.com/Infinitifall/4chv" target="_blank" rel=“noreferrer”>4CHV</a> is free and open source software!</li>
                     </ul>
                 </div>
             </div>
@@ -512,6 +560,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
 
 # wrapper function to make html page for a board
 def make_html(board_names: list, board_index: int, thread_count: int):
+    datetime_now = datetime.now().timestamp()
     board_name = board_names[board_index]
 
     # check if db file exists
@@ -523,20 +572,23 @@ def make_html(board_names: list, board_index: int, thread_count: int):
     db_connection = sqlite3.connect(f'threads/{board_name[0]}.sqlite')
 
     # initialize board db in case it doesn't exist or is on an older version
-    chv_database.create_board_db(db_connection)
+    chv_database.startup_boards_db(db_connection)
 
     # Strategy to filter out high traffic low quality threads:
-    # 1. Choose the newest created (thread_count // 4) thread files
-    # 2. Choose the last modified (thread_count * 1) with at least 10 replies ordered by replies
-    # 3. Combine the second list with the first, limiting elements to (thread_count * 1)
-    tail_threads = chv_database.get_thread_nos_by_created(db_connection, thread_count // 4)
-    latest_files = chv_database.get_thread_nos_custom_1(db_connection, 10, thread_count)
+    # 1. Choose the newest created (thread_count // 10) thread files
+    # 2. Choose the most replied to (thread_count // 40) thread files in the past 24 hours
+    # 3. Choose the last modified (thread_count * 1) with at least 10 replies ordered by replies
+    # 4. Combine the above lists in that order, limiting elements to (thread_count * 1)
+    all_thread_groups = list()
+    all_thread_groups.append(chv_database.get_thread_nos_by_created(db_connection, thread_count // 10))
+    all_thread_groups.append(chv_database.get_thread_nos_custom_2(db_connection, datetime_now - 24 * 60 * 60, thread_count // 40))
+    all_thread_groups.append(chv_database.get_thread_nos_custom_1(db_connection, 10, thread_count))
+
     all_threads = set()
-    for thread_no in tail_threads:
-        all_threads.add(thread_no)
-    for thread_no in latest_files:
-        if thread_no not in all_threads and len(all_threads) < thread_count:
-            all_threads.add(thread_no)
+    for thread_group in all_thread_groups:
+        for thread_no in thread_group:
+            if thread_no not in all_threads and len(all_threads) < thread_count:
+                all_threads.add(thread_no)
 
     all_threads = list(all_threads)
     my_board = chv_database.get_threads(db_connection, all_threads)
@@ -547,12 +599,9 @@ def make_html(board_names: list, board_index: int, thread_count: int):
         return
 
     print(f'making html/{board_name[0]}.html with {len(my_board)} threads', flush=True)
-    # calculate complexity for board (medium)
-    calculate_board_complexity(my_board)
-    # sort threads by cumulative complexity (fast)
-    threads_sorted = sort_board_cumulative_complexity(my_board)
-    # print the entire board to html (slow)
-    html_string = print_board(my_board, threads_sorted, board_names, board_index)
+    calculate_board_complexity(my_board)  # calculate complexity for board (medium)
+    threads_sorted = sort_board_cumulative_complexity(my_board)  # sort threads by cumulative complexity (fast)
+    html_string = print_board(my_board, threads_sorted, board_names, board_index)  # print the entire board to html (slow)
 
     # write board html to file (fast)
     with open(f'html/{board_name[0]}.html', 'w') as f:
@@ -561,7 +610,95 @@ def make_html(board_names: list, board_index: int, thread_count: int):
     return
 
 
+def make_index(board_names: list):
+    datetime_now = datetime.now().timestamp()
+    version_number = chv_params.version_number
+
+    # add greeter links to index
+    board_links_html = '[]'
+    if len(board_names) != 0:
+        board_links_html = '[ ' + ' / '.join([f'<a href="{b[0]}.html" title="{b[1]}" class="greeter-element">{b[0]}</a>' for b in board_names]) + ' ]'
+
+    # get stylesheet filename
+    all_stylesheets = chv_params.all_stylesheets
+    selected_style = chv_params.selected_style
+    selected_stylesheet = chv_params.selected_stylesheet
+
+    # create style-selector dropbox
+    style_selector_html = '<select autocomplete="off" id="style-selector" onchange="set_style();">'
+    for style in all_stylesheets:
+        style_selector_html += f'<option value="{all_stylesheets[style]}"'
+        if style == selected_style:
+            style_selector_html += f' selected="selected"'
+        style_selector_html += f'>{style}</option>'
+    style_selector_html += '</select>'
+
+    all_boards_html = '<ul class="all-boards-list">'
+    for board_name in board_names:
+        all_boards_html += f'<li><a href="{board_name[0]}.html">{board_name[0]} - {board_name[1]}</a></li>'
+    all_boards_html += '</ul>'
+
+    index_file = f'''
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="robots" content="noindex">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta property="og:locale" content="en_US">
+            <meta property="og:type" content="website">
+            <link rel='stylesheet' id="stylesheet" type='text/css' href='resources/stylesheets/{selected_stylesheet}?v={version_number}'>
+            <script src='resources/js/script.js?v={version_number}' defer></script>
+            <link rel="icon" type="image/x-icon" href="resources/images/favicon.png?v={version_number}">
+            <title>Index - 4CHV</title>
+        </head>
+        <body>
+            <div class="wrapper">
+                <div class="greeter-links">
+                    {board_links_html}
+                </div>
+                <hr>
+                <div class="greeter-logo">
+                    <img title="4CHV logo" loading="lazy" src="./resources/images/logo.png"></img>
+                </div>
+                <h1 class="page-title">
+                    <a title="Page title" href="">Index</a>
+                </h1>
+                <div class="greeter-subtitle">
+                Index updated <div title="Time since index was last built" class="board-time">{int(datetime_now)}</div>
+                </div>
+                <div class="greeter-info">
+                    <hr>
+                    <div class="greeter-style-selector-parent">
+                        <b>Options</b>
+                        <label for="style-selector">Style: </label>
+                        {style_selector_html}
+                    </div>
+                </div>
+                <hr>
+                <div class="all-boards">
+                    {all_boards_html}
+                </div>
+                <hr>
+                <div class="greeter-footer">
+                    <ul class="greeter-footer-list">
+                        <li><a href="https://github.com/Infinitifall/4chv" target="_blank" rel=“noreferrer”>4CHV</a> is free and open source software!</li>
+                    </ul>
+                </div>
+            </div>
+        </body>
+    </html>
+    '''
+
+    # write index html to file (fast)
+    with open(f'html/index.html', 'w') as f:
+        f.write(index_file)
+        print(f'built html/index.html', flush=True)
+    return
+
+
 def make_html_wrapper(wait_time: float, thread_count: int):
+    first_time = True
     while True:
         try:
             # get list of board names
@@ -572,6 +709,22 @@ def make_html_wrapper(wait_time: float, thread_count: int):
                 time.sleep(10)
                 continue
             print(f'making: {", ".join([b[0] for b in board_names])}', flush=True)
+
+            # delete old html files
+            if (first_time):
+                for filename in pathlib.Path("html/").glob("*.html"):
+                    filename.unlink()
+                print(f'deleted any old html files', flush=True)
+            first_time = False
+
+            # make index.html
+            try:
+                make_index(board_names)
+                print(f'built html/index.html', flush=True)
+            except Exception as e:
+                print(f'failed to make html/index.html', flush=True)
+                print(e, flush=True)
+                time.sleep(10)
 
             # make all boards
             wait_time_in_between = 5
