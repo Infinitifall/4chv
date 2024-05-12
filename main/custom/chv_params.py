@@ -1,5 +1,6 @@
 all_stylesheets = {
     "dark": "dark.css",
+    "light": "light.css"
 
     # custom stylesheets can be put in html/resources/stylesheets/ and added here
 }

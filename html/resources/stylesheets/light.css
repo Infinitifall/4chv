@@ -1,0 +1,31 @@
+@import url("style.css");
+
+:root {
+    --body-bg: #fff;
+    --code-bg: #eee;
+
+    --thread-bg: #ddd;
+    --parent-bg: #ccc;
+    
+    --collapsed-bg: #bbb;
+    --border-is-404d: #de7575;
+    --border-is-archived: #e3d88a;
+    
+    --body-fg-0: #333;
+    --body-fg-1: #444;
+    --link-fg: #40508d;
+  
+    --file-fg-0: #387a7b;
+    --file-fg-1: #305657;
+    --complexity-fg: #842b48;
+    --greentext-fg: #6e7f34;
+  
+    --border-0: #ddd;
+    --border-1: #bbb;
+    --border-2: #aaa;
+  
+    --grey-0: #555;
+    --grey-1: #333;
+    --grey-2: #555;
+    --grey-3: #666;
+}

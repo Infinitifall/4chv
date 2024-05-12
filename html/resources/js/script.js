@@ -273,12 +273,25 @@ function post_colorize_random(post_no) {
 }
 
 
+function get_body_bg_intensity() {
+    let bg_rgb = window.getComputedStyle(document.body).backgroundColor.replace(/[rgba\(\)]/g,'').split(',');
+    let bg_intensity = 0;
+    for (let i = 0; i < 3; i++) {
+        bg_intensity += Math.pow(bg_rgb[i] / 256, 2);
+    }
+    bg_intensity = Math.sqrt(bg_intensity / 3);
+    return bg_intensity;
+}
+
+
 function get_post_color_deterministic(post_no) {
+    // new bg should be of similar intensity as post bg (same in brightness/darkness, to fit in with the theme)
+    let bg_intensity = get_body_bg_intensity();
+    let bg_intensity_hex = (Math.floor(1 + bg_intensity * 12)).toString(16); // we use this instead of exact scaling (op_bg_intensity * 16) to avoid getting too bright or too dark
+
     let random_choice1 = Math.abs(Math.sin(post_no)).toString(16).substring(2 + 1);
-    let random_choice2 = Math.abs(Math.sin(post_no)).toString(2).substring(2 + 1);
-    let random_choice_2_sub = "";
-    for (let i = 0; i < random_choice2.length; i++) { if (random_choice2.charAt(i) == 0) { random_choice_2_sub += "2"; } else { random_choice_2_sub += "2"; }}
-    let color_hex = "#" + random_choice_2_sub.slice(0,1) + random_choice1.slice(0,1) + random_choice_2_sub.slice(1,2) + random_choice1.slice(1,2) + random_choice_2_sub.slice(2,3) + random_choice1.slice(2,3);
+    let random_choice_2 = bg_intensity_hex;
+    let color_hex = "#" + random_choice_2 + random_choice1.slice(0,1) + random_choice_2 + random_choice1.slice(1,2) + random_choice_2 + random_choice1.slice(2,3);
     return color_hex;
 }
 
