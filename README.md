@@ -36,6 +36,8 @@ A 4chan downloader/viewer. Downloads threads and builds offline HTML pages for a
 
 ![screenshot](screenshots/screenshot3.png)
 
+![screenshot](screenshots/screenshot4.png)
+
 
 ## Usage
 

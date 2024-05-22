@@ -1,10 +1,13 @@
 all_stylesheets = {
     "dark": "dark.css",
-    "light": "light.css"
+    "light": "light.css",
+    "forest": "forest.css",
+    "candy": "candy.css"
 
     # custom stylesheets can be put in html/resources/stylesheets/ and added here
 }
-selected_stylesheet = all_stylesheets["dark"]
+selected_style = "dark"  # default style
+selected_stylesheet = all_stylesheets[selected_style]
 
 
 # average time in seconds in-between downloading threads

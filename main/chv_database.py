@@ -272,7 +272,7 @@ def get_thread_nos_custom_1(db_connection, reply_min_count: int, thread_count: i
 
 
 # custom function to get threads
-def get_thread_nos_custom_2(db_connection, reply_min_count: int, thread_count: int):
+def get_thread_nos_custom_2(db_connection, last_modified_limit: int, thread_count: int):
     db_cursor = db_connection.cursor()
     db_cursor.execute(f"""
         SELECT no
@@ -280,8 +280,8 @@ def get_thread_nos_custom_2(db_connection, reply_min_count: int, thread_count: i
         (
             SELECT no, last_modified
             FROM threads
-            WHERE replies > {reply_min_count}
-            ORDER BY last_modified DESC
+            WHERE last_modified > {last_modified_limit}
+            ORDER BY replies DESC
             LIMIT {thread_count}
         )
         ORDER BY last_modified DESC;

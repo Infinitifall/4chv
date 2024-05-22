@@ -293,15 +293,26 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                 latest_post_time = thread['last_modified']
 
     # update version when you update css, js, images to bypass browser cache
-    version_number = "50"
+    version_number = "60"
 
     # add greeter links to all boards
     board_links_html = '[]'
     if len(board_names) != 0:
         board_links_html = '[ ' + ' / '.join([f'<a href="{b[0]}.html" title="{b[1]}" class="greeter-element">{b[0]}</a>' for b in board_names]) + ' ]'
-    
+
     # get stylesheet filename
+    all_stylesheets = chv_params.all_stylesheets
+    selected_style = chv_params.selected_style
     selected_stylesheet = chv_params.selected_stylesheet
+
+    # create style-selector dropbox
+    style_selector_html = '<select autocomplete="off" id="style-selector" onchange="set_style();">'
+    for style in all_stylesheets:
+        style_selector_html += f'<option value="{all_stylesheets[style]}"'
+        if style == selected_style:
+            style_selector_html += f' selected="selected"'
+        style_selector_html += f'>{style}</option>'
+    style_selector_html += '</select>'
 
     # the main string list
     html_string = list()
@@ -314,7 +325,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <meta property="og:locale" content="en_US">
             <meta property="og:type" content="website">
-            <link rel='stylesheet' type='text/css' href='resources/stylesheets/{selected_stylesheet}?v={version_number}'>
+            <link rel='stylesheet' id="stylesheet" type='text/css' href='resources/stylesheets/{selected_stylesheet}?v={version_number}'>
             <script src='resources/js/script.js?v={version_number}' defer></script>
             <link rel="icon" type="image/x-icon" href="resources/images/favicon.png?v={version_number}">
             <title>/{board_name[0]}/ - 4CHV</title>
@@ -324,10 +335,10 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                 <div class="greeter-links">
                     {board_links_html}
                 </div>
+                <hr>
                 <div class="greeter-logo">
                     <img title="4CHV logo" loading="lazy" src="./resources/images/logo.png"></img>
                 </div>
-                <hr>
                 <h1 class="page-title">
                     <a title="Board title" href="">/{board_name[0]}/ - {board_name[1]}</a>
                 </h1>
@@ -340,18 +351,49 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                     <div class="greeter-usage-parent">
                         <b>Basic usage</b>
                         <ul class="greeter-usage-list">
-                            <li>Click <a>[+]</a> to expand posts</li>
-                            <li>Click <a>&gt;&gt;1234567</a> to jump to posts</li>
-                            <li>Archived threads have a yellow bar underneath</li>
+                            <li><a>[+]</a> to expand posts</li>
+                            <li><a>&gt;&gt;1234567</a> to jump to posts</li>
+                            <li>Archived threads marked yellow</li>
                         </ul>
+                    </div>
+                    <div class="greeter-style-selector-parent">
+                        <b>Options</b>
+                        <label for="style-selector">Style: </label>
+                        {style_selector_html}
                     </div>
                     <div class="greeter-shortcut-parent">
                         <b>Keyboard shortcuts</b>
-                        <ul class="greeter-shortcut-list">
-                            <li><code>n</code> = next post, <code>N</code> = previous post, <code>p</code> = parent post, <code>c</code> = child post</li>
-                            <li><code>t</code> = toggle expand post, <code>i</code> = open post file</li>
-                            <li><code>b</code> = go back in history, <code>f</code> = go forward in history</li>
-                        </ul>
+                        <table class="greeter-shortcut-table">
+                            <thead>
+                                <tr>
+                                    <td>Navigate across posts</td>
+                                    <td>Interact with post</td>
+                                    <td>Browser history</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>n</code> = next</td>
+                                    <td><code>t</code> = toggle expand post</td>
+                                    <td><code>b</code> = go back</td>
+                                </tr>
+                                <tr>
+                                    <td><code>N</code> = previous</td>
+                                    <td><code>i</code> = open post file</td>
+                                    <td><code>f</code> = go forward</td>
+                                </tr>
+                                <tr>
+                                    <td><code>p</code> = parent</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><code>c</code> = child</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 <hr>
@@ -520,6 +562,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
 
 # wrapper function to make html page for a board
 def make_html(board_names: list, board_index: int, thread_count: int):
+    datetime_now = datetime.now().timestamp()
     board_name = board_names[board_index]
 
     # check if db file exists
@@ -535,14 +578,14 @@ def make_html(board_names: list, board_index: int, thread_count: int):
 
     # Strategy to filter out high traffic low quality threads:
     # 1. Choose the newest created (thread_count // 10) thread files
-    # 2. Choose the last modified (thread_count // 40) with at least 150 replies
+    # 2. Choose the most replied to (thread_count // 40) thread files in the past 24 hours
     # 3. Choose the last modified (thread_count * 1) with at least 10 replies ordered by replies
     # 4. Combine the above lists in that order, limiting elements to (thread_count * 1)
     all_thread_groups = list()
     all_thread_groups.append(chv_database.get_thread_nos_by_created(db_connection, thread_count // 10))
-    all_thread_groups.append(chv_database.get_thread_nos_custom_2(db_connection, 150, thread_count // 40))
+    all_thread_groups.append(chv_database.get_thread_nos_custom_2(db_connection, datetime_now - 24 * 60 * 60, thread_count // 40))
     all_thread_groups.append(chv_database.get_thread_nos_custom_1(db_connection, 10, thread_count))
-    
+
     all_threads = set()
     for thread_group in all_thread_groups:
         for thread_no in thread_group:

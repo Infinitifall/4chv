@@ -125,7 +125,8 @@ def download_all_boards(board_names: list, wait_time: float):
         thread_nos_deleted = chv_database.delete_very_old_threads(db_connections[board_name[0]], chv_params.db_max_threads_per_board)
         for op_post_no_deleted in thread_nos_deleted:
             pathlib.Path.unlink(f'html/thumbs/{board_name[0]}/{op_post_no_deleted}.png', missing_ok=True)
-        print(f'removed {len(thread_nos_deleted)} very old threads for /{board_name[0]}/', flush=True)
+        if len(thread_nos_deleted) != 0:
+            print(f'removed {len(thread_nos_deleted)} very old threads for /{board_name[0]}/', flush=True)
 
         # get threads if in db
         db_thread = chv_database.get_threads_shallow(

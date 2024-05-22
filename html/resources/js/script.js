@@ -1,3 +1,37 @@
+function apply_style() {
+    if (localStorage.hasOwnProperty("selected_stylesheet")) {
+        let stylesheet_element = document.getElementById("stylesheet");
+        let stylesheet_params = stylesheet_element.href.split("?")[1];
+        let selected_stylesheet = localStorage.getItem("selected_stylesheet");
+        stylesheet_element.href = "resources/stylesheets/" + selected_stylesheet + "?" + stylesheet_params;
+
+        let style_selector = document.getElementById("style-selector");
+        style_selector.value = selected_stylesheet;
+
+        remove_styling_from_class("post-parent");
+
+        remove_styling_from_class("reply-text");
+        remove_styling_from_class("post-a");
+        remove_styling_from_class("post-no");
+    }
+}
+
+
+function set_style() {
+    let selected_stylesheet = document.getElementById("style-selector").value;
+    localStorage.setItem("selected_stylesheet", selected_stylesheet);
+    apply_style();
+}
+
+
+function remove_styling_from_class(class_name) {
+    let all_elements = document.getElementsByClassName(class_name);
+    for (let i = 0; i < all_elements.length; i++) {
+        all_elements[i].removeAttribute("style");
+    }
+}
+
+
 function get_post_from_no(post_no) {
     return document.getElementById(post_no).parentElement.parentElement;
 }
@@ -266,15 +300,19 @@ function generate_random_string(length, allowed_chars) {
 }
 
 
-function post_colorize_random(post_no) {
-    let original_post = document.getElementById(post_no).parentElement.parentElement;
-    let color_hex = "#" + generate_random_string(1, "12") + generate_random_string(1, "0123456789abcdef") + generate_random_string(1, "12") + generate_random_string(1, "0123456789abcdef") + generate_random_string(1, "12") + generate_random_string(1, "0123456789abcdef");
-    original_post.style.background = color_hex;
+function get_element_bg_intensity(element) {
+    let bg_rgb = window.getComputedStyle(element).backgroundColor.replace(/[rgba\(\)]/g,'').split(',');
+    let bg_intensity = 0;
+    for (let i = 0; i < 3; i++) {
+        bg_intensity += Math.pow(bg_rgb[i] / 256, 2);
+    }
+    bg_intensity = Math.sqrt(bg_intensity / 3);
+    return bg_intensity;
 }
 
 
-function get_body_bg_intensity() {
-    let bg_rgb = window.getComputedStyle(document.body).backgroundColor.replace(/[rgba\(\)]/g,'').split(',');
+function get_element_fg_intensity(element) {
+    let bg_rgb = window.getComputedStyle(element).color.replace(/[rgba\(\)]/g,'').split(',');
     let bg_intensity = 0;
     for (let i = 0; i < 3; i++) {
         bg_intensity += Math.pow(bg_rgb[i] / 256, 2);
@@ -285,9 +323,11 @@ function get_body_bg_intensity() {
 
 
 function get_post_color_deterministic(post_no) {
-    // new bg should be of similar intensity as post bg (same in brightness/darkness, to fit in with the theme)
-    let bg_intensity = get_body_bg_intensity();
-    let bg_intensity_hex = (Math.floor(1 + bg_intensity * 12)).toString(16); // we use this instead of exact scaling (op_bg_intensity * 16) to avoid getting too bright or too dark
+    let original_post = document.getElementById(post_no).parentElement.parentElement;
+
+    // new bg should be of similar brightness as post bg to fit in with the current style
+    let fg_intensity = get_element_fg_intensity(original_post);
+    let bg_intensity_hex = Math.min(14, Math.max(2, (Math.floor((1 - fg_intensity) * 22.2 - 3.8)))).toString(16); // gives better results than perfect scaling op_bg_intensity * 16
 
     let random_choice1 = Math.abs(Math.sin(post_no)).toString(16).substring(2 + 1);
     let random_choice_2 = bg_intensity_hex;
@@ -299,16 +339,35 @@ function get_post_color_deterministic(post_no) {
 function post_colorize_deterministic(post_no) {
     let original_post = document.getElementById(post_no).parentElement.parentElement;
     original_post.style.background = get_post_color_deterministic(post_no);
-    original_post.style.border = "1px solid #fff";
+
+    let op_bg_intensity = get_element_bg_intensity(original_post);
+    let border_bg;
+    if (op_bg_intensity < 0.5) {
+        border_bg = "#aaa";
+    } else {
+        border_bg = "#000";
+    }
+    original_post.style.border = "2px solid " + border_bg;
     setTimeout(function() {
-        original_post.style.border = "1px dashed #666";
+        original_post.style.border = "1px dashed " + border_bg;
     }, 500);
 }
 
 
 function element_colorize_deterministic(element, post_no) {
     element.style.background = get_post_color_deterministic(post_no);
-    element.style.border = "1px solid #444";
+
+    let element_bg_intensity = get_element_bg_intensity(element);
+    let border_bg;
+    if (element_bg_intensity < 0.5) {
+        border_bg = "#aaa";
+    } else {
+        border_bg = "#000";
+    }
+    element.style.border = "2px solid " + border_bg;
+    setTimeout(function() {
+        element.style.border = "1px dotted " + border_bg;
+    }, 500);
 }
 
 
@@ -678,6 +737,9 @@ function mobile_controls() {
 }
 
 window.onload = function() {
+    // apply style
+    apply_style();
+
     // convert unix timestamps to time ago
     convert_all_elements_to_time_ago();
 
