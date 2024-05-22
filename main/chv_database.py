@@ -271,6 +271,26 @@ def get_thread_nos_custom_1(db_connection, reply_min_count: int, thread_count: i
     return db_output
 
 
+# custom function to get threads
+def get_thread_nos_custom_2(db_connection, reply_min_count: int, thread_count: int):
+    db_cursor = db_connection.cursor()
+    db_cursor.execute(f"""
+        SELECT no
+        FROM
+        (
+            SELECT no, last_modified
+            FROM threads
+            WHERE replies > {reply_min_count}
+            ORDER BY last_modified DESC
+            LIMIT {thread_count}
+        )
+        ORDER BY last_modified DESC;
+        """)
+    # db_output = db_cursor.fetchall()
+    db_output = [x[0] for x in db_cursor]
+    return db_output
+
+
 def startup_boards_db(db_connection):
     # enable foreign keys
     db_connection.execute('''

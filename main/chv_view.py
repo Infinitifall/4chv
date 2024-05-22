@@ -534,17 +534,20 @@ def make_html(board_names: list, board_index: int, thread_count: int):
     chv_database.startup_boards_db(db_connection)
 
     # Strategy to filter out high traffic low quality threads:
-    # 1. Choose the newest created (thread_count // 4) thread files
-    # 2. Choose the last modified (thread_count * 1) with at least 10 replies ordered by replies
-    # 3. Combine the second list with the first, limiting elements to (thread_count * 1)
-    tail_threads = chv_database.get_thread_nos_by_created(db_connection, thread_count // 4)
-    latest_files = chv_database.get_thread_nos_custom_1(db_connection, 10, thread_count)
+    # 1. Choose the newest created (thread_count // 10) thread files
+    # 2. Choose the last modified (thread_count // 40) with at least 150 replies
+    # 3. Choose the last modified (thread_count * 1) with at least 10 replies ordered by replies
+    # 4. Combine the above lists in that order, limiting elements to (thread_count * 1)
+    all_thread_groups = list()
+    all_thread_groups.append(chv_database.get_thread_nos_by_created(db_connection, thread_count // 10))
+    all_thread_groups.append(chv_database.get_thread_nos_custom_2(db_connection, 150, thread_count // 40))
+    all_thread_groups.append(chv_database.get_thread_nos_custom_1(db_connection, 10, thread_count))
+    
     all_threads = set()
-    for thread_no in tail_threads:
-        all_threads.add(thread_no)
-    for thread_no in latest_files:
-        if thread_no not in all_threads and len(all_threads) < thread_count:
-            all_threads.add(thread_no)
+    for thread_group in all_thread_groups:
+        for thread_no in thread_group:
+            if thread_no not in all_threads and len(all_threads) < thread_count:
+                all_threads.add(thread_no)
 
     all_threads = list(all_threads)
     my_board = chv_database.get_threads(db_connection, all_threads)
@@ -555,12 +558,9 @@ def make_html(board_names: list, board_index: int, thread_count: int):
         return
 
     print(f'making html/{board_name[0]}.html with {len(my_board)} threads', flush=True)
-    # calculate complexity for board (medium)
-    calculate_board_complexity(my_board)
-    # sort threads by cumulative complexity (fast)
-    threads_sorted = sort_board_cumulative_complexity(my_board)
-    # print the entire board to html (slow)
-    html_string = print_board(my_board, threads_sorted, board_names, board_index)
+    calculate_board_complexity(my_board)  # calculate complexity for board (medium)
+    threads_sorted = sort_board_cumulative_complexity(my_board)  # sort threads by cumulative complexity (fast)
+    html_string = print_board(my_board, threads_sorted, board_names, board_index)  # print the entire board to html (slow)
 
     # write board html to file (fast)
     with open(f'html/{board_name[0]}.html', 'w') as f:

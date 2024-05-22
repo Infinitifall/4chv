@@ -39,26 +39,39 @@ A 4chan downloader/viewer. Downloads threads and builds offline HTML pages for a
 
 ## Usage
 
-Once 4CHV is running, HTML files will be created in `html/`. Open these in your web browser.
+- 4CHV can be kept running continuously, intermittently, or whenever you wish. While running,
+  - Threads are downloaded every few seconds
+  - HTML files are created/updated every few minutes and placed in `html/` (open in web browser)
 
-While running, threads are downloaded every few seconds and HTML files are updated every few minutes. It can be kept running in the background, run intermittently or run whenever you wish.
+- Configure 4chv to your liking by editing the following files (restart for changes to take effect):
+  - [`chv_boards.py`](./main/custom/chv_boards.py): Select boards to download (remove leading `#`)
+  - [`chv_params.py`](./main/custom/chv_params.py): All other config options
 
 
-- **How to configure 4chv?**
+## Files
 
-  Config files are located in `main/custom/`
-  - [chv_boards.py](./main/custom/chv_boards.py): choose /boards/ to download (remove leading `#`)
-  - [chv_params.py](./main/custom/chv_params.py): all other config
+- `html/`: Board HTML files
+  - `resources/`: CSS, JS, image files
+  - `thumbs/`: Thread thumbnails in `.png` format
+- `threads/`: Threads stored in SQLite files
+- `main/`
+  - `chv_download.py`: Download threads
+  - `chv_view.py`: Create HTML files
+  - `chv_database.py`: Functions for SQLite db
+  - `chv_run.py`: Run 4chv
+  - `custom/`
+    - `chv_boards.py`: Dictionary of /boards/
+    - `chv_params.py`: All config options
 
-- **Where are threads downloaded?**
-  - `threads/`: threads stored as sqlite files
-  - `html/thumbs/`: thumbnails stored as png files
+
+## FAQs
 
 - **What is thread, post quality?**
 
   Threads and replies are ordered by "quality"
     - `points` measure the uniqueness of words used in a post
-    - `+` measure the quality of the replies to a post
+    - `+` measure the quality of the replies to a post (recursively measures points)
+
 
 - **How to delete all downloaded threads, thumbnails?**
   - Stop 4chv if it is running
@@ -66,12 +79,7 @@ While running, threads are downloaded every few seconds and HTML files are updat
     - `threads/`
     - `html/thumbs/`
 
+
 - **How to uninstall 4CHV?**
 
   Delete the entire `4chv/` folder
-
-
-## Contribute
-
-- Report bugs or make suggestions in "Issues"
-- All contributions are welcome! Create a fork and pull request.
