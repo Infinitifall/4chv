@@ -282,6 +282,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_names: list, board_index: int):
     datetime_now = datetime.now().timestamp()
+    version_number = chv_params.version_number
     board_name = board_names[board_index]
 
     # get latest post time
@@ -291,9 +292,6 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
         if 'last_modified' in thread:
             if thread['last_modified'] > latest_post_time:
                 latest_post_time = thread['last_modified']
-
-    # update version when you update css, js, images to bypass browser cache
-    version_number = "60"
 
     # add greeter links to all boards
     board_links_html = '[]'
@@ -544,7 +542,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                 <div class="greeter-footer">
                     <ul class="greeter-footer-list">
                         <li><a href="#">Go to top</a></li>
-                        <li>4CHV is free and open source software! (<a href="https://github.com/Infinitifall/4chv" target="_blank" rel=“noreferrer”>source repo</a>)</li>
+                        <li><a href="https://github.com/Infinitifall/4chv" target="_blank" rel=“noreferrer”>4CHV</a> is free and open source software!</li>
                     </ul>
                 </div>
             </div>
@@ -612,6 +610,93 @@ def make_html(board_names: list, board_index: int, thread_count: int):
     return
 
 
+def make_index(board_names: list):
+    datetime_now = datetime.now().timestamp()
+    version_number = chv_params.version_number
+
+    # add greeter links to index
+    board_links_html = '[]'
+    if len(board_names) != 0:
+        board_links_html = '[ ' + ' / '.join([f'<a href="{b[0]}.html" title="{b[1]}" class="greeter-element">{b[0]}</a>' for b in board_names]) + ' ]'
+
+    # get stylesheet filename
+    all_stylesheets = chv_params.all_stylesheets
+    selected_style = chv_params.selected_style
+    selected_stylesheet = chv_params.selected_stylesheet
+
+    # create style-selector dropbox
+    style_selector_html = '<select autocomplete="off" id="style-selector" onchange="set_style();">'
+    for style in all_stylesheets:
+        style_selector_html += f'<option value="{all_stylesheets[style]}"'
+        if style == selected_style:
+            style_selector_html += f' selected="selected"'
+        style_selector_html += f'>{style}</option>'
+    style_selector_html += '</select>'
+
+    all_boards_html = '<ul class="all-boards-list">'
+    for board_name in board_names:
+        all_boards_html += f'<li><a href="{board_name[0]}.html">{board_name[0]} - {board_name[1]}</a></li>'
+    all_boards_html += '</ul>'
+
+    index_file = f'''
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="robots" content="noindex">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta property="og:locale" content="en_US">
+            <meta property="og:type" content="website">
+            <link rel='stylesheet' id="stylesheet" type='text/css' href='resources/stylesheets/{selected_stylesheet}?v={version_number}'>
+            <script src='resources/js/script.js?v={version_number}' defer></script>
+            <link rel="icon" type="image/x-icon" href="resources/images/favicon.png?v={version_number}">
+            <title>Index - 4CHV</title>
+        </head>
+        <body>
+            <div class="wrapper">
+                <div class="greeter-links">
+                    {board_links_html}
+                </div>
+                <hr>
+                <div class="greeter-logo">
+                    <img title="4CHV logo" loading="lazy" src="./resources/images/logo.png"></img>
+                </div>
+                <h1 class="page-title">
+                    <a title="Page title" href="">Index</a>
+                </h1>
+                <div class="greeter-subtitle">
+                Index updated <div title="Time since index was last built" class="board-time">{int(datetime_now)}</div>
+                </div>
+                <div class="greeter-info">
+                    <hr>
+                    <div class="greeter-style-selector-parent">
+                        <b>Options</b>
+                        <label for="style-selector">Style: </label>
+                        {style_selector_html}
+                    </div>
+                </div>
+                <hr>
+                <div class="all-boards">
+                    {all_boards_html}
+                </div>
+                <hr>
+                <div class="greeter-footer">
+                    <ul class="greeter-footer-list">
+                        <li><a href="https://github.com/Infinitifall/4chv" target="_blank" rel=“noreferrer”>4CHV</a> is free and open source software!</li>
+                    </ul>
+                </div>
+            </div>
+        </body>
+    </html>
+    '''
+
+    # write index html to file (fast)
+    with open(f'html/index.html', 'w') as f:
+        f.write(index_file)
+        print(f'built html/index.html', flush=True)
+    return
+
+
 def make_html_wrapper(wait_time: float, thread_count: int):
     while True:
         try:
@@ -623,6 +708,14 @@ def make_html_wrapper(wait_time: float, thread_count: int):
                 time.sleep(10)
                 continue
             print(f'making: {", ".join([b[0] for b in board_names])}', flush=True)
+
+            # make index.html
+            try:
+                make_index(board_names)
+            except Exception as e:
+                print(f'failed to make html/index.html', flush=True)
+                print(e, flush=True)
+                time.sleep(10)
 
             # make all boards
             wait_time_in_between = 5

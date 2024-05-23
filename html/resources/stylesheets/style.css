@@ -91,6 +91,12 @@ hr {
     }
 }
 
+.all-boards {
+    font-size: 1em;
+    max-width: 500px;
+    margin: auto;
+}
+
 .all-threads {
     margin-top: 2em;
 }

@@ -23,6 +23,9 @@ view_max_threads_per_board = 300
 # we want this to be large since most threads are low quality, especially during high traffic
 db_max_threads_per_board = 5000
 
+# update version when you update css, js, images to bypass browser cache
+# you dont need to touch this unless you are a 4chv dev
+version_number = "60"
 
 
 if __name__ == '__main__':
