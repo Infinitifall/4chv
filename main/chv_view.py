@@ -709,9 +709,15 @@ def make_html_wrapper(wait_time: float, thread_count: int):
                 continue
             print(f'making: {", ".join([b[0] for b in board_names])}', flush=True)
 
+            # delete old html files
+            for filename in pathlib.Path("html/").glob("*.html"):
+                filename.unlink()
+            print(f'deleted any old html files', flush=True)
+
             # make index.html
             try:
                 make_index(board_names)
+                print(f'built html/index.html', flush=True)
             except Exception as e:
                 print(f'failed to make html/index.html', flush=True)
                 print(e, flush=True)
