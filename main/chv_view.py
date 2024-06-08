@@ -698,6 +698,7 @@ def make_index(board_names: list):
 
 
 def make_html_wrapper(wait_time: float, thread_count: int):
+    first_time = True
     while True:
         try:
             # get list of board names
@@ -710,9 +711,11 @@ def make_html_wrapper(wait_time: float, thread_count: int):
             print(f'making: {", ".join([b[0] for b in board_names])}', flush=True)
 
             # delete old html files
-            for filename in pathlib.Path("html/").glob("*.html"):
-                filename.unlink()
-            print(f'deleted any old html files', flush=True)
+            if (first_time):
+                for filename in pathlib.Path("html/").glob("*.html"):
+                    filename.unlink()
+                print(f'deleted any old html files', flush=True)
+            first_time = False
 
             # make index.html
             try:
