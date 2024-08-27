@@ -80,6 +80,7 @@ def clean_post(content: str):
     return content
 
 
+REQUEST_HEADERS = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3' }
 # get request with retries in case of
 def get_url_custom(custom_url):
     session = requests.Session()
@@ -89,7 +90,7 @@ def get_url_custom(custom_url):
     )
     adapter = requests.adapters.HTTPAdapter(max_retries=retry)
     session.mount('https://', adapter)
-    request = session.get(custom_url)
+    request = session.get(custom_url, headers=REQUEST_HEADERS)
     return request
 
 
