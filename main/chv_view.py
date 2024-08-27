@@ -720,7 +720,6 @@ def make_html_wrapper(wait_time: float, thread_count: int):
             # make index.html
             try:
                 make_index(board_names)
-                print(f'built html/index.html', flush=True)
             except Exception as e:
                 print(f'failed to make html/index.html', flush=True)
                 print(e, flush=True)
