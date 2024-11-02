@@ -7,8 +7,7 @@ import html
 import sqlite3
 
 # local imports
-import custom.chv_boards as chv_boards
-import custom.chv_params as chv_params
+import chv_config
 import chv_database
 
 # filter post text post html escaping
@@ -148,12 +147,14 @@ def sort_board_cumulative_complexity(board : dict):
 
     # decay older threads by decreasing points by a ratio for every hour
     datetime_now = datetime.now().timestamp()
-    decay_limit_hours = 24 * 4  # no more decrease after this
+    decay_limit_hours = chv_config.decay_limit_hours
+    decay_delta = chv_config.decay_delta
+    decay_power = chv_config.decay_power
     for thread_no in board:
         if 'last_modified' not in board[thread_no]:
             board[thread_no]['last_modified'] = 0
         time_delta_hours = (datetime_now - board[thread_no]['last_modified']) // (60 * 60)
-        board[thread_no]['cumulative_complexity_normalized_timed'] = board[thread_no]['cumulative_complexity_normalized'] * (0.15 + max(0, decay_limit_hours - time_delta_hours) / decay_limit_hours) ** 2
+        board[thread_no]['cumulative_complexity_normalized_timed'] = board[thread_no]['cumulative_complexity_normalized'] * (decay_delta + max(0, decay_limit_hours - time_delta_hours) / decay_limit_hours) ** decay_power
     threads_sorted = sorted(threads_sorted, key=lambda x: board[x]['cumulative_complexity_normalized_timed'], reverse=True)
     # threads_sorted2 = sorted(threads_sorted, key=lambda x: board[x]['cumulative_complexity_normalized'], reverse=True)
 
@@ -168,19 +169,21 @@ def create_post_list_r(board : dict, thread_no : int, post_no : int, tabbing: in
 
     post = board[thread_no]['thread'][post_no]
 
-    # logic for how many occurrences are allowed
+    # track occurrences
     if 'occurrences' not in post:
         post['occurrences'] = 1
     else:
         post['occurrences'] += 1
-    occurrences_max = 1
-    if (post['occurrences'] > 1 and tabbing <= 1) or \
-        (post['occurrences'] > occurrences_max):
+
+    if (post['occurrences'] > chv_config.post_occurrences_max):
         return -1
 
-    # logic for hiding a post by default
+    # logic for whether a post is toggled open or close by default
+    # OP (which has tabbing == 0) is always visible
     post_complexity_int = int((post['complexity'] / 100) ** 0.8)
-    if (post_complexity_int <= 10 + 2 * tabbing) and (tabbing > 0):
+    toggle_min = chv_config.toggle_min
+    toggle_factor = chv_config.toggle_factor
+    if (post_complexity_int <= toggle_min + toggle_factor * tabbing) and (tabbing > 0):
         post['hidden'] = True
 
     post_list.append({'post': post, 'tabbing': tabbing})
@@ -282,7 +285,7 @@ def print_post(post: dict):
 # print an entire board
 def print_board(board: dict, threads_sorted : list, board_names: list, board_index: int):
     datetime_now = datetime.now().timestamp()
-    version_number = chv_params.version_number
+    version_number = chv_config.version_number
     board_name = board_names[board_index]
 
     # get latest post time
@@ -299,9 +302,9 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
         board_links_html = '[ ' + ' / '.join([f'<a href="{b[0]}.html" title="{b[1]}" class="greeter-element">{b[0]}</a>' for b in board_names]) + ' ]'
 
     # get stylesheet filename
-    all_stylesheets = chv_params.all_stylesheets
-    selected_style = chv_params.selected_style
-    selected_stylesheet = chv_params.selected_stylesheet
+    all_stylesheets = chv_config.all_stylesheets
+    selected_style = chv_config.selected_style
+    selected_stylesheet = chv_config.selected_stylesheet
 
     # create style-selector dropbox
     style_selector_html = '<select autocomplete="off" id="style-selector" onchange="set_style();">'
@@ -612,7 +615,7 @@ def make_html(board_names: list, board_index: int, thread_count: int):
 
 def make_index(board_names: list):
     datetime_now = datetime.now().timestamp()
-    version_number = chv_params.version_number
+    version_number = chv_config.version_number
 
     # add greeter links to index
     board_links_html = '[]'
@@ -620,9 +623,9 @@ def make_index(board_names: list):
         board_links_html = '[ ' + ' / '.join([f'<a href="{b[0]}.html" title="{b[1]}" class="greeter-element">{b[0]}</a>' for b in board_names]) + ' ]'
 
     # get stylesheet filename
-    all_stylesheets = chv_params.all_stylesheets
-    selected_style = chv_params.selected_style
-    selected_stylesheet = chv_params.selected_stylesheet
+    all_stylesheets = chv_config.all_stylesheets
+    selected_style = chv_config.selected_style
+    selected_stylesheet = chv_config.selected_stylesheet
 
     # create style-selector dropbox
     style_selector_html = '<select autocomplete="off" id="style-selector" onchange="set_style();">'
@@ -702,10 +705,10 @@ def make_html_wrapper(wait_time: float, thread_count: int):
     while True:
         try:
             # get list of board names
-            board_names = chv_boards.boards_active
+            board_names = chv_config.boards_active
             # avoid busy wait if no active boards
             if len(board_names) == 0:
-                print(f'no active boards! Uncomment lines in main/chv_boards.py!', flush=True)
+                print(f'no active boards! Uncomment lines in main/chv_config.py!', flush=True)
                 time.sleep(10)
                 continue
             print(f'making: {", ".join([b[0] for b in board_names])}', flush=True)
@@ -726,11 +729,10 @@ def make_html_wrapper(wait_time: float, thread_count: int):
                 time.sleep(10)
 
             # make all boards
-            wait_time_in_between = 5
             for board_index, board_name in enumerate(board_names):
                 try:
                     make_html(board_names, board_index, thread_count)
-                    time.sleep(wait_time_in_between)
+                    time.sleep(chv_config.view_wait_time_internal)
                 except Exception as e:
                     print(f'failed to make html/{board_name[0]}.html', flush=True)
                     print(e, flush=True)

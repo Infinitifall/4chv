@@ -12,8 +12,7 @@ import html
 import sqlite3
 
 # local imports
-import custom.chv_boards as chv_boards
-import custom.chv_params as chv_params
+import chv_config
 import chv_database
 
 
@@ -123,7 +122,7 @@ def download_all_boards(board_names: list, wait_time: float):
         chv_database.startup_boards_db(db_connections[board_name[0]])
 
         # delete very old threads
-        thread_nos_deleted = chv_database.delete_very_old_threads(db_connections[board_name[0]], chv_params.db_max_threads_per_board)
+        thread_nos_deleted = chv_database.delete_very_old_threads(db_connections[board_name[0]], chv_config.db_max_threads_per_board)
         for op_post_no_deleted in thread_nos_deleted:
             pathlib.Path.unlink(f'html/thumbs/{board_name[0]}/{op_post_no_deleted}.png', missing_ok=True)
         if len(thread_nos_deleted) != 0:
@@ -289,9 +288,9 @@ def download_all_boards_wrapper(wait_time: float):
     while True:
         try:
             # get list of board names
-            board_names = chv_boards.boards_active
+            board_names = chv_config.boards_active
             if len(board_names) == 0:
-                print(f'no active boards! Uncomment lines in main/chv_boards.py!', flush=True)
+                print(f'no active boards! Uncomment lines in main/chv_config.py!', flush=True)
                 time.sleep(10)
                 continue
             print(f'downloading: {", ".join([b[0] for b in board_names])}', flush=True)

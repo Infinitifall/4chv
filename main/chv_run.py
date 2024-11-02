@@ -6,7 +6,7 @@ import threading
 # local imports
 import chv_view
 import chv_download
-import custom.chv_params as chv_params
+import chv_config
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
     download_thread = threading.Thread(
         target=chv_download.download_all_boards_wrapper,
         args=[
-            chv_params.download_wait_time
+            chv_config.download_wait_time
         ]
     )
 
@@ -36,8 +36,8 @@ def main():
     view_thread = threading.Thread(
         target=chv_view.make_html_wrapper,
         args=[
-            chv_params.view_wait_time,
-            chv_params.view_max_threads_per_board
+            chv_config.view_wait_time,
+            chv_config.view_max_threads_per_board
         ]
     )
 
