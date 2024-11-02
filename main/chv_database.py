@@ -1,20 +1,20 @@
 import sqlite3
 
 
-thread_fields       = ['no', 'last_modified', 'replies', 'sub', 'com', 'thumbnail', 'images', 'is_archived', 'is_404d']
-thread_posts_fields = ['thread_no', 'post_no']
-post_fields         = ['no', 'com', 'sub', 'name', 'id', 'file', 'time', 'filename', 'ext', 'country', 'country_name']
-post_replies_fields = ['post_no', 'reply_no' ]
+THREAD_FIELDS       = ['no', 'last_modified', 'replies', 'sub', 'com', 'thumbnail', 'images', 'is_archived', 'is_404d']
+THREAD_POSTS_FIELDS = ['thread_no', 'post_no']
+POST_FIELDS         = ['no', 'com', 'sub', 'name', 'id', 'file', 'time', 'filename', 'ext', 'country', 'country_name']
+POST_REPLIES_FIELDS = ['post_no', 'reply_no' ]
 
-thread_fields_comma         = ','.join(thread_fields)
-thread_posts_fields_comma   = ','.join(thread_posts_fields)
-post_fields_comma           = ','.join(post_fields)
-post_replies_fields_comma   = ','.join(post_replies_fields)
+THREAD_FIELDS_COMMA         = ','.join(THREAD_FIELDS)
+THREAD_POSTS_FIELDS_COMMA   = ','.join(THREAD_POSTS_FIELDS)
+POST_FIELDS_COMMA           = ','.join(POST_FIELDS)
+POST_REPLIES_FIELDS_COMMA   = ','.join(POST_REPLIES_FIELDS)
 
-thread_fields_question          = ','.join(['?' for _ in thread_fields])
-thread_posts_fields_question    = ','.join(['?' for _ in thread_posts_fields])
-post_fields_question            = ','.join(['?' for _ in post_fields])
-post_replies_fields_question    = ','.join(['?' for _ in post_replies_fields])
+THREAD_FIELDS_QUESTION          = ','.join(['?' for _ in THREAD_FIELDS])
+THREAD_POSTS_FIELDS_QUESTION    = ','.join(['?' for _ in THREAD_POSTS_FIELDS])
+POST_FIELDS_QUESTION            = ','.join(['?' for _ in POST_FIELDS])
+POST_REPLIES_FIELDS_QUESTION    = ','.join(['?' for _ in POST_REPLIES_FIELDS])
 
 
 # save a thread to db
@@ -23,27 +23,27 @@ def save_thread(db_connection, thread: dict):
 
     # insert basic thread info into threads table
     thread_values = list()
-    for thread_field in thread_fields:
+    for thread_field in THREAD_FIELDS:
         thread_values.append(thread[thread_field] if thread_field in thread else None)
     db_cursor.execute(f"""
-        INSERT OR REPLACE INTO threads ({thread_fields_comma})
-        VALUES ({thread_fields_question});
+        INSERT OR REPLACE INTO threads ({THREAD_FIELDS_COMMA})
+        VALUES ({THREAD_FIELDS_QUESTION});
         """, thread_values)
 
     for post_no in thread['thread']:
         # insert post thread relation in thread_replies table
         db_cursor.execute(f"""
-            INSERT OR IGNORE INTO thread_posts ({thread_posts_fields_comma})
-            VALUES ({thread_posts_fields_question});
+            INSERT OR IGNORE INTO thread_posts ({THREAD_POSTS_FIELDS_COMMA})
+            VALUES ({THREAD_POSTS_FIELDS_QUESTION});
             """, [thread['no'], post_no])
 
         # insert post info into posts table
         post_values = list()
-        for post_field in post_fields:
+        for post_field in POST_FIELDS:
             post_values.append(thread['thread'][post_no][post_field] if post_field in thread['thread'][post_no] else None)
         db_cursor.execute(f"""
-            INSERT OR REPLACE INTO posts ({post_fields_comma})
-            VALUES ({post_fields_question});
+            INSERT OR REPLACE INTO posts ({POST_FIELDS_COMMA})
+            VALUES ({POST_FIELDS_QUESTION});
             """, post_values)
 
     # do this in another for loop so sql foreign key constraints are met
@@ -51,16 +51,16 @@ def save_thread(db_connection, thread: dict):
         for succ in thread['thread'][post_no]['succ']:
             # insert succ into post_replies table
             db_cursor.execute(f"""
-                INSERT OR IGNORE INTO post_replies ({post_replies_fields_comma})
-                VALUES ({post_replies_fields_question});
+                INSERT OR IGNORE INTO post_replies ({POST_REPLIES_FIELDS_COMMA})
+                VALUES ({POST_REPLIES_FIELDS_QUESTION});
                 """, [post_no, succ])
 
         # should be duplicates, but still
         for pred in thread['thread'][post_no]['pred']:
             # insert pred into post_replies table
             db_cursor.execute(f"""
-                INSERT OR IGNORE INTO post_replies ({post_replies_fields_comma})
-                VALUES ({post_replies_fields_question});
+                INSERT OR IGNORE INTO post_replies ({POST_REPLIES_FIELDS_COMMA})
+                VALUES ({POST_REPLIES_FIELDS_QUESTION});
                 """, [pred, post_no])
 
     db_connection.commit()
@@ -160,63 +160,79 @@ def get_threads_shallow(db_connection, thread_nos: list):
     # db_output = db_cursor.fetchall()
 
     threads_dict = dict()
-    for thread in db_cursor:
-        threads_dict[thread[0]] = dict()
-        for i in range(len(thread_fields)):
-            if thread[i] != None:
-                threads_dict[thread[0]][thread_fields[i]] = thread[i]
+    THREAD_NO_INDEX = 0
+    for each_row in db_cursor:
+        # get thread info
+        if each_row[THREAD_NO_INDEX] not in threads_dict:
+            threads_dict[each_row[THREAD_NO_INDEX]] = dict()
+            threads_dict[each_row[THREAD_NO_INDEX]]['thread'] = dict()
+            for i in range(len(THREAD_FIELDS)):
+                if each_row[THREAD_NO_INDEX + i] != None:
+                    threads_dict[each_row[THREAD_NO_INDEX]][THREAD_FIELDS[i]] = each_row[THREAD_NO_INDEX + i]
 
     return threads_dict
 
 
 # get threads from db
 def get_threads(db_connection, thread_nos: list):
+    # get threads shallow first
+    threads_dict = get_threads_shallow(db_connection, thread_nos)
+
     db_cursor = db_connection.cursor()
 
-    # query the threads table to get basic thread info
+    # get posts
     db_cursor.execute(f"""
         SELECT *
-        FROM threads
-            JOIN thread_posts
-                ON threads.no = thread_posts.thread_no
+        FROM thread_posts
             JOIN posts
                 ON thread_posts.post_no = posts.no
-            JOIN post_replies
-                ON posts.no = post_replies.post_no
-                    OR posts.no = post_replies.reply_no
-        WHERE threads.no in ({','.join(['?' for _ in thread_nos])});
+        WHERE thread_posts.thread_no in ({','.join(['?' for _ in thread_nos])});
         """, thread_nos)
     # db_output = db_cursor.fetchall()
 
-    threads_dict = dict()
-    for thread in db_cursor:
-        # get thread info
-        thread_no_index = 0
-        if thread[thread_no_index] not in threads_dict:
-            threads_dict[thread[thread_no_index]] = dict()
-            threads_dict[thread[thread_no_index]]['thread'] = dict()
-            for i in range(len(thread_fields)):
-                if thread[thread_no_index + i] != None:
-                    threads_dict[thread[thread_no_index]][thread_fields[i]] = thread[thread_no_index + i]
-
+    THREAD_NO_INDEX = 0
+    POST_NO_INDEX = len(THREAD_POSTS_FIELDS)
+    for each_row in db_cursor:
         # get post info
-        post_no_index = len(thread_fields) + len(thread_posts_fields)
-        if thread[post_no_index] not in threads_dict[thread[thread_no_index]]['thread']:
-            threads_dict[thread[thread_no_index]]['thread'][thread[post_no_index]] = dict()
-            threads_dict[thread[thread_no_index]]['thread'][thread[post_no_index]]['succ'] = list()
-            threads_dict[thread[thread_no_index]]['thread'][thread[post_no_index]]['pred'] = list()
-            for i in range(len(post_fields)):
-                if thread[post_no_index + i] != None:
-                    threads_dict[thread[thread_no_index]]['thread'][thread[post_no_index]][post_fields[i]] = thread[post_no_index + i]
+        if each_row[POST_NO_INDEX] not in threads_dict[each_row[THREAD_NO_INDEX]]['thread']:
+            threads_dict[each_row[THREAD_NO_INDEX]]['thread'][each_row[POST_NO_INDEX]] = dict()
+            threads_dict[each_row[THREAD_NO_INDEX]]['thread'][each_row[POST_NO_INDEX]]['succ'] = set()
+            threads_dict[each_row[THREAD_NO_INDEX]]['thread'][each_row[POST_NO_INDEX]]['pred'] = set()
+            for i in range(len(POST_FIELDS)):
+                if each_row[POST_NO_INDEX + i] != None:
+                    threads_dict[each_row[THREAD_NO_INDEX]]['thread'][each_row[POST_NO_INDEX]][POST_FIELDS[i]] = each_row[POST_NO_INDEX + i]
 
-        # get pred and succ, without duplicate checking ("not in") since they are too expensive
-        # on lists, besides there shouldn't be duplicates in the db. Instead just check if they are not post_no
-        pred_no_index = len(thread_fields) + len(thread_posts_fields) + len(post_fields)
-        succ_no_index = len(thread_fields) + len(thread_posts_fields) + len(post_fields) + 1
-        if thread[pred_no_index] != thread[post_no_index] and thread[pred_no_index] != None:
-            threads_dict[thread[thread_no_index]]['thread'][thread[post_no_index]]['pred'].append(thread[pred_no_index])
-        if thread[succ_no_index] != thread[post_no_index] and thread[succ_no_index] != None:
-            threads_dict[thread[thread_no_index]]['thread'][thread[post_no_index]]['succ'].append(thread[succ_no_index])
+    # get pred and succ
+    db_cursor.execute(f"""
+        SELECT *
+        FROM thread_posts
+            JOIN post_replies
+                ON thread_posts.post_no = post_replies.post_no
+                    OR thread_posts.post_no = post_replies.reply_no
+        WHERE thread_posts.thread_no in ({','.join(['?' for _ in thread_nos])});
+        """, thread_nos)
+    # db_output = db_cursor.fetchall()
+
+    POST_NO_INDEX = 1
+    PRED_NO_INDEX = len(THREAD_POSTS_FIELDS)
+    SUCC_NO_INDEX = len(THREAD_POSTS_FIELDS) + 1
+    for each_row in db_cursor:
+        # don't check for duplicates since db has unique condition
+        if each_row[PRED_NO_INDEX] != each_row[POST_NO_INDEX] and each_row[PRED_NO_INDEX] != None:
+            # sometimes there might be references from an outside thread
+            if each_row[POST_NO_INDEX] in threads_dict[each_row[THREAD_NO_INDEX]]['thread']:
+                threads_dict[each_row[THREAD_NO_INDEX]]['thread'][each_row[POST_NO_INDEX]]['pred'].add(each_row[PRED_NO_INDEX])
+        if each_row[SUCC_NO_INDEX] != each_row[POST_NO_INDEX] and each_row[SUCC_NO_INDEX] != None:
+            # sometimes there might be references from an outside thread
+            if each_row[POST_NO_INDEX] in threads_dict[each_row[THREAD_NO_INDEX]]['thread']:
+                threads_dict[each_row[THREAD_NO_INDEX]]['thread'][each_row[POST_NO_INDEX]]['succ'].add(each_row[SUCC_NO_INDEX])
+
+    # convert succ and pred sets to lists
+    for each_thread_no, each_thread in threads_dict.items():
+        if 'thread' in each_thread:
+            for each_post_no, each_post in each_thread['thread'].items():
+                each_post['succ'] = list(each_post['succ'])
+                each_post['pred'] = list(each_post['pred'])
 
     return threads_dict
 
