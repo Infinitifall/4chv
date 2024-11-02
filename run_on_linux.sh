@@ -1,14 +1,11 @@
 #!/bin/bash
 if [ -d "venv_chv" ]; then
-    source venv_chv/bin/activate
+    source venv_chv/bin/activate > /dev/null
 else
-    python3 -m venv venv_chv
-    source venv_chv/bin/activate
-    python3 -m pip install requests >/dev/null
+    python3 -m venv venv_chv > /dev/null
+    source venv_chv/bin/activate > /dev/null
+    python3 -m pip install --upgrade pip > /dev/null
+    python3 -m pip install -r ./requirements.txt > /dev/null
 fi
-
-# cleanup for old versions of 4chv
-rm *.html
-rm -rf "myenv"
 
 python3 main/chv_run.py

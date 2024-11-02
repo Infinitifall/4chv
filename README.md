@@ -45,9 +45,7 @@ A 4chan downloader/viewer. Downloads threads and builds offline HTML pages for a
   - Threads are downloaded every few seconds
   - HTML files are created/updated every few minutes and placed in `html/` (open in web browser)
 
-- Configure 4chv to your liking by editing the following files (restart for changes to take effect):
-  - [`chv_boards.py`](./main/custom/chv_boards.py): Select boards to download (remove leading `#`)
-  - [`chv_params.py`](./main/custom/chv_params.py): All other config options
+- Select boards to download and other options by editing the config file [`chv_config.py`](./main/chv_config.py). Restart for changes to take effect.
 
 
 ## Files
@@ -61,9 +59,7 @@ A 4chan downloader/viewer. Downloads threads and builds offline HTML pages for a
   - `chv_view.py`: Create HTML files
   - `chv_database.py`: Functions for SQLite db
   - `chv_run.py`: Run 4chv
-  - `custom/`
-    - `chv_boards.py`: Dictionary of /boards/
-    - `chv_params.py`: All config options
+  - `chv_config.py`: Config file
 
 
 ## FAQs

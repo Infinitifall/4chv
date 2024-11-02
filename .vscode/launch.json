@@ -1,0 +1,52 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Custom download.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main/chv_download.py",
+            "args": [
+                "2",
+            ],
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/venv_chv",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+        },
+        {
+            "name": "Python: Custom view.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main/chv_view.py",
+            "args": [
+                "2",
+                "100"
+            ],
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/venv_chv",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+        },
+        {
+            "name": "Python: Custom run.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main/chv_run.py",
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/venv_chv",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+        },
+        {
+            "name": "Python: Custom run_tkinter.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main/chv_run_tkinter.py",
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/venv_chv",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+        }
+    ]
+}

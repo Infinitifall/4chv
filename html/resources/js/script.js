@@ -371,6 +371,51 @@ function element_colorize_deterministic(element, post_no) {
 }
 
 
+function apply_whitelist_and_blacklist() {
+    let blacklist = document.getElementById("blacklist-words");
+    let whitelist = document.getElementById("whitelist-words");
+
+    let blacklist_words = blacklist.value.split(" ");
+    let whitelist_words = whitelist.value.split(" ");
+
+    let all_threads = document.getElementsByClassName("thread-parent");
+    for (let i = 0; i < all_threads.length; i++) {
+        let op_thread = all_threads[i];
+
+        let op_thread_posts = op_thread.querySelectorAll(".post");
+        if (op_thread_posts.length == 0) { return; }
+        let op_post = op_thread_posts[0];
+
+        let whitelisted = (whitelist_words[0] === "") ? true : false;
+        for (let word of whitelist_words) {
+            if (word === "") { continue; }
+            if (op_post.textContent.toLowerCase().includes(word.toLowerCase())) {
+                whitelisted = true;
+            }
+        }
+
+        let blacklisted = false;
+        for (let word of blacklist_words) {
+            if (word === "") { continue; }
+            if (op_post.textContent.toLowerCase().includes(word.toLowerCase())) {
+                blacklisted = true;
+            }
+        }
+
+        let blessed = (!blacklisted && whitelisted);
+        
+        op_thread.classList.remove("thread-blessed");
+        op_thread.classList.remove("thread-cursed");
+
+        if (blessed) {
+            op_thread.classList.add("thread-blessed");
+        } else {
+            op_thread.classList.add("thread-cursed");
+        }
+    }
+}
+
+
 function button_press_highlight(original_div) {
     original_div.style.background = "#577989";
     setTimeout(function() {
@@ -694,6 +739,18 @@ window.addEventListener("popstate", function() {
 });
 
 function keyboard_shortcuts(e) {
+    // if an input box is active...
+    if (document.activeElement.nodeName == "INPUT") {
+        // apply whitelist and blacklist if changed
+        let blacklist = document.getElementById("blacklist-words");
+        let whitelist = document.getElementById("whitelist-words");
+        if (document.activeElement == blacklist || document.activeElement == whitelist) {
+            setTimeout(function() { apply_whitelist_and_blacklist(); }, 10);
+        }
+        // don't want to activate shortcuts
+        return
+    }
+
     // don't activate if other keys are pressed
     if (e.ctrlKey || e.altKey) {
         return;

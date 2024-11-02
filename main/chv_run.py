@@ -6,29 +6,20 @@ import threading
 # local imports
 import chv_view
 import chv_download
-import custom.chv_params as chv_params
+import chv_config
 
 
 def main():
 
-    # pretty (ugly) print console message
-    print('-' * 50)
-    print('4CHV: a viewer for a more civilized age ')
-    print('-' * 50)
-    print('Leave this running in the background for')
-    print('however long you like. While running, it will')
-    print('1. Keep downloading new threads')
-    print('2. Keep updating the board html files')
-    print('')
-    print('Open the board html files in your web browser :)')
-    print('-' * 50)
+    # display pretty (ugly) start message
+    print(chv_config.pretty_ugly_start_message)
     sys.stdout.flush()
 
     # thread to download threads
     download_thread = threading.Thread(
         target=chv_download.download_all_boards_wrapper,
         args=[
-            chv_params.download_wait_time
+            chv_config.download_wait_time
         ]
     )
 
@@ -36,8 +27,8 @@ def main():
     view_thread = threading.Thread(
         target=chv_view.make_html_wrapper,
         args=[
-            chv_params.view_wait_time,
-            chv_params.view_max_threads_per_board
+            chv_config.view_wait_time,
+            chv_config.view_max_threads_per_board
         ]
     )
 
@@ -54,5 +45,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main();
+    main()
 
