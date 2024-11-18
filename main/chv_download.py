@@ -247,7 +247,7 @@ def download_thread(board_name: str, thread_no: int, db_connection):
             thumbnail_file = pathlib.Path(f'html/thumbs/{board_name}/{post["no"]}.jpg')
             if not thumbnail_file.is_file():
                 thumbnail = get_url_custom(thumbnail_url(board_name, post['tim']))
-                time.sleep(0.1)
+                # time.sleep(0.1)  # probably not needed since browsers load all instantly
 
                 thumbnail_content = thumbnail.content
                 with thumbnail_file.open('wb') as f:
