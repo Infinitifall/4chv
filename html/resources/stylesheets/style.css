@@ -196,10 +196,15 @@ Styling for threads
     }
 }
 
+.thread-parent > .thread-thumbnail {
+    display: none;
+}
+
 .thread-parent > .post-parent-r {
     margin-left: -1em;
     border-left: none;
 }
+
 
 @media only screen and (max-width: 600px) {
     .thread-parent > .post-parent-r {
@@ -392,6 +397,11 @@ Styling for posts
     color: var(--file-fg-0);
 }
 
+.post-file > a > img {
+    max-height: 150px;
+    max-width: 300px;
+}
+
 .post-details-2 {
     user-select: none;
     margin-top: 0.5em;
@@ -486,6 +496,7 @@ Styling for collapsible
 }
 
 .collapsed-thread-parent > .thread-thumbnail {
+    display: block;
     height: 100px;
 }
 

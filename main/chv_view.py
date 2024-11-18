@@ -209,7 +209,7 @@ def create_post_list_r(board : dict, thread_no : int, post_no : int, tabbing: in
 
 
 # print a single post
-def print_post(post: dict):
+def print_post(board_name: list, post: dict):
     complexity_int = int((post['complexity'] / 100) ** 0.8)
     # cumulative_complexity_int = int((post['cumulative_complexity'] / 100) ** 0.8)
     # cumulative_complexity_diff_int = int(((post['cumulative_complexity'] - post['complexity']) / 100) ** 0.3)
@@ -245,7 +245,13 @@ def print_post(post: dict):
         post_file = post['file']
         post_filename = post['filename']
         post_ext = post['ext']
-        post_file_html = f'<div title="Post attachment" class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{post_filename}{post_ext}</a></div>'
+
+        thumbnail_html = '<img loading="lazy" src="./resources/images/thumbnail_not_found.png"></img>'
+        thumbnail_file = pathlib.Path(f'html/thumbs/{board_name[0]}/{post["no"]}.jpg')
+        if thumbnail_file.is_file():
+            thumbnail_html = f'<img loading="lazy" src="thumbs/{board_name[0]}/{post["no"]}.jpg"></img>'
+
+        post_file_html = f'<div title="Post attachment" class="post-file"><a href="{post_file}" rel="noreferrer" target="_blank">{thumbnail_html}</a></div>'
         post_has_file_html = f'<div title="Post has file" class="post-has-file">{post_ext}</div>'
 
     post_com = ''
@@ -417,7 +423,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
 
         thread_thumbnail_html = '''
         <a>
-            <img loading="lazy"  src="./resources/images/thumbnail_not_found.png"></img>
+            <img loading="lazy" src="./resources/images/thumbnail_not_found.png"></img>
         </a>
         '''
         if 'thread' in thread:
@@ -426,14 +432,15 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
             if 'file' in op_post:
                 thread_thumbnail_url = op_post['file']
 
-                thumbnail_file = pathlib.Path(f'html/thumbs/{board_name[0]}/{op_post["no"]}.png')
+                thumbnail_file = pathlib.Path(f'html/thumbs/{board_name[0]}/{op_post["no"]}.jpg')
                 if thumbnail_file.is_file():
                     thread_thumbnail_html = f'''
                     <a href="{thread_thumbnail_url}" rel="noreferrer" target="_blank">
-                        <img loading="lazy" src="thumbs/{board_name[0]}/{op_post["no"]}.png"></img>
+                        <img loading="lazy" src="thumbs/{board_name[0]}/{op_post["no"]}.jpg"></img>
                     </a>
                     '''
                 elif 'thumbnail' in thread:
+                    # handle legacy method where thumbnail used to be stored in db
                     thread_thumbnail = thread['thumbnail'].decode()
                     thread_thumbnail_html = f'''
                         <a href="{thread_thumbnail_url}" rel="noreferrer" target="_blank">
@@ -517,7 +524,7 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
             posts_string.append(f'''
             {'</div>' * max(curr_tabbing - tabbing + 1, 0)}
             <div class="post-parent-r {'collapsed-parent collapsed-parent-originally' if ('hidden' in post) else ''}">
-                {print_post(post)}
+                {print_post(board_name, post)}
             ''')
 
             curr_tabbing = tabbing
@@ -580,17 +587,19 @@ def make_html(board_names: list, board_index: int, thread_count: int):
     # Strategy to filter out high traffic low quality threads:
     # 1. Choose the newest created (thread_count // 10) thread files
     # 2. Choose the most replied to (thread_count // 40) thread files in the past 24 hours
-    # 3. Choose the last modified (thread_count * 1) with at least 10 replies ordered by replies
-    # 4. Combine the above lists in that order, limiting elements to (thread_count * 1)
+    # 3. Choose the last modified (thread_count * 1) thread files with at least 10 replies ordered by replies
+    # 4. Choose the last modified (thread_count * 1) thread files
+    # 5. Combine the above lists in that order, limiting elements to (thread_count * 1)
     all_thread_groups = list()
     all_thread_groups.append(chv_database.get_thread_nos_by_created(db_connection, thread_count // 10))
     all_thread_groups.append(chv_database.get_thread_nos_custom_2(db_connection, datetime_now - 24 * 60 * 60, thread_count // 40))
     all_thread_groups.append(chv_database.get_thread_nos_custom_1(db_connection, 10, thread_count))
+    all_thread_groups.append(chv_database.get_thread_nos_custom_1(db_connection, 0, thread_count))
 
     all_threads = set()
     for thread_group in all_thread_groups:
         for thread_no in thread_group:
-            if thread_no not in all_threads and len(all_threads) < thread_count:
+            if len(all_threads) < thread_count:
                 all_threads.add(thread_no)
 
     all_threads = list(all_threads)

@@ -122,11 +122,11 @@ def download_all_boards(board_names: list, wait_time: float):
         chv_database.startup_boards_db(db_connections[board_name[0]])
 
         # delete very old threads
-        thread_nos_deleted = chv_database.delete_very_old_threads(db_connections[board_name[0]], chv_config.db_max_threads_per_board)
-        for op_post_no_deleted in thread_nos_deleted:
-            pathlib.Path.unlink(f'html/thumbs/{board_name[0]}/{op_post_no_deleted}.png', missing_ok=True)
-        if len(thread_nos_deleted) != 0:
-            print(f'removed {len(thread_nos_deleted)} very old threads for /{board_name[0]}/', flush=True)
+        post_nos_deleted = chv_database.delete_very_old_threads(db_connections[board_name[0]], chv_config.db_max_threads_per_board)
+        for op_post_no_deleted in post_nos_deleted:
+            pathlib.Path.unlink(f'html/thumbs/{board_name[0]}/{op_post_no_deleted}.jpg', missing_ok=True)
+        if len(post_nos_deleted) != 0:
+            print(f'removed {len(post_nos_deleted)} very old posts for /{board_name[0]}/', flush=True)
 
         # get threads if in db
         db_thread = chv_database.get_threads_shallow(
@@ -170,8 +170,11 @@ def download_all_boards(board_names: list, wait_time: float):
     for thread_index, thread in enumerate(all_threads):
         # if modified since, download the thread
         try:
-            download_thread(thread['board_name'], thread['no'], db_connections[thread['board_name']])
-            print(f'[{thread_index + 1}/{len(all_threads)}] downloaded /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
+            download_thread_return = download_thread(thread['board_name'], thread['no'], db_connections[thread['board_name']])
+            if download_thread_return == 0:
+                print(f'[{thread_index + 1}/{len(all_threads)}] downloaded /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
+            else:
+                print(f'[{thread_index + 1}/{len(all_threads)}] skipped /{thread["board_name"]}/thread/{thread["no"]}, too few replies ({download_thread_return})', flush=True)
             time.sleep(random.randint(int(wait_time // 2), int((wait_time * 3) // 2)))
 
         except Exception as e:
@@ -193,7 +196,10 @@ def download_thread(board_name: str, thread_no: int, db_connection):
     this_thread = dict()
 
     if 'posts' not in thread_json:
-        return
+        return 0
+
+    if len(thread_json['posts']) < chv_config.minimum_replies_before_download:
+        return len(thread_json['posts'])
 
     # op post_no is same as thread_no
     op_post_no = thread_no
@@ -231,11 +237,24 @@ def download_thread(board_name: str, thread_no: int, db_connection):
         if 'id' in post:
             this_post['id'] = post['id']
 
-        if 'filename' in post and 'ext' in post:
+        if 'filename' in post and 'ext' in post and 'tim' in post:
             this_post['file'] = content_url(board_name, str(post['tim']), str(post['ext']))
             this_post['tim'] = post['tim']
             this_post['filename'] = post['filename']
             this_post['ext'] = post['ext']
+
+            # save thumbnail in folder
+            thumbnail_file = pathlib.Path(f'html/thumbs/{board_name}/{post["no"]}.jpg')
+            if not thumbnail_file.is_file():
+                thumbnail = get_url_custom(thumbnail_url(board_name, post['tim']))
+                time.sleep(0.1)
+
+                thumbnail_content = thumbnail.content
+                with thumbnail_file.open('wb') as f:
+                    f.write(thumbnail_content)
+
+            # alternatively, save thumbnail in db
+            # this_thread['thumbnail'] = base64.b64encode(thumbnail_content)
 
         if 'country' in post and 'country_name' in post:
             this_post['country'] = post['country']
@@ -261,19 +280,6 @@ def download_thread(board_name: str, thread_no: int, db_connection):
         this_thread['last_modified'] = this_thread['thread'][last_post_no]['time']
         this_thread['no'] = op_post['no']
 
-        if 'filename' in op_post and 'ext' in op_post and 'tim' in op_post:
-            thumbnail = get_url_custom(thumbnail_url(board_name, op_post['tim']))
-            thumbnail_content = thumbnail.content
-
-            # save thumbnail in db
-            # this_thread['thumbnail'] = base64.b64encode(thumbnail_content)
-
-            # alternatively, save thumbnail in folder
-            thumbnail_file = pathlib.Path(f'html/thumbs/{board_name}/{op_post_no}.png')
-            if not thumbnail_file.is_file():
-                with thumbnail_file.open('wb') as f:
-                    f.write(thumbnail_content)
-
         if 'sub' in op_post:
             this_thread['sub'] = op_post['sub']
 
@@ -281,7 +287,7 @@ def download_thread(board_name: str, thread_no: int, db_connection):
             this_thread['com'] = op_post['com']
 
     chv_database.save_thread(db_connection, this_thread)
-    return
+    return 0
 
 
 def download_all_boards_wrapper(wait_time: float):

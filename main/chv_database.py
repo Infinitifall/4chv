@@ -120,8 +120,10 @@ def delete_very_old_threads(db_connection, threads_keep_count: int):
         """)
 
     db_cursor.execute(f"""
-        SELECT no
+        SELECT thread_posts.post_no
         FROM threads
+        JOIN thread_posts
+            ON thread_posts.thread_no = threads.no
         WHERE NOT EXISTS (
             SELECT NULL
             FROM threads_not_to_nuke
@@ -130,9 +132,9 @@ def delete_very_old_threads(db_connection, threads_keep_count: int):
         """)
     # db_output = db_cursor.fetchall()
 
-    thread_nos_list = list()
-    for thread in db_cursor:
-        thread_nos_list.append(thread[0])
+    post_nos_list = list()
+    for post in db_cursor:
+        post_nos_list.append(post[0])
 
     db_cursor.execute(f"""
         DELETE FROM threads
@@ -144,7 +146,7 @@ def delete_very_old_threads(db_connection, threads_keep_count: int):
         """)
 
     db_connection.commit()
-    return thread_nos_list
+    return post_nos_list
 
 
 # get threads from db, only information from threads table

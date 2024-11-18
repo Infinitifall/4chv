@@ -11,17 +11,8 @@ import chv_config
 
 def main():
 
-    # pretty (ugly) print console message
-    print('-' * 50)
-    print('4CHV: a viewer for a more civilized age ')
-    print('-' * 50)
-    print('Leave this running in the background for')
-    print('however long you like. While running, it will')
-    print('1. Keep downloading new threads')
-    print('2. Keep updating the board html files')
-    print('')
-    print('Open the board html files in your web browser :)')
-    print('-' * 50)
+    # display pretty (ugly) start message
+    print(chv_config.pretty_ugly_start_message)
     sys.stdout.flush()
 
     # thread to download threads
@@ -54,5 +45,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main();
+    main()
 

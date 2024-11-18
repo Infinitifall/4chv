@@ -103,10 +103,16 @@ view_wait_time = 400
 # default: 300
 view_max_threads_per_board = 300
 
+
+# minimum number of replies to a thread before it is downloaded
+# unfortunately we need this to prevent being completely washed over by low quality spam
+# default: 5
+minimum_replies_before_download = 5
+
 # maximum number of threads stored in a database per board
 # we want this to be large since most threads are low quality, especially during high traffic
-# default: 5000
-db_max_threads_per_board = 5000
+# default: 1000
+db_max_threads_per_board = 1000
 
 
 ##############################
@@ -142,7 +148,29 @@ decay_power = 2
 # update version when you update css, js, images to bypass browser cache
 # you dont need to touch this unless you are a 4chv dev
 # default: 60
-version_number = "60"
+version_number = "61"
+
+# start message printed in console
+pretty_ugly_start_message = f'''
+--------------------------------------------------
+                       4CHV
+
+                   version: {version_number}
+
+        A viewer for a more civilized age        
+
+--------------------------------------------------
+Leave this running in the background whenever and
+however long you like.
+
+While running, it will
+1. Download new threads every few seconds
+2. Update board html files every few minutes
+
+Open the board html files in your web browser :)
+
+--------------------------------------------------
+'''
 
 
 if __name__ == '__main__':
