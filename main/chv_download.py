@@ -170,11 +170,13 @@ def download_all_boards(board_names: list, wait_time: float):
     for thread_index, thread in enumerate(all_threads):
         # if modified since, download the thread
         try:
-            download_thread_return = download_thread(thread['board_name'], thread['no'], db_connections[thread['board_name']])
-            if download_thread_return == 0:
+            if thread['replies'] >= chv_config.minimum_replies_before_download:
+                download_thread(thread['board_name'], thread['no'], db_connections[thread['board_name']])
                 print(f'[{thread_index + 1}/{len(all_threads)}] downloaded /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
             else:
-                print(f'[{thread_index + 1}/{len(all_threads)}] skipped /{thread["board_name"]}/thread/{thread["no"]}, too few replies ({download_thread_return})', flush=True)
+                print(f'[{thread_index + 1}/{len(all_threads)}] skipped /{thread["board_name"]}/thread/{thread["no"]} (only {thread["replies"]} replies)', flush=True)
+                continue # no request took place, so no need to sleep
+                # break  # chances are that remaining threads will have equal or fewer replies
             time.sleep(random.randint(int(wait_time // 2), int((wait_time * 3) // 2)))
 
         except Exception as e:
@@ -196,10 +198,7 @@ def download_thread(board_name: str, thread_no: int, db_connection):
     this_thread = dict()
 
     if 'posts' not in thread_json:
-        return 0
-
-    if len(thread_json['posts']) < chv_config.minimum_replies_before_download:
-        return len(thread_json['posts'])
+        return
 
     # op post_no is same as thread_no
     op_post_no = thread_no
@@ -287,7 +286,6 @@ def download_thread(board_name: str, thread_no: int, db_connection):
             this_thread['com'] = op_post['com']
 
     chv_database.save_thread(db_connection, this_thread)
-    return 0
 
 
 def download_all_boards_wrapper(wait_time: float):
