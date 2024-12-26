@@ -80,15 +80,39 @@ hr {
 }
 
 .greeter-usage-list,
+.greeter-options-list,
 .greeter-footer-list {
     padding-left: 0;
     margin: 0 2em 0 2em;
+}
+
+.greeter-options-list > li {
+    margin-top: 0.5em;
 }
 
 @media only screen and (max-width: 600px) {
     .greeter-shortcut-parent {
         display: none;
     }
+}
+
+.input-label {
+    display: inline-block;
+    width: 60px;
+}
+
+.style-selector {
+    width: 80px;
+    border: 1px solid var(--grey-1);
+    background-color: var(--code-bg);
+    color: var(--body-fg-1);
+}
+
+.input-blacklist-whitelist  {
+    width: 100px;
+    border: 1px solid var(--grey-1);
+    background-color: var(--code-bg);
+    color: var(--body-fg-1);
 }
 
 .all-boards {
@@ -296,6 +320,15 @@ Don't display replies or collapsible anchor for OP
 
 .thread-thumbnail > a > img {
     margin: auto;
+}
+
+.thread-blessed {
+    /* background: #101e06; */
+}
+
+.thread-cursed {
+    /* background-color: #221317; */
+    display: none !important;
 }
 
 /*
