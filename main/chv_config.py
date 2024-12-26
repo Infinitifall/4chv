@@ -147,8 +147,8 @@ decay_power = 2
 
 # update version when you update css, js, images to bypass browser cache
 # you dont need to touch this unless you are a 4chv dev
-# default: 60
-version_number = "61"
+# default: 62
+version_number = "62"
 
 # start message printed in console
 pretty_ugly_start_message = f'''
