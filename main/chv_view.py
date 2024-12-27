@@ -649,7 +649,7 @@ def make_index(board_names: list):
     selected_stylesheet = chv_config.selected_stylesheet
 
     # create style-selector dropbox
-    style_selector_html = '<select autocomplete="off" id="style-selector" onchange="set_style();">'
+    style_selector_html = '<select autocomplete="off" id="style-selector" class="style-selector" onchange="set_style();">'
     for style in all_stylesheets:
         style_selector_html += f'<option value="{all_stylesheets[style]}"'
         if style == selected_style:
@@ -695,8 +695,12 @@ def make_index(board_names: list):
                     <hr>
                     <div class="greeter-style-selector-parent">
                         <b>Options</b>
-                        <label for="style-selector">Style: </label>
-                        {style_selector_html}
+                        <ul class="greeter-options-list">
+                            <li>
+                                <label class="input-label" for="style-selector">Style: </label>
+                                {style_selector_html}
+                            </li>
+                        </ul>
                     </div>
                 </div>
                 <hr>
