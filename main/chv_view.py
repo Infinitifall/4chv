@@ -360,7 +360,6 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
                         <ul class="greeter-usage-list">
                             <li><a>[+]</a> to expand posts</li>
                             <li><a>&gt;&gt;1234567</a> to jump to posts</li>
-                            <li>Archived threads marked yellow</li>
                         </ul>
                     </div>
                     <div class="greeter-style-selector-parent">
@@ -421,6 +420,12 @@ def print_board(board: dict, threads_sorted : list, board_names: list, board_ind
 
     for thread_no in threads_sorted:
         thread = board[thread_no]
+
+        # check whether to display
+        if 'is_archived' in thread and chv_config.show_archived == False:
+            continue
+        if 'is_404d' in thread and chv_config.show_404d == False:
+            continue
 
         thread_replies = None
         if 'replies' in thread:
@@ -763,6 +768,7 @@ def make_html_wrapper(wait_time: float, thread_count: int):
                     print(e, flush=True)
                     time.sleep(10)
 
+            print('making: sleeping for a bit :)')
             time.sleep(wait_time)
 
         except Exception as e:

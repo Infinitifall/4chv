@@ -82,19 +82,33 @@ def archive_threads(db_connection, thread_nos: list):
     return
 
 
-# 404 a thread
-def four_o_four_thread(db_connection, thread_no):
+# 404 threads
+def four_o_four_threads(db_connection, thread_nos: list):
     db_cursor = db_connection.cursor()
 
     # set thread is_404d in threads table
     db_cursor.execute(f"""
         UPDATE threads
         SET is_404d = 1
-        WHERE no = ?;
-        """, thread_no)
+        WHERE no in ({','.join(['?' for _ in thread_nos])});
+        """, thread_nos)
 
     db_connection.commit()
     return
+
+
+# get non 404d yet threads
+def non_four_o_four_threads(db_connection):
+    db_cursor = db_connection.cursor()
+
+    db_cursor.execute(f"""
+        SELECT no
+        FROM threads
+        WHERE is_404d IS NULL
+        """)
+
+    db_output = [x[0] for x in db_cursor]
+    return db_output
 
 
 # delete very old threads and return their nos (so that their thumbnails can also be deleted!)
