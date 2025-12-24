@@ -85,7 +85,7 @@ def get_url_custom(custom_url):
     session = requests.Session()
     retry = urllib3.util.retry.Retry(
         connect=3,
-        backoff_factor=random.randint(10,30) / 10
+        backoff_factor=random.uniform(10,30)/10
     )
     adapter = requests.adapters.HTTPAdapter(max_retries=retry)
     session.mount('https://', adapter)
@@ -98,14 +98,16 @@ def download_all_boards(board_names: list, wait_time: float):
 
     # ensure threads folder is created
     pathlib.Path(f'threads/').mkdir(parents=True, exist_ok=True)
-
     db_connections = dict()
-    all_threads = list()
+
+    # get threads to download
+    modified_and_new_threads = list()
+    all_thread_nos = dict()
     for board_name in board_names:
         # ensure thumbs folder is created
         pathlib.Path(f'html/thumbs/{board_name[0]}/').mkdir(parents=True, exist_ok=True)
 
-        all_threads_2 = list()
+        all_threads_board = list()
 
         # get active threadlist on board
         request = get_url_custom(threadlist_url(board_name[0]))
@@ -113,7 +115,8 @@ def download_all_boards(board_names: list, wait_time: float):
         for page in threadlist_json:
             for thread in page['threads']:
                 thread['board_name'] = board_name[0]
-                all_threads_2.append(thread)
+                all_threads_board.append(thread)
+        all_thread_nos[board_name[0]] = [t['no'] for t in all_threads_board]
 
         # add board db connection to db_connections dict
         db_connections[board_name[0]] = sqlite3.connect(f'threads/{board_name[0]}.sqlite')
@@ -128,25 +131,26 @@ def download_all_boards(board_names: list, wait_time: float):
         if len(post_nos_deleted) != 0:
             print(f'removed {len(post_nos_deleted)} very old posts for /{board_name[0]}/', flush=True)
 
-        # get threads if in db
-        db_thread = chv_database.get_threads_shallow(
+        # get threads present in db
+        db_threads = chv_database.get_threads_shallow(
             db_connections[board_name[0]],
-            [t['no'] for t in all_threads_2]
+            [t['no'] for t in all_threads_board]
         )
 
-        # remove threads not modified since last download
-        all_threads_2 = [
-            t for t in all_threads_2
-            if t['no'] not in db_thread
-                or db_thread[t['no']]['last_modified'] != t['last_modified']
+        # filter for modified and new threads
+        modified_and_new_threads_board = [
+            t for t in all_threads_board
+            if t['no'] not in db_threads
+                or db_threads[t['no']]['last_modified'] != t['last_modified']
         ]
-        all_threads.extend(all_threads_2)
+        modified_and_new_threads.extend(modified_and_new_threads_board)
 
         print(f'fetched threadlist for /{board_name[0]}/', flush=True)
-        time.sleep(random.randint(int(wait_time // 2), int((wait_time * 3) // 2)))
+        time.sleep(random.uniform(wait_time/2, wait_time*3/2))
 
-    # archive threads
+    # mark threads as archived
     archived_boards = set()
+    archived_thread_nos = dict()
     request = get_url_custom(boards_url())
     boards_json: dict = json.loads(request.text)
     for board_json in boards_json['boards']:
@@ -157,39 +161,57 @@ def download_all_boards(board_names: list, wait_time: float):
             continue
         request = get_url_custom(archive_url(board_name[0]))
         archives_json: list = json.loads(request.text)
-        thread_nos = archives_json
-        chv_database.archive_threads(db_connections[board_name[0]], thread_nos)
+        archived_thread_nos[board_name[0]] = archives_json
+
+        # mark threads as archived
+        chv_database.archive_threads(db_connections[board_name[0]], archived_thread_nos[board_name[0]])
         print(f'archived threads on /{board_name[0]}/', flush=True)
-        time.sleep(random.randint(int(wait_time // 2), int((wait_time * 3) // 2)))
+        time.sleep(random.uniform(wait_time/2, wait_time*3/2))
+
+    # mark threads as 404d
+    for board_name in board_names:
+        four_o_four_thread_nos = list()
+        non_four_o_four_yet_thread_nos = chv_database.non_four_o_four_threads(db_connections[board_name[0]])
+        for thread_no in non_four_o_four_yet_thread_nos:
+            if thread_no not in all_thread_nos[board_name[0]] and thread_no not in archived_thread_nos[board_name[0]]:
+                # thread has been 404d
+                four_o_four_thread_nos.append(thread_no)
+        chv_database.four_o_four_threads(db_connections[board_name[0]], four_o_four_thread_nos)
+        print(f'404d threads on /{board_name[0]}/', flush=True)
 
     # sort to prioritize "hot" threads, weighing a reply as a 5 min bonus
-    all_threads.sort(
+    modified_and_new_threads.sort(
         key=lambda x: (datetime_now - x['last_modified']) // (60 * 5) - x['replies']
     )
 
-    for thread_index, thread in enumerate(all_threads):
-        # if modified since, download the thread
+    # filter threads to be downloaded
+    threads_to_be_downloaded = list()
+    for thread in modified_and_new_threads:
+        if thread['replies'] >= chv_config.minimum_replies_before_download:
+            threads_to_be_downloaded.append(thread)
+
+    for thread_index, thread in enumerate(threads_to_be_downloaded):
+        # download the thread
         try:
-            if thread['replies'] >= chv_config.minimum_replies_before_download:
-                download_thread(thread['board_name'], thread['no'], db_connections[thread['board_name']])
-                print(f'[{thread_index + 1}/{len(all_threads)}] downloaded /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
-            else:
-                print(f'[{thread_index + 1}/{len(all_threads)}] skipped /{thread["board_name"]}/thread/{thread["no"]} (only {thread["replies"]} replies)', flush=True)
-                continue # no request took place, so no need to sleep
-                # break  # chances are that remaining threads will have equal or fewer replies
-            time.sleep(random.randint(int(wait_time // 2), int((wait_time * 3) // 2)))
+            download_thread(thread['board_name'], thread['no'], db_connections[thread['board_name']])
+            print(f'[{thread_index + 1}/{len(threads_to_be_downloaded)}] downloaded /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
+            time.sleep(random.uniform(wait_time/2, wait_time*3/2))
 
         except Exception as e:
-            print(f'[{thread_index + 1}/{len(all_threads)}] failed!    /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
+            print(f'[{thread_index + 1}/{len(threads_to_be_downloaded)}] failed!    /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
             print(e, flush=True)
 
             # check if thread was 404d
             time.sleep(2)
             request = get_url_custom(thread_url(thread['board_name'], str(thread["no"])))
             if request.status_code == 404:
-                chv_database.four_o_four_thread(db_connections[thread['board_name']], thread["no"])
-                print(f'[{thread_index + 1}/{len(all_threads)}] 404d     /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
+                chv_database.four_o_four_thread(db_connections[thread['board_name']], [thread["no"]])
+                print(f'[{thread_index + 1}/{len(threads_to_be_downloaded)}] 404d     /{thread["board_name"]}/thread/{thread["no"]}', flush=True)
             time.sleep(10)
+
+    # remember kids, always close your db connections!
+    for board_name in db_connections:
+        db_connections[board_name].close()
 
 
 def download_thread(board_name: str, thread_no: int, db_connection):
@@ -301,7 +323,8 @@ def download_all_boards_wrapper(wait_time: float):
 
             # download them all
             download_all_boards(board_names, wait_time)
-            time.sleep(random.randint(int(wait_time // 2), int((wait_time * 3) // 2)))
+            print('downloading: sleeping for a bit :)')
+            time.sleep(20 * wait_time)
 
         except Exception as e:
             print('an error occurred!', flush=True)

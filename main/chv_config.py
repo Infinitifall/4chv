@@ -119,6 +119,11 @@ db_max_threads_per_board = 1000
 # config for view
 ##############################
 
+# whether to display archived and 404 threads
+# default: True, True
+show_archived = True
+show_404d = True
+
 # maximum number of times a post is shown
 # a value of 1 means no repeats
 # default: 1
@@ -147,8 +152,8 @@ decay_power = 2
 
 # update version when you update css, js, images to bypass browser cache
 # you dont need to touch this unless you are a 4chv dev
-# default: 62
-version_number = "62"
+# default: 70
+version_number = "70"
 
 # start message printed in console
 pretty_ugly_start_message = f'''
