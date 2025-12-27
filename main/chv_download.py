@@ -79,7 +79,10 @@ def clean_post(content: str):
     return content
 
 
-REQUEST_HEADERS = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3' }
+REQUEST_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
+    'Referer': 'https://boards.4chan.org/',
+}
 # get request with retries in case of
 def get_url_custom(custom_url):
     session = requests.Session()
